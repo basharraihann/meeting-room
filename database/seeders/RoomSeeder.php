@@ -9,37 +9,20 @@ class RoomSeeder extends Seeder
 {
     public function run(): void
     {
-        Room::insert([
-            [
-                'name' => 'Ruang Rapat Utama',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Ruang Rapat KDKMP',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Ruang Rapat Setmenko',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Ruang Rapat D2',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Ruang Rapat D3',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Ruang Rapat D4',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        $names = [
+            'Ruang Rapat Utama',
+            'Ruang Rapat KDKMP',
+            'Ruang Rapat Setmenko',
+            'Ruang Rapat D2',
+            'Ruang Rapat D3',
+            'Ruang Rapat D4',
+        ];
+
+        foreach ($names as $name) {
+            Room::updateOrCreate(
+                ['name' => $name],
+                ['name' => $name]
+            );
+        }
     }
 }

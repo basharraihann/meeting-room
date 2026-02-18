@@ -265,7 +265,7 @@
         <script>
             function bookingModal() {
                 return {
-                    open: @json($errors->any()),
+                    open: {{ session()->has('_old_input') ? 'true' : 'false' }},
                     start: @json(old('start_at', '')),
                     end: @json(old('end_at', '')),
 

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\BookingApiController;
@@ -18,6 +19,25 @@ use App\Http\Controllers\AgendaController;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Temporary Seeder Route (Production Safe with Key)
+|--------------------------------------------------------------------------
+| 1) Add SEED_KEY in Railway Variables (meeting-room service)
+| 2) Run: https://your-domain/run-seed?key=SEED_KEY_VALUE
+| 3) After success, REMOVE this route and push again
+*/
+Route::get('/run-seed', function () {
+    abort_unless(request('key') === env('SEED_KEY'), 403);
+
+    Artisan::call('db:seed', [
+        '--class' => 'Database\\Seeders\\RoomSeeder',
+        '--force' => true,
+    ]);
+
+    return 'Room seeded!';
 });
 
 /*

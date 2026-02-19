@@ -5,151 +5,478 @@
                 Riwayat Ajukan Rapat
             </h2>
 
-            <a href="{{ route('calendar') }}" class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800">
-                Kembali ke Kalender
+            <a href="{{ route('calendar') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors">
+                ← Kembali ke Kalender
             </a>
         </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-            <div class="bg-white shadow-sm rounded-2xl p-4 sm:p-6">
-                <form method="GET" class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-4">
-                    <div class="flex gap-2">
-                        @php
-                            $tabs = [
-                                '' => 'Semua',
-                                'PENDING' => 'Pending',
-                                'APPROVED' => 'Approved',
-                                'REJECTED' => 'Rejected',
-                                'CANCELED' => 'Canceled',
-                            ];
-                        @endphp
+        .riwayat-wrap { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-                        @foreach($tabs as $key => $label)
-                            <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q])) }}"
-                                class="px-3 py-2 rounded-xl text-sm
-                                   {{ ($status === $key || (empty($status) && $key === '')) ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800' }}">
-                                {{ $label }}
-                            </a>
-                        @endforeach
-                    </div>
+        /* ---- FILTER BAR ---- */
+        .filter-bar {
+            background: #fff;
+            border-radius: 20px;
+            padding: 16px 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
 
-                    <div class="flex gap-2">
-                        <input type="text" name="q" value="{{ $q }}" placeholder="Cari judul rapat..."
-                            class="border rounded-xl px-3 py-2 w-full sm:w-72" />
-                        @if($status)
-                            <input type="hidden" name="status" value="{{ $status }}">
-                        @endif
-                        <button class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700">
-                            Cari
-                        </button>
-                    </div>
+        .tab-group { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        .tab {
+            padding: 7px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            text-decoration: none;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+
+        .tab-active { background: #6366f1; color: #fff; }
+        .tab-ghost  { background: #f1f5f9; color: #475569; }
+        .tab-ghost:hover { background: #e2e8f0; color: #1e293b; }
+
+        .search-group { display: flex; gap: 8px; align-items: center; }
+
+        .search-input {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #1e293b;
+            outline: none;
+            width: 260px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus { border-color: #6366f1; }
+
+        .btn-search {
+            padding: 8px 18px;
+            border-radius: 12px;
+            background: #6366f1;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-search:hover { background: #4f46e5; }
+
+        /* ---- BOOKING CARD ---- */
+        .booking-list {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .booking-list-header {
+            padding: 14px 24px;
+            border-bottom: 1.5px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .booking-list-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .total-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6366f1;
+            background: #eef2ff;
+            padding: 3px 10px;
+            border-radius: 99px;
+        }
+
+        .booking-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f8fafc;
+            transition: background 0.1s;
+        }
+
+        .booking-row:last-child { border-bottom: none; }
+        .booking-row:hover { background: #fafafa; }
+
+        .booking-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .room-bar {
+            width: 4px;
+            height: 48px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .room-bar-1 { background: #94a3b8; }
+        .room-bar-2 { background: #14b8a6; }
+        .room-bar-3 { background: #8b5cf6; }
+        .room-bar-4 { background: #f59e0b; }
+        .room-bar-5 { background: #d946ef; }
+        .room-bar-6 { background: #f43f5e; }
+        .room-bar-default { background: #e2e8f0; }
+
+        .booking-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .booking-meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 3px;
+        }
+
+        .booking-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .booking-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* badges */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .badge-approved  { background: #dcfce7; color: #15803d; }
+        .badge-pending   { background: #fef9c3; color: #a16207; }
+        .badge-rejected  { background: #fee2e2; color: #b91c1c; }
+        .badge-canceled  { background: #f1f5f9; color: #64748b; }
+        .badge-done      { background: #dbeafe; color: #1d4ed8; }
+        .badge-default   { background: #f1f5f9; color: #475569; }
+
+        /* cancel btn */
+        .btn-cancel {
+            padding: 5px 14px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #1e293b;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-cancel:hover { background: #334155; }
+
+        /* empty */
+        .empty-state {
+            padding: 60px 24px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .empty-icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-text { font-size: 14px; font-weight: 500; }
+
+        /* pagination */
+        .pagination-wrap { padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+
+        /* cancel modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
+            background: #fff;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin: 16px;
+        }
+
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+
+        .modal-close {
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 16px;
+            cursor: pointer;
+            color: #64748b;
+            font-family: inherit;
+        }
+
+        .modal-close:hover { background: #e2e8f0; }
+
+        .modal-body { padding: 20px 24px; }
+
+        .modal-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .modal-textarea {
+            width: 100%;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #1e293b;
+            outline: none;
+            resize: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .modal-textarea:focus { border-color: #6366f1; }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .btn-modal-close {
+            padding: 9px 18px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-modal-close:hover { background: #e2e8f0; }
+
+        .btn-modal-confirm {
+            padding: 9px 18px;
+            border-radius: 12px;
+            background: #dc2626;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-modal-confirm:hover { background: #b91c1c; }
+    </style>
+
+    <div class="py-6 riwayat-wrap">
+        <div class="mx-auto sm:px-6 lg:px-8 space-y-4" style="max-width:90%">
+
+            {{-- Filter Bar --}}
+            <div class="filter-bar">
+                <div class="tab-group">
+                    @php
+                        $tabs = [
+                            '' => 'Semua',
+                            'PENDING' => 'Pending',
+                            'APPROVED' => 'Approved',
+                            'REJECTED' => 'Rejected',
+                            'CANCELED' => 'Canceled',
+                        ];
+                    @endphp
+
+                    @foreach($tabs as $key => $label)
+                        <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q])) }}"
+                            class="tab {{ ($status === $key || (empty($status) && $key === '')) ? 'tab-active' : 'tab-ghost' }}">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+
+                <form method="GET" class="search-group">
+                    <input type="text" name="q" value="{{ $q }}"
+                        placeholder="Cari judul rapat..."
+                        class="search-input" />
+                    @if($status)
+                        <input type="hidden" name="status" value="{{ $status }}">
+                    @endif
+                    <button type="submit" class="btn-search">Cari</button>
                 </form>
+            </div>
 
-                <div class="divide-y">
-                    @forelse($bookings as $b)
-                        <div class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div class="min-w-0">
-                                <div class="font-semibold text-gray-900 truncate">{{ $b->title }}</div>
-                                <div class="text-sm text-gray-600 mt-1">
-                                    Ruang: <span class="font-medium">{{ $b->room?->name ?? '-' }}</span> •
-                                    {{ \Carbon\Carbon::parse($b->start_at)->translatedFormat('d M Y H:i') }}
-                                    —
-                                    {{ \Carbon\Carbon::parse($b->end_at)->translatedFormat('H:i') }}
+            {{-- Booking List --}}
+            <div class="booking-list">
+                <div class="booking-list-header">
+                    <div class="booking-list-title">Daftar Rapat</div>
+                    @if($bookings->total() > 0)
+                        <span class="total-count">{{ $bookings->total() }} total</span>
+                    @endif
+                </div>
+
+                @forelse($bookings as $b)
+                    @php
+                        $now = now();
+                        $displayStatus = strtoupper($b->status);
+                        $isDone = ($b->status === 'APPROVED' && \Carbon\Carbon::parse($b->end_at)->lt($now));
+                        if ($isDone)
+                            $displayStatus = 'DONE';
+
+                        $badge = match ($displayStatus) {
+                            'APPROVED' => 'badge-approved',
+                            'PENDING' => 'badge-pending',
+                            'REJECTED' => 'badge-rejected',
+                            'CANCELED' => 'badge-canceled',
+                            'CANCELLED' => 'badge-canceled',
+                            'DONE' => 'badge-done',
+                            default => 'badge-default',
+                        };
+
+                        $roomBarClass = [
+                            1 => 'room-bar-1',
+                            2 => 'room-bar-2',
+                            3 => 'room-bar-3',
+                            4 => 'room-bar-4',
+                            5 => 'room-bar-5',
+                            6 => 'room-bar-6',
+                        ][$b->room_id ?? 0] ?? 'room-bar-default';
+                    @endphp
+
+                    <div class="booking-row">
+                        <div class="booking-left">
+                            <div class="room-bar {{ $roomBarClass }}"></div>
+
+                            <div style="min-width:0">
+                                <div class="booking-title">{{ $b->title }}</div>
+                                <div class="booking-meta">
+                                    {{ $b->room?->name ?? '-' }}
+                                    &nbsp;·&nbsp;
+                                    {{ \Carbon\Carbon::parse($b->start_at)->translatedFormat('d M Y') }}
+                                    &nbsp;
+                                    {{ \Carbon\Carbon::parse($b->start_at)->format('H:i') }}
+                                    –
+                                    {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
                                 </div>
-
                                 @if($b->description)
-                                    <div class="text-sm text-gray-700 mt-1 line-clamp-2">
-                                        {{ $b->description }}
-                                    </div>
+                                    <div class="booking-desc">{{ $b->description }}</div>
                                 @endif
                             </div>
-
-                            <div class="flex items-center gap-2">
-                           @php
-    $now = now();
-
-    // default display
-    $displayStatus = strtoupper($b->status);
-
-    // DONE logic (approved but already ended)
-    $isDone = ($b->status === 'APPROVED' && \Carbon\Carbon::parse($b->end_at)->lt($now));
-    if ($isDone) {
-        $displayStatus = 'DONE';
-    }
-
-    // badge color (DONE beda dari CANCELED)
-    if ($displayStatus === 'DONE') {
-        $badge = 'bg-blue-100 text-blue-700';   // ✅ DONE jadi biru muda
-    } else {
-        $badge = match ($b->status) {
-            'APPROVED' => 'bg-green-100 text-green-700',
-            'PENDING'  => 'bg-yellow-100 text-yellow-700',
-            'REJECTED' => 'bg-red-100 text-red-700',
-            'CANCELED' => 'bg-gray-200 text-gray-700', // ✅ CANCELED tetap abu
-            default    => 'bg-gray-100 text-gray-700',
-        };
-    }
-@endphp
-
-<span class="px-3 py-1 rounded-full text-xs font-semibold {{ $badge }}">
-    {{ $displayStatus }}
-</span>
-
-{{-- Cancel button: only if PENDING/APPROVED AND NOT DONE --}}
-@if(in_array($b->status, ['PENDING','APPROVED']) && !$isDone)
-    <button type="button"
-        class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-800 text-white hover:bg-gray-900"
-        onclick="openCancelModal({{ $b->id }})">
-        Cancel
-    </button>
-@endif
-
-                            </div>
                         </div>
-                    @empty
-                        <div class="py-10 text-center text-gray-500">
-                            Belum ada riwayat rapat.
-                        </div>
-                    @endforelse
-                </div>
 
-                <div class="mt-4">
-                    {{ $bookings->links() }}
-                </div>
+                        <div class="booking-right">
+                            <span class="badge {{ $badge }}">{{ $displayStatus }}</span>
+
+                            @if(in_array($b->status, ['PENDING', 'APPROVED']) && !$isDone)
+                                <button type="button" class="btn-cancel"
+                                    onclick="openCancelModal({{ $b->id }})">
+                                    Cancel
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-text">Belum ada riwayat rapat.</div>
+                    </div>
+                @endforelse
+
+                @if($bookings->hasPages())
+                    <div class="pagination-wrap">
+                        {{ $bookings->links() }}
+                    </div>
+                @endif
             </div>
 
         </div>
     </div>
 
     {{-- Cancel Modal --}}
-    <div id="cancelModal" class="fixed inset-0 hidden items-center justify-center bg-black/40 z-50">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow p-4 sm:p-6">
-            <div class="flex items-center justify-between">
-                <h3 class="font-semibold text-gray-900">Cancel Booking</h3>
-                <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closeCancelModal()">✕</button>
+    <div id="cancelModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">Batalkan Booking</div>
+                <button type="button" class="modal-close" onclick="closeCancelModal()">✕</button>
             </div>
 
-            <form id="cancelForm" method="POST" class="mt-4">
+            <form id="cancelForm" method="POST">
                 @csrf
 
-                <label class="block text-sm text-gray-700 mb-1">Cancel Reason</label>
-                <textarea name="cancel_reason" rows="4" required
-                          class="w-full border rounded-xl px-3 py-2"
-                          placeholder="Enter the reason for cancellation..."></textarea>
+                <div class="modal-body">
+                    <label class="modal-label">Alasan Pembatalan</label>
+                    <textarea name="cancel_reason" rows="4" required
+                        class="modal-textarea"
+                        placeholder="Masukkan alasan pembatalan..."></textarea>
+                </div>
 
-                <div class="mt-4 flex justify-end gap-2">
-                    <button type="button"
-                            class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200"
-                            onclick="closeCancelModal()">
-                        Close
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-close" onclick="closeCancelModal()">
+                        Tutup
                     </button>
-
-                    <button type="submit"
-                            class="px-4 py-2 rounded-xl bg-gray-800 text-white hover:bg-gray-900">
-                        Confirm Cancel
+                    <button type="submit" class="btn-modal-confirm">
+                        Konfirmasi Batal
                     </button>
                 </div>
             </form>
@@ -158,17 +485,12 @@
 
     <script>
         function openCancelModal(bookingId) {
-            const modal = document.getElementById('cancelModal');
-            const form = document.getElementById('cancelForm');
-            form.action = `/bookings/${bookingId}/cancel`;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('cancelForm').action = `/bookings/${bookingId}/cancel`;
+            document.getElementById('cancelModal').style.display = 'flex';
         }
 
         function closeCancelModal() {
-            const modal = document.getElementById('cancelModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('cancelModal').style.display = 'none';
         }
     </script>
 </x-app-layout>

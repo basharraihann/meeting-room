@@ -54,7 +54,7 @@
     @endphp
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="mx-auto sm:px-6 lg:px-8" style="max-width:90%">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
                 {{-- SIDEBAR FILTER (PIC) --}}
@@ -326,6 +326,199 @@
     </script>
 
     @vite(['resources/js/calendar.js'])
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+        /* ============================================
+           BASE CALENDAR FONT
+        ============================================ */
+        #calendar {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* ============================================
+           TOOLBAR / HEADER
+        ============================================ */
+        .fc .fc-toolbar {
+            padding: 4px 0 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .fc .fc-toolbar-title {
+            font-size: 1.25rem !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+            letter-spacing: -0.02em;
+        }
+
+        .fc .fc-button {
+            background: #f1f5f9 !important;
+            border: none !important;
+            color: #475569 !important;
+            font-weight: 600 !important;
+            font-size: 0.8rem !important;
+            border-radius: 10px !important;
+            padding: 6px 14px !important;
+            box-shadow: none !important;
+            transition: background 0.15s, color 0.15s !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+
+        .fc .fc-button:hover {
+            background: #e2e8f0 !important;
+            color: #1e293b !important;
+        }
+
+        .fc .fc-button-primary:not(:disabled).fc-button-active,
+        .fc .fc-button-primary:not(:disabled):active {
+            background: #6366f1 !important;
+            color: #fff !important;
+        }
+
+        .fc .fc-today-button {
+            background: #6366f1 !important;
+            color: #fff !important;
+        }
+
+        .fc .fc-today-button:hover {
+            background: #4f46e5 !important;
+        }
+
+        /* ============================================
+           WEEKLY GRID - COLUMN HEADERS
+        ============================================ */
+        .fc .fc-col-header-cell {
+            background: #f8fafc !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+            padding: 10px 0 !important;
+        }
+
+        .fc .fc-col-header-cell-cushion {
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.06em !important;
+            color: #64748b !important;
+            text-decoration: none !important;
+        }
+
+        .fc .fc-day-today .fc-col-header-cell-cushion {
+            color: #6366f1 !important;
+        }
+
+        /* ============================================
+           TIME SLOTS
+        ============================================ */
+        .fc .fc-timegrid-slot {
+            height: 48px !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        .fc .fc-timegrid-slot-label {
+            font-size: 0.7rem !important;
+            font-weight: 600 !important;
+            color: #94a3b8 !important;
+            letter-spacing: 0.02em;
+            vertical-align: top;
+            padding-top: 4px;
+        }
+
+        /* ============================================
+           TODAY COLUMN
+        ============================================ */
+        .fc .fc-day-today {
+            background: #f5f3ff !important;
+        }
+
+        .fc .fc-timegrid-col.fc-day-today {
+            background: #f5f3ff !important;
+        }
+
+        /* ============================================
+           WEEKLY EVENTS
+        ============================================ */
+        .fc-timegrid-event-harness .fc-event {
+            border-radius: 10px !important;
+            border: none !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+            overflow: hidden !important;
+        }
+
+        .fc-timegrid-event .fc-event-main {
+            padding: 6px 8px !important;
+        }
+
+        /* ============================================
+           DAYGRID (MONTHLY) - EVENT FIX TIDAK TERPOTONG
+        ============================================ */
+        .fc-daygrid-event-harness {
+            overflow: visible !important;
+            position: relative !important;
+            z-index: 1;
+        }
+
+        .fc-daygrid-event-harness:hover {
+            z-index: 10;
+        }
+
+        .fc-daygrid-day-events {
+            overflow: visible !important;
+        }
+
+        .fc-daygrid-event {
+            white-space: normal !important;
+            overflow: visible !important;
+        }
+
+        .fc-event-main {
+            overflow: visible !important;
+        }
+
+        /* ============================================
+           GRID BORDERS
+        ============================================ */
+        .fc .fc-scrollgrid {
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            border-color: #94a3b8 !important;
+        }
+
+        .fc td,
+        .fc th {
+            border-color: #cbd5e1 !important;
+        }
+
+        /* ============================================
+           SCROLLBAR
+        ============================================ */
+        .fc-scroller::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .fc-scroller::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .fc-scroller::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* ============================================
+           NOW INDICATOR
+        ============================================ */
+        .fc .fc-timegrid-now-indicator-line {
+            border-color: #6366f1 !important;
+            border-width: 2px !important;
+        }
+
+        .fc .fc-timegrid-now-indicator-arrow {
+            border-top-color: #6366f1 !important;
+            border-bottom-color: #6366f1 !important;
+        }
+    </style>
 
     {{-- Modal Detail Meeting --}}
     <div x-data="meetingDetailModal()" x-show="open" x-cloak

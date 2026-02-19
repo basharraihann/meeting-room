@@ -4,131 +4,321 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Agenda Saya
             </h2>
-
             <a href="{{ route('calendar') }}"
-                class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm">
-                Kembali ke Calendar
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors">
+                ← Kembali ke Calendar
             </a>
         </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-            {{-- Filter tanggal + quick range --}}
-            <div
-                class="bg-white shadow-sm sm:rounded-lg p-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <form method="GET" action="{{ route('agenda') }}" class="flex flex-col sm:flex-row gap-3 sm:items-end">
+        .agenda-wrap { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        .filter-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+
+        .date-input {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 9px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #1e293b;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .date-input:focus { border-color: #6366f1; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: #6366f1; color: #fff; }
+        .btn-primary:hover { background: #4f46e5; color: #fff; }
+        .btn-active { background: #6366f1; color: #fff; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; color: #1e293b; }
+        .btn-copy { background: #10b981; color: #fff; }
+        .btn-copy:hover { background: #059669; }
+
+        .agenda-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .agenda-card-header {
+            padding: 16px 24px;
+            border-bottom: 1.5px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .agenda-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .agenda-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6366f1;
+            background: #eef2ff;
+            padding: 3px 10px;
+            border-radius: 99px;
+        }
+
+        .day-header {
+            padding: 10px 24px;
+            background: #f8fafc;
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .booking-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f8fafc;
+            transition: background 0.1s;
+        }
+
+        .booking-row:last-child { border-bottom: none; }
+        .booking-row:hover { background: #fafafa; }
+
+        .booking-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .room-bar {
+            width: 4px;
+            height: 44px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .booking-time {
+            font-size: 13px;
+            font-weight: 700;
+            color: #6366f1;
+            white-space: nowrap;
+            min-width: 90px;
+        }
+
+        .booking-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .booking-meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .badge-approved { background: #dcfce7; color: #15803d; }
+        .badge-pending  { background: #fef9c3; color: #a16207; }
+        .badge-rejected { background: #fee2e2; color: #b91c1c; }
+        .badge-default  { background: #f1f5f9; color: #475569; }
+
+        .empty-state {
+            padding: 60px 24px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .empty-icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-text { font-size: 14px; font-weight: 500; }
+
+        .room-bar-1 { background: #94a3b8; }
+        .room-bar-2 { background: #14b8a6; }
+        .room-bar-3 { background: #8b5cf6; }
+        .room-bar-4 { background: #f59e0b; }
+        .room-bar-5 { background: #d946ef; }
+        .room-bar-6 { background: #f43f5e; }
+        .room-bar-default { background: #e2e8f0; }
+    </style>
+
+    <div class="py-6 agenda-wrap">
+        <div class="mx-auto sm:px-6 lg:px-8 space-y-4" style="max-width:90%">
+
+            {{-- Filter Card --}}
+            <div class="filter-card">
+                <form method="GET" action="{{ route('agenda') }}" class="filter-group">
                     <input type="hidden" name="mode" value="{{ $mode ?? 'day' }}">
 
                     <div>
-                        <label class="block text-sm text-gray-600">Tanggal</label>
-                        <input type="date" name="date" value="{{ $date }}"
-                            class="border rounded px-3 py-2 w-full sm:w-auto" />
+                        <div class="filter-label">Tanggal</div>
+                        <input type="date" name="date" value="{{ $date }}" class="date-input" />
                     </div>
 
-                    <div class="flex gap-2 flex-wrap">
-                        <button class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
-                            Lihat
-                        </button>
+                    <button type="submit" class="btn btn-primary">Lihat</button>
 
-                        <a href="{{ route('agenda', ['mode' => 'day', 'date' => now()->toDateString()]) }}"
-                            class="px-4 py-2 rounded {{ (($mode ?? 'day') === 'day') ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                            Hari ini
-                        </a>
+                    <a href="{{ route('agenda', ['mode' => 'day', 'date' => now()->toDateString()]) }}"
+                        class="btn {{ (($mode ?? 'day') === 'day') ? 'btn-active' : 'btn-ghost' }}">
+                        Hari ini
+                    </a>
 
-                        <a href="{{ route('agenda', ['mode' => 'week', 'date' => now()->toDateString()]) }}"
-                            class="px-4 py-2 rounded {{ (($mode ?? 'day') === 'week') ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                            Minggu ini
-                        </a>
+                    <a href="{{ route('agenda', ['mode' => 'week', 'date' => now()->toDateString()]) }}"
+                        class="btn {{ (($mode ?? 'day') === 'week') ? 'btn-active' : 'btn-ghost' }}">
+                        Minggu ini
+                    </a>
 
-                        <a href="{{ route('agenda', ['mode' => 'month', 'date' => now()->toDateString()]) }}"
-                            class="px-4 py-2 rounded {{ (($mode ?? 'day') === 'month') ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                            Bulan ini
-                        </a>
-                    </div>
+                    <a href="{{ route('agenda', ['mode' => 'month', 'date' => now()->toDateString()]) }}"
+                        class="btn {{ (($mode ?? 'day') === 'month') ? 'btn-active' : 'btn-ghost' }}">
+                        Bulan ini
+                    </a>
                 </form>
 
-                {{-- Copy summary --}}
-                <button type="button" class="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                    onclick="copyAgenda()">
-                    Copy agenda (buat pimpinan)
+                <button type="button" class="btn btn-copy" onclick="copyAgenda()">
+                    📋 Copy agenda
                 </button>
             </div>
 
-            {{-- List agenda --}}
-            <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
-                <div class="p-4 border-b font-semibold">
-                    Jadwal: {{ $title ?? \Carbon\Carbon::parse($date)->format('d M Y') }}
+            {{-- Agenda List --}}
+            <div class="agenda-card">
+                <div class="agenda-card-header">
+                    <div class="agenda-card-title">
+                        Jadwal: {{ $title ?? \Carbon\Carbon::parse($date)->translatedFormat('d F Y') }}
+                    </div>
+                    @if(!$bookings->isEmpty())
+                        <span class="agenda-count">{{ $bookings->count() }} rapat</span>
+                    @endif
                 </div>
 
                 @if($bookings->isEmpty())
-                    <div class="p-4 text-gray-600">
-                        Tidak ada rapat pada periode ini.
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-text">Tidak ada rapat pada periode ini.</div>
                     </div>
                 @else
-
                     @php
-                        // Group by date kalau mode week/month biar enak dibaca
                         $isRange = in_array(($mode ?? 'day'), ['week', 'month']);
                         $grouped = $isRange
                             ? $bookings->groupBy(fn($b) => \Carbon\Carbon::parse($b->start_at)->toDateString())
                             : collect([\Carbon\Carbon::parse($date)->toDateString() => $bookings]);
+
+                        $roomBarClass = [
+                            1 => 'room-bar-1',
+                            2 => 'room-bar-2',
+                            3 => 'room-bar-3',
+                            4 => 'room-bar-4',
+                            5 => 'room-bar-5',
+                            6 => 'room-bar-6',
+                        ];
                     @endphp
 
-                    <div class="divide-y">
-                        @foreach($grouped as $day => $items)
-                            @if($isRange)
-                                <div class="px-4 py-2 bg-gray-50 text-gray-800 font-semibold">
-                                    {{ \Carbon\Carbon::parse($day)->translatedFormat('l, d M Y') }}
-                                </div>
-                            @endif
+                    @foreach($grouped as $day => $items)
+                        @if($isRange)
+                            <div class="day-header">
+                                {{ \Carbon\Carbon::parse($day)->translatedFormat('l, d M Y') }}
+                            </div>
+                        @endif
 
-                            @foreach($items as $b)
-                                <div class="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        @foreach($items as $b)
+                            @php
+                                $barClass = $roomBarClass[$b->room_id ?? 0] ?? 'room-bar-default';
+                                $badge = match($b->status) {
+                                    'APPROVED' => 'badge-approved',
+                                    'PENDING'  => 'badge-pending',
+                                    'REJECTED' => 'badge-rejected',
+                                    default    => 'badge-default',
+                                };
+                            @endphp
+
+                            <div class="booking-row">
+                                <div class="booking-left">
+                                    <div class="room-bar {{ $barClass }}"></div>
+
+                                    <div class="booking-time">
+                                        {{ \Carbon\Carbon::parse($b->start_at)->format('H:i') }}
+                                        –
+                                        {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
+                                    </div>
+
                                     <div>
-                                        <div class="font-semibold text-gray-900">
-                                            {{ $b->title }}
+                                        <div class="booking-title">{{ $b->title }}</div>
+                                        <div class="booking-meta">
+                                            {{ $b->room?->name ?? '-' }}
+                                            @if($b->description)
+                                                · {{ Str::limit($b->description, 60) }}
+                                            @endif
                                         </div>
-                                        <div class="text-sm text-gray-600">
-                                            {{ \Carbon\Carbon::parse($b->start_at)->format('H:i') }}
-                                            -
-                                            {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
-                                            • Ruang: {{ $b->room?->name ?? '-' }}
-                                        </div>
-
-                                        @if($b->description)
-                                            <div class="text-sm text-gray-500 mt-1">
-                                                {{ $b->description }}
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                    <div class="text-sm">
-                                        @php
-                                            $badge = match ($b->status) {
-                                                'APPROVED' => 'bg-green-100 text-green-800',
-                                                'PENDING' => 'bg-yellow-100 text-yellow-800',
-                                                'REJECTED' => 'bg-red-100 text-red-800',
-                                                default => 'bg-gray-100 text-gray-800',
-                                            };
-                                        @endphp
-                                        <span class="px-3 py-1 rounded {{ $badge }}">
-                                            {{ $b->status }}
-                                        </span>
                                     </div>
                                 </div>
-                            @endforeach
+
+                                <span class="badge {{ $badge }}">{{ $b->status }}</span>
+                            </div>
                         @endforeach
-                    </div>
+                    @endforeach
                 @endif
             </div>
 
-            {{-- Hidden textarea buat copas --}}
-            <textarea id="agendaText" class="hidden">{{ $summaryText }}</textarea>
-
         </div>
     </div>
+
+    <textarea id="agendaText" class="hidden">{{ $summaryText }}</textarea>
 
     <script>
         function copyAgenda() {

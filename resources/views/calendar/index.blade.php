@@ -1,4 +1,10 @@
 <x-app-layout>
+    @if($errors->any())
+        <pre>ERRORS: {{ json_encode($errors->all()) }}</pre>
+    @endif
+    @if(session()->has('_old_input'))
+        <pre>OLD INPUT ADA</pre>
+    @endif
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -265,7 +271,7 @@
         <script>
             function bookingModal() {
                 return {
-                    open: {{ session()->has('_old_input') ? 'true' : 'false' }},
+                    open: {{ $errors->any() ? 'true' : 'false' }},
                     start: @json(old('start_at', '')),
                     end: @json(old('end_at', '')),
 

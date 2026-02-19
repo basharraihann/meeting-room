@@ -44,11 +44,15 @@ class BookingController extends Controller
         ]);
 
         // ====== NOTIF EMAIL ke semua TU ======
-        $tuUsers = User::role('TU')->get(); // butuh spatie permission
+        $tuUsers = User::role('TU')->get();
 
         foreach ($tuUsers as $tu) {
             if (!empty($tu->email)) {
-                $tu->notify(new BookingSubmittedNotification($booking));
+                try {
+                    $tu->notify(new BookingSubmittedNotification($booking));
+                } catch (\Exception $e) {
+                    \Log::error('Email gagal ke ' . $tu->email . ': ' . $e->getMessage());
+                }
             }
         }
         // ====================================
@@ -74,7 +78,7 @@ class BookingController extends Controller
         ]);
 
         $booking->update([
-            'status' => 'CANCELED',
+            'status' => 'CANCELLED',
             'cancel_reason' => $data['cancel_reason'],
             'canceled_at' => now(),
             'canceled_by' => auth()->id(),

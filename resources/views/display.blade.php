@@ -497,13 +497,16 @@
                     ];
                     $dotColor = '#1e293b';
 
-                    $now = now();
+                    $now = now('Asia/Jakarta');
                     $currentBooking = $todayBookings->first(
                         fn($b) =>
-                        $now->between(\Carbon\Carbon::parse($b->start_at), \Carbon\Carbon::parse($b->end_at))
+                        $now->between(
+                            \Carbon\Carbon::parse($b->start_at)->setTimezone('Asia/Jakarta'),
+                            \Carbon\Carbon::parse($b->end_at)->setTimezone('Asia/Jakarta')
+                        )
                     );
                     $nextBooking = $todayBookings->first(function ($b) use ($now) {
-                        $start = \Carbon\Carbon::parse($b->start_at);
+                        $start = \Carbon\Carbon::parse($b->start_at)->setTimezone('Asia/Jakarta');
                         return $start->gt($now) && $start->diffInMinutes($now) <= 30;
                     });
                 @endphp
@@ -527,14 +530,15 @@
                         $btnDot = $room ? ($btnDotColors[$room->id] ?? '#94a3b8') : '#6366f1';
                     @endphp
                     <button class="room-dropdown-btn" onclick="toggleDropdown()">
-                        <div class="room-dot" style="background:{{ $btnDot }}"></div>
+                        @if($room)
+                            <div class="room-dot" style="background:{{ $btnDot }}"></div>
+                        @endif
                         <span class="room-dropdown-name">{{ $room?->name ?? 'Semua Ruang' }}</span>
                         <span class="dropdown-chevron">▼</span>
                     </button>
 
                     <div class="room-dropdown-menu" id="dropdownMenu">
                         <a href="/display" class="dropdown-item {{ !$room ? 'active' : '' }}">
-                            <div class="dropdown-dot" style="background:#6366f1"></div>
                             Semua Ruang
                         </a>
                         @foreach(\App\Models\Room::orderBy('id')->get() as $r)
@@ -558,10 +562,14 @@
                     </div>
                 </div>
 
-                @if($currentBooking)
-                    <span class="room-status status-busy">● SEDANG DIGUNAKAN</span>
-                @elseif($nextBooking)
-                    <span class="room-status status-soon">● SEGERA DIGUNAKAN</span>
+                @if($room)
+                    @if($currentBooking)
+                        <span class="room-status status-busy">● SEDANG DIGUNAKAN</span>
+                    @elseif($nextBooking)
+                        <span class="room-status status-soon">● SEGERA DIGUNAKAN</span>
+                    @else
+                        <span class="room-status status-free">● TERSEDIA</span>
+                    @endif
                 @endif
             </div>
 
@@ -589,8 +597,8 @@
                 <div class="agenda-list">
                     @forelse($todayBookings as $b)
                         @php
-                            $bStart = \Carbon\Carbon::parse($b->start_at);
-                            $bEnd = \Carbon\Carbon::parse($b->end_at);
+                            $bStart = \Carbon\Carbon::parse($b->start_at)->setTimezone('Asia/Jakarta');
+                            $bEnd = \Carbon\Carbon::parse($b->end_at)->setTimezone('Asia/Jakarta');
                             $isNow = $now->between($bStart, $bEnd);
                             $isSoon = !$isNow && $bStart->gt($now) && $bStart->diffInMinutes($now) <= 30;
 
@@ -648,7 +656,7 @@
                             @elseif($isSoon)
                                 <span class="agenda-item-badge badge-soon">SEGERA</span>
                             @else
-                                <span class="agenda-item-badge badge-later">TERJADWAL</span>
+                                <span class="agenda-item-badge badge-later">SELESAI</span>
                             @endif
                         </div>
                     @empty

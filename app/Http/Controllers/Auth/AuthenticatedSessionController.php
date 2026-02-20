@@ -28,7 +28,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('calendar', absolute: false));
+        // Hindari redirect ke API endpoint (misal /api/bookings)
+        $intended = session()->pull('url.intended');
+        if ($intended && str_contains($intended, '/api/')) {
+            $intended = null;
+        }
+
+        return redirect($intended ?? route('calendar'));
     }
 
     /**

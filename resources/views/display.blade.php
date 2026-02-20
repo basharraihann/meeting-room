@@ -513,8 +513,7 @@
 
                 {{-- LOGO --}}
                 <div class="logo-wrap">
-                    <img src="/images/logo-kemenko.png" alt="Logo" onerror="this.style.display='none'">
-                    <div class="logo-text">Kementerian Koordinator<br>Bidang Pangan</div>
+                    <img src="/images/logoheader.png" alt="Logo" onerror="this.style.display='none'">
                 </div>
 
                 {{-- ROOM DROPDOWN --}}

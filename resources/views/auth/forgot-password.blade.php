@@ -41,7 +41,7 @@
                         <div>
                             <x-input-label for="email" :value="__('Email')" />
                             <x-text-input id="email" name="email" type="email" :value="old('email')" required autofocus
-                                placeholder="nama@kemenkopangan.go.id" class="mt-2 block w-full rounded-2xl border-slate-200 bg-white px-4 py-3
+                                placeholder="nama@gmail.com" class="mt-2 block w-full rounded-2xl border-slate-200 bg-white px-4 py-3
                                        focus:border-indigo-400 focus:ring-indigo-200" />
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                         </div>

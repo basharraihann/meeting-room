@@ -1,4 +1,5 @@
 <x-guest-layout>
+    <x-slot name="title">Lupa Password</x-slot>
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-slate-100">
 
         {{-- soft background glow --}}

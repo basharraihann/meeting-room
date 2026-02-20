@@ -1,6 +1,7 @@
 import { Calendar } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
+import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import idLocale from '@fullcalendar/core/locales/id'
 
@@ -130,26 +131,25 @@ document.addEventListener('DOMContentLoaded', function () {
   // FULLCALENDAR
   // =====================================================
   const calendarConfig = {
-    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+    plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
 
     locale: idLocale,
     buttonText: {
       today: 'Hari ini',
       month: 'Bulan',
       week: 'Minggu',
-      day: 'Hari'
+      day: 'Hari',
+      list: 'Agenda'
     },
 
     eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
 
-    initialView: 'dayGridMonth',
+    initialView: window.innerWidth < 640 ? 'listMonth' : 'dayGridMonth',
 
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
+    headerToolbar: window.innerWidth < 640
+      ? { left: 'prev,next', center: 'title', right: 'listMonth,dayGridMonth' }
+      : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
 
     events: {
       url: '/api/bookings',

@@ -122,10 +122,14 @@
                 </x-responsive-nav-link>
             @endif
 
-            {{-- MOBILE: LINK MY BOOKINGS UNTUK PIC --}}
+            {{-- MOBILE: LINK UNTUK PIC --}}
             @if(auth()->user()->hasRole('PIC'))
+                <x-responsive-nav-link :href="route('agenda')" :active="request()->routeIs('agenda')">
+                    Agenda Saya
+                </x-responsive-nav-link>
+
                 <x-responsive-nav-link :href="route('my_bookings.index')" :active="request()->routeIs('my_bookings.*')">
-                    My Bookings
+                    Riwayat Pengajuan
                 </x-responsive-nav-link>
             @endif
         </div>

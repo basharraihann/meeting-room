@@ -13,7 +13,8 @@
 
             @if(auth()->user()?->hasRole('PIC'))
                 <div class="flex gap-2">
-                    <button type="button" class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
+                    <button type="button"
+                        class="px-3 py-1.5 text-sm sm:px-4 sm:py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
                         onclick="window.dispatchEvent(new CustomEvent('open-booking-modal'))">
                         + Ajukan Rapat
                     </button>
@@ -60,41 +61,75 @@
                 {{-- SIDEBAR FILTER (PIC) --}}
                 @if(auth()->user()?->hasRole('PIC'))
                     <aside class="lg:col-span-3">
-                        <div class="bg-white shadow-sm rounded-2xl p-4">
-                            <div class="font-semibold text-gray-900">Filter Ruang</div>
-                            <div class="text-sm text-gray-500 mt-1">Klik untuk melihat jadwal per ruang.</div>
+                        <div class="bg-white shadow-sm rounded-2xl p-4" x-data="{ openFilter: false }">
+                            <button type="button" class="w-full flex items-center justify-between"
+                                @click="openFilter = !openFilter">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Filter Ruang</div>
+                                    <div class="text-sm text-gray-500 mt-0.5 hidden sm:block">Klik untuk melihat jadwal per
+                                        ruang.</div>
+                                </div>
+                                <span class="lg:hidden text-gray-400 text-lg" x-text="openFilter ? '▲' : '▼'"></span>
+                            </button>
 
-                            @php
-                                $roomDotColors = [
-                                    1 => 'bg-slate-500',
-                                    2 => 'bg-teal-500',
-                                    3 => 'bg-violet-500',
-                                    4 => 'bg-amber-500',
-                                    5 => 'bg-fuchsia-500',
-                                    6 => 'bg-rose-500',
-                                ];
-                            @endphp
-
-                            <div class="mt-4 space-y-1" id="room-sidebar" data-active-room="{{ $activeRoomId }}">
+                            <div class="mt-4 space-y-1 lg:block" :class="openFilter ? 'block' : 'hidden lg:block'"
+                                id="room-sidebar" data-active-room="{{ $activeRoomId }}">
 
                                 {{-- Semua Ruang --}}
                                 <button type="button"
-                                    class="room-filter w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50 flex items-center gap-2"
+                                    class="room-filter w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50"
                                     data-room-id="" data-room-name="Semua Ruang">
                                     Semua Ruang
                                 </button>
 
-                                {{-- Rooms dari DB --}}
+                                {{-- Rooms dari DB (pasti benar id-nya, gak ketuker D2/D3 lagi) --}}
                                 @foreach(\App\Models\Room::orderBy('id')->get() as $room)
                                     <button type="button"
-                                        class="room-filter w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50 flex items-center gap-2"
+                                        class="room-filter w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50"
                                         data-room-id="{{ $room->id }}" data-room-name="{{ $room->name }}">
-                                        <span
-                                            class="h-2 w-2 rounded-full flex-shrink-0 {{ $roomDotColors[$room->id] ?? 'bg-gray-400' }}"></span>
                                         {{ $room->name }}
                                     </button>
                                 @endforeach
 
+                            </div>
+
+                            {{-- LEGEND WARNA --}}
+                            <div class="mt-4 pt-4 border-t">
+                                <div class="text-xs font-semibold text-gray-700 mb-2">Legenda Warna</div>
+
+                                <div class="space-y-1 text-sm text-gray-700">
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-slate-500"></span>
+                                        Ruang Rapat Utama
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-teal-500"></span>
+                                        Ruang Rapat KDKMP
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-violet-500"></span>
+                                        Ruang Rapat Setmenko
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                                        Ruang Rapat D2
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-fuchsia-500"></span>
+                                        Ruang Rapat D3
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                                        Ruang Rapat D4
+                                    </div>
+
+                                </div>
                             </div>
                         </div>
                     </aside>

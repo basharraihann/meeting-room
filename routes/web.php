@@ -10,7 +10,6 @@ use App\Http\Controllers\BookingCheckController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\MyBookingController;
 use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\DisplayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -145,7 +144,10 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/display', [DisplayController::class, 'show'])->name('display');
-Route::get('/display/{roomId}', [DisplayController::class, 'show'])->name('display.room');
+Route::get('/display', [\App\Http\Controllers\DisplayController::class, 'show'])->name('display');
+Route::get('/display/{roomId}', [\App\Http\Controllers\DisplayController::class, 'show'])->name('display.room');
+
+// Public API for display monitor (no auth)
+Route::get('/api/display-bookings', [BookingApiController::class, 'index'])->name('api.display.bookings');
 
 require __DIR__ . '/auth.php';

@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Display – {{ $room?->name ?? 'Semua Ruang' }}</title>
 
-
-    <link rel="icon" type="image/png" href="/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
@@ -515,7 +513,8 @@
 
                 {{-- LOGO --}}
                 <div class="logo-wrap">
-                    <img src="/images/logoheader.png" alt="Logo" onerror="this.style.display='none'">
+                    <img src="/images/logo-kemenko.png" alt="Logo" onerror="this.style.display='none'">
+                    <div class="logo-text">Kementerian Koordinator<br>Bidang Pangan</div>
                 </div>
 
                 {{-- ROOM DROPDOWN --}}
@@ -658,7 +657,7 @@
                             @elseif($isSoon)
                                 <span class="agenda-item-badge badge-soon">SEGERA</span>
                             @else
-                                <span class="agenda-item-badge badge-later">SELESAI</span>
+                                <span class="agenda-item-badge badge-later">TERJADWAL</span>
                             @endif
                         </div>
                     @empty
@@ -731,7 +730,7 @@
                 buttonText: { today: 'Hari ini' },
                 eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
                 events: {
-                    url: '/api/bookings',
+                    url: '/api/display-bookings',
                     extraParams: () => roomId ? { room_id: roomId } : {},
                 },
                 eventContent(arg) {

@@ -383,16 +383,7 @@
     <!-- NAV -->
     <nav>
         <div class="nav-brand">
-            <div class="nav-logo">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="white" stroke-width="1.5" />
-                </svg>
-            </div>
-            <div class="nav-title">
-                <span>Kemenkopangan RI</span>
-                <span>Sistem Booking Ruang Rapat</span>
-            </div>
+            <img src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenkopangan" style="height:40px;width:auto;">
         </div>
 
         @if (Route::has('login'))

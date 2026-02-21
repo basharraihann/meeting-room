@@ -186,6 +186,40 @@
             color: #fff;
         }
 
+        .nav-btn-ghost {
+            padding: 7px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            text-decoration: none;
+            background: white;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .nav-btn-ghost:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+
+        .nav-btn-primary {
+            padding: 7px 16px;
+            background: #6366f1;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .nav-btn-primary:hover {
+            background: #4f46e5;
+        }
+
         .top-bar-right {
             text-align: right;
         }
@@ -203,6 +237,125 @@
             color: #475569;
             margin-top: 3px;
             font-weight: 600;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .clock-wrap {
+            text-align: right;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+
+            html,
+            body {
+                overflow-y: auto !important;
+                height: auto !important;
+            }
+
+            .display-root {
+                height: auto !important;
+                min-height: 100vh;
+            }
+
+            .top-bar {
+                padding: 8px 10px;
+                gap: 4px;
+            }
+
+            .top-bar-left {
+                gap: 6px;
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            .logo-wrap {
+                padding-right: 6px;
+                flex-shrink: 0;
+            }
+
+            .logo-wrap img {
+                height: 22px;
+            }
+
+            .room-dropdown-name {
+                font-size: 11px;
+            }
+
+            .room-dropdown-btn {
+                padding: 4px 8px;
+                gap: 4px;
+            }
+
+            .dropdown-chevron {
+                display: none;
+            }
+
+            .room-status {
+                display: none;
+            }
+
+            .top-bar-right {
+                gap: 5px;
+                flex-shrink: 0;
+            }
+
+            .nav-btn-ghost,
+            .nav-btn-primary {
+                padding: 4px 8px;
+                font-size: 10px;
+                border-radius: 8px;
+            }
+
+            .clock {
+                font-size: 13px !important;
+            }
+
+            .date-str {
+                font-size: 8px !important;
+                margin-top: 1px;
+            }
+
+            .main-area {
+                grid-template-columns: 1fr !important;
+                grid-template-rows: auto auto;
+                overflow: visible !important;
+            }
+
+            .calendar-panel {
+                margin: 8px 8px 4px 8px;
+                padding: 10px 8px;
+                height: auto !important;
+                overflow: visible !important;
+                border-radius: 14px;
+            }
+
+            .fc {
+                height: 320px !important;
+            }
+
+            .fc .fc-toolbar-title {
+                font-size: 0.85rem !important;
+            }
+
+            .fc .fc-button {
+                padding: 4px 8px !important;
+                font-size: 0.65rem !important;
+            }
+
+            .agenda-panel {
+                display: flex !important;
+                margin: 0 8px 8px 8px;
+                border-radius: 14px;
+                max-height: 280px;
+            }
         }
 
         /* ---- MAIN AREA ---- */
@@ -574,8 +727,17 @@
             </div>
 
             <div class="top-bar-right">
-                <div class="clock" id="clock">00:00:00</div>
-                <div class="date-str" id="dateStr">–</div>
+                @guest
+                    <a href="{{ route('login') }}" class="nav-btn-ghost">Masuk</a>
+                    <a href="{{ route('register') }}" class="nav-btn-primary">Daftar</a>
+                @endguest
+                @auth
+                    <a href="{{ route('dashboard') }}" class="nav-btn-primary">Dashboard</a>
+                @endauth
+                <div class="clock-wrap">
+                    <div class="clock" id="clock">00:00:00</div>
+                    <div class="date-str" id="dateStr">–</div>
+                </div>
             </div>
         </div>
 
@@ -691,9 +853,17 @@
 
         updateClock()
         setInterval(updateClock, 1000)
-        setTimeout(() => location.reload(), 2 * 60 * 1000)
+        setTimeout(() => location.reload(), 1 * 60 * 1000)
 
         // DROPDOWN
+        function showLoginToast() {
+            const toast = document.getElementById('loginToast')
+            if (!toast) return
+            toast.style.display = 'flex'
+            clearTimeout(window._toastTimer)
+            window._toastTimer = setTimeout(() => { toast.style.display = 'none' }, 5000)
+        }
+
         function toggleDropdown() {
             const menu = document.getElementById('dropdownMenu')
             menu.classList.toggle('open')
@@ -765,12 +935,32 @@
                     `
                     }
                 },
-                eventClick() { }
+                dateClick(info) {
+                    @guest
+                        showLoginToast()
+                    @endguest
+                },
+                eventClick(info) {
+                    info.jsEvent.preventDefault()
+                    @guest
+                        showLoginToast()
+                    @endguest
+                }
             })
 
             calendar.render()
         })
     </script>
+    @guest
+        <div id="loginToast"
+            style="display:none;position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:14px 24px;border-radius:14px;font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:9999;align-items:center;gap:12px;white-space:nowrap;">
+            🔒 Silakan login untuk menambahkan agenda
+            <a href="{{ route('login') }}"
+                style="background:#6366f1;color:white;padding:5px 14px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;margin-left:4px;">Masuk</a>
+            <button onclick="document.getElementById('loginToast').style.display='none'"
+                style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;padding:0;margin-left:4px;">✕</button>
+        </div>
+    @endguest
 </body>
 
 </html>

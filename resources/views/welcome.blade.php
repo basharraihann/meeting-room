@@ -353,6 +353,11 @@
             color: white;
         }
 
+        .status-selesai {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
         .time-cell {
             font-weight: 700;
             font-size: 12px;
@@ -775,9 +780,17 @@
 
                     let statusClass = b.status === 'APPROVED' ? 'status-approved' : 'status-pending'
                     let statusLabel = b.status === 'APPROVED' ? 'Disetujui' : 'Menunggu'
-                    if (isNowBetween(b.start, b.end)) {
+
+                    const now = new Date()
+                    const endTime = new Date(b.end)
+                    const startTime = new Date(b.start)
+
+                    if (now >= startTime && now <= endTime) {
                         statusClass = 'status-berlangsung'
                         statusLabel = '● Sedang Berlangsung'
+                    } else if (now > endTime) {
+                        statusClass = 'status-selesai'
+                        statusLabel = '✓ Selesai'
                     }
 
                     tableHtml += `<tr>

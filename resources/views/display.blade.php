@@ -271,6 +271,7 @@
         .schedule-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .schedule-table thead tr {
@@ -302,7 +303,7 @@
         }
 
         .schedule-table th.th-pic {
-            width: 140px;
+            width: 120px;
         }
 
         .schedule-table th.th-status {

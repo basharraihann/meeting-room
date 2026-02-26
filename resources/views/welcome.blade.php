@@ -37,7 +37,6 @@
             flex-direction: column;
         }
 
-        /* ===== NAV ===== */
         nav {
             background: rgba(255, 255, 255, 0.96);
             backdrop-filter: blur(16px);
@@ -120,7 +119,6 @@
             background: var(--indigo-dark);
         }
 
-        /* ===== MAIN CONTENT ===== */
         .main {
             flex: 1;
             padding: 24px 1.5rem 40px;
@@ -129,7 +127,6 @@
             width: 100%;
         }
 
-        /* ===== HEADER BAR ===== */
         .page-header {
             display: flex;
             align-items: center;
@@ -153,7 +150,6 @@
             font-weight: 500;
         }
 
-        /* ===== FILTER TABS ===== */
         .filter-wrap {
             display: flex;
             align-items: center;
@@ -208,7 +204,6 @@
             flex-shrink: 0;
         }
 
-        /* ===== DATE RANGE TABS ===== */
         .range-tabs {
             display: flex;
             gap: 4px;
@@ -236,18 +231,16 @@
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
 
-        /* ===== TABLE ===== */
         .table-wrap {
-            background: white;
             border-radius: 16px;
-            border: 1px solid var(--border);
             overflow: hidden;
-            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+            animation: fadeIn 0.3s ease both;
         }
 
         .schedule-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .schedule-table thead tr {
@@ -266,21 +259,16 @@
         }
 
         .schedule-table th:first-child {
-            width: 40px;
+            width: 52px;
             text-align: center;
         }
 
         .schedule-table th.th-room {
-            width: 160px;
-            text-align: left;
-        }
-
-        .schedule-table td:nth-child(3) {
-            text-align: left;
+            width: 200px;
         }
 
         .schedule-table th.th-time {
-            width: 130px;
+            width: 150px;
         }
 
         .schedule-table th.th-pic {
@@ -288,7 +276,7 @@
         }
 
         .schedule-table th.th-status {
-            width: 110px;
+            width: 160px;
         }
 
         .schedule-table td {
@@ -314,33 +302,6 @@
             background: #fafbff;
         }
 
-        /* Day separator row */
-        .day-row td {
-            padding: 8px 16px;
-            background: #f8fafc;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: var(--muted);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .day-row.today td {
-            color: var(--indigo);
-            background: #f5f3ff;
-        }
-
-        .day-row td span {
-            font-weight: 500;
-            color: #94a3b8;
-            margin-left: 6px;
-            font-size: 10px;
-            text-transform: none;
-            letter-spacing: 0;
-        }
-
-        /* Title cell */
         .booking-title {
             font-weight: 700;
             font-size: 13px;
@@ -354,7 +315,6 @@
             margin-top: 2px;
         }
 
-        /* Room badge */
         .room-badge {
             display: inline-flex;
             align-items: center;
@@ -368,7 +328,6 @@
             white-space: nowrap;
         }
 
-        /* Status badge */
         .status-badge {
             display: inline-block;
             padding: 3px 10px;
@@ -389,7 +348,11 @@
             color: #a16207;
         }
 
-        /* Time cell */
+        .status-berlangsung {
+            background: #1e293b;
+            color: white;
+        }
+
         .time-cell {
             font-weight: 700;
             font-size: 12px;
@@ -397,7 +360,6 @@
             white-space: nowrap;
         }
 
-        /* Empty state */
         .empty-row td {
             text-align: center;
             padding: 48px 16px;
@@ -412,7 +374,6 @@
             margin-bottom: 8px;
         }
 
-        /* Loading state */
         .loading-row td {
             text-align: center;
             padding: 40px;
@@ -438,7 +399,6 @@
             }
         }
 
-        /* Login CTA banner */
         .login-cta {
             margin-top: 16px;
             background: var(--indigo-light);
@@ -479,7 +439,6 @@
             background: var(--indigo-dark);
         }
 
-        /* Footer */
         footer {
             text-align: center;
             padding: 18px;
@@ -489,7 +448,6 @@
             background: white;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
             nav {
                 padding: 0 1rem;
@@ -531,15 +489,10 @@
                 transform: translateY(0);
             }
         }
-
-        .table-wrap {
-            animation: fadeIn 0.3s ease both;
-        }
     </style>
 </head>
 
 <body>
-
     <nav>
         <div class="nav-left">
             <div class="nav-logo">
@@ -550,7 +503,6 @@
                 <span>Kementerian Koordinator Bidang Pangan</span>
             </div>
         </div>
-
         <div class="nav-right">
             @auth
                 <a href="{{ url('/dashboard') }}" class="btn-solid">Dashboard</a>
@@ -566,7 +518,6 @@
     </nav>
 
     <div class="main">
-        <!-- Header -->
         <div class="page-header">
             <div>
                 <div class="page-title">Jadwal Ruang Rapat</div>
@@ -579,15 +530,12 @@
             </div>
         </div>
 
-        <!-- Filter Ruangan -->
         <div class="filter-wrap" style="margin-bottom: 16px;" id="roomFilters">
             <span class="filter-label">Ruangan:</span>
             <button class="filter-btn active" data-room="all" onclick="setRoom('all', this)">Semua Ruang</button>
-            <!-- filled by JS -->
         </div>
 
-        <!-- Table -->
-        <div class="table-wrap">
+        <div class="table-wrap" id="tableWrap">
             <table class="schedule-table">
                 <thead>
                     <tr>
@@ -601,9 +549,7 @@
                 </thead>
                 <tbody id="scheduleBody">
                     <tr class="loading-row">
-                        <td colspan="6">
-                            <span class="spinner"></span> Memuat jadwal...
-                        </td>
+                        <td colspan="6"><span class="spinner"></span> Memuat jadwal...</td>
                     </tr>
                 </tbody>
             </table>
@@ -646,7 +592,6 @@
         }
 
         function fmtTime(isoStr) {
-            // parse manual untuk hindari timezone issue
             const parts = isoStr.replace('T', ' ').split(/[- :]/)
             return `${parts[3]}.${parts[4]}`
         }
@@ -655,22 +600,20 @@
             return dateStr === toLocalDateStr(new Date())
         }
 
+        function isNowBetween(startIso, endIso) {
+            const now = new Date()
+            return now >= new Date(startIso) && now <= new Date(endIso)
+        }
+
         function getDateRange(numDays) {
-            const start = new Date()
-            start.setHours(0, 0, 0, 0)
-            const end = new Date(start)
-            end.setDate(end.getDate() + numDays)
+            const start = new Date(); start.setHours(0, 0, 0, 0)
+            const end = new Date(start); end.setDate(end.getDate() + numDays)
             return { start, end }
         }
 
-        function getAllDatesInRange(start, numDays) {
-            const dates = []
-            for (let i = 0; i < numDays; i++) {
-                const d = new Date(start)
-                d.setDate(d.getDate() + i)
-                dates.push(toLocalDateStr(d))
-            }
-            return dates
+        function escHtml(str) {
+            if (!str) return ''
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
         }
 
         async function loadBookings() {
@@ -706,7 +649,6 @@
             const roomIds = [...new Set(bookings.map(b => b.room_id).filter(Boolean))].sort((a, b) => a - b)
             const wrap = document.getElementById('roomFilters')
             wrap.querySelectorAll('[data-room]:not([data-room="all"])').forEach(el => el.remove())
-
             roomIds.forEach(rid => {
                 const info = roomColors[rid] || { dot: '#94a3b8', label: `Ruang ${rid}` }
                 const sample = bookings.find(b => b.room_id == rid)
@@ -731,19 +673,17 @@
             activeRange = range
             document.querySelectorAll('.range-tab').forEach(b => b.classList.remove('active'))
             el.classList.add('active')
-            loadBookings() // reload API dengan range baru
+            loadBookings()
         }
 
         function render() {
             const { start, end } = getDateRange(activeRange)
 
-            // update subtitle
             const endLabel = new Date(start)
             endLabel.setDate(endLabel.getDate() + activeRange - 1)
             document.getElementById('dateRangeLabel').textContent =
                 `${String(start.getDate()).padStart(2, '0')} ${monthsFull[start.getMonth()]} – ${String(endLabel.getDate()).padStart(2, '0')} ${monthsFull[endLabel.getMonth()]} ${endLabel.getFullYear()}`
 
-            // filter bookings
             let filtered = allBookings.filter(b => {
                 const bDate = b.start.split('T')[0]
                 const startDate = toLocalDateStr(start)
@@ -757,7 +697,6 @@
 
             filtered.sort((a, b) => new Date(a.start) - new Date(b.start))
 
-            // group by date
             const grouped = {}
             filtered.forEach(b => {
                 const key = b.start.split('T')[0]
@@ -765,11 +704,19 @@
                 grouped[key].push(b)
             })
 
-            // generate SEMUA tanggal dalam range, termasuk yang kosong
             const allDates = Object.keys(grouped).sort()
-
-            const wrap = document.querySelector('.table-wrap')
+            const wrap = document.getElementById('tableWrap')
             wrap.innerHTML = ''
+
+            if (allDates.length === 0) {
+                wrap.innerHTML = `
+                    <div style="background:white;border-radius:16px;border:1px solid var(--border);">
+                        <div class="empty-row"><td colspan="6">
+                            <span class="empty-icon">📭</span>Tidak ada jadwal pada periode ini.
+                        </td></div>
+                    </div>`
+                return
+            }
 
             allDates.forEach(dateKey => {
                 const items = grouped[dateKey] || []
@@ -782,62 +729,64 @@
 
                 const dateHeader = document.createElement('div')
                 dateHeader.style.cssText = `
-                padding: 10px 16px;
-                font-size: 11px;
-                font-weight: 800;
-                text-transform: uppercase;
-                letter-spacing: 0.07em;
-                color: ${todayFlag ? '#ffffff' : '#475569'};
-                background: ${todayFlag ? 'linear-gradient(135deg, #050068, #4b4dce)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)'};
-                border: 1px solid ${todayFlag ? '#4F46E5' : '#e2e8f0'};
-                border-bottom: none;
-                border-radius: 12px 12px 0 0;
-            `
+                    padding: 10px 16px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.07em;
+                    color: ${todayFlag ? '#ffffff' : '#475569'};
+                    background: ${todayFlag ? 'linear-gradient(135deg, #050068, #4b4dce)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)'};
+                    border: 1px solid ${todayFlag ? '#4F46E5' : '#e2e8f0'};
+                    border-bottom: none;
+                    border-radius: 12px 12px 0 0;
+                `
                 dateHeader.innerHTML = dayLabel + (todayFlag ? ' <span style="font-weight:500;color:#FFF;font-size:10px;text-transform:none;letter-spacing:0;margin-left:6px;">● Hari ini</span>' : '')
 
                 const tableWrap = document.createElement('div')
                 tableWrap.style.cssText = `
-                background: white;
-                border: 1px solid var(--border);
-                border-radius: 0 0 12px 12px;
-                overflow: hidden;
-                box-shadow: 0 1px 6px rgba(0,0,0,0.04);
-            `
+                    background: white;
+                    border: 1px solid var(--border);
+                    border-radius: 0 0 12px 12px;
+                    overflow: hidden;
+                    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+                `
 
                 let tableHtml = `
-                <table class="schedule-table">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Nama Kegiatan</th>
-                            <th class="th-room">Ruangan</th>
-                            <th class="th-time">Waktu</th>
-                            <th class="th-pic">PIC</th>
-                            <th class="th-status">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Nama Kegiatan</th>
+                                <th class="th-room">Ruangan</th>
+                                <th class="th-time">Waktu</th>
+                                <th class="th-pic">PIC</th>
+                                <th class="th-status">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `
 
-                if (items.length === 0) {
-                    tableHtml += `<tr><td colspan="6" style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;font-weight:500;">Tidak ada jadwal</td></tr>`
-                } else {
-                    items.forEach((b, i) => {
-                        const rid = b.room_id
-                        const info = roomColors[rid] || { dot: '#94a3b8', label: `Ruang ${rid}` }
-                        const startFmt = fmtTime(b.start)
-                        const endFmt = fmtTime(b.end)
-                        const statusClass = b.status === 'APPROVED' ? 'status-approved' : 'status-pending'
-                        const statusLabel = b.status === 'APPROVED' ? 'Disetujui' : 'Menunggu'
-                        const roomName = b.room_name ?? info.label
+                items.forEach((b, i) => {
+                    const rid = b.room_id
+                    const info = roomColors[rid] || { dot: '#94a3b8', label: `Ruang ${rid}` }
+                    const startFmt = fmtTime(b.start)
+                    const endFmt = fmtTime(b.end)
+                    const roomName = b.room_name ?? info.label
 
-                        tableHtml += `<tr>
+                    let statusClass = b.status === 'APPROVED' ? 'status-approved' : 'status-pending'
+                    let statusLabel = b.status === 'APPROVED' ? 'Disetujui' : 'Menunggu'
+                    if (isNowBetween(b.start, b.end)) {
+                        statusClass = 'status-berlangsung'
+                        statusLabel = '● Sedang Berlangsung'
+                    }
+
+                    tableHtml += `<tr>
                         <td>${i + 1}</td>
                         <td>
                             <div class="booking-title">${escHtml(b.title)}</div>
                             ${b.description ? `<div class="booking-desc">${escHtml(b.description.substring(0, 60))}${b.description.length > 60 ? '…' : ''}</div>` : ''}
                         </td>
-                        <td style="text-align:left;">
+                        <td>
                             <span class="room-badge">
                                 <span class="room-dot" style="background:${info.dot}"></span>
                                 ${escHtml(roomName)}
@@ -847,21 +796,14 @@
                         <td style="font-size:12px;font-weight:600;color:#475569;">${escHtml(b.pic ?? '-')}</td>
                         <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                     </tr>`
-                    })
-                }
+                })
 
                 tableHtml += `</tbody></table>`
                 tableWrap.innerHTML = tableHtml
-
                 section.appendChild(dateHeader)
                 section.appendChild(tableWrap)
                 wrap.appendChild(section)
             })
-        }
-
-        function escHtml(str) {
-            if (!str) return ''
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
         }
 
         loadBookings()

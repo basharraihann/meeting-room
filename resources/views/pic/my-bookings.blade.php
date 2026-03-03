@@ -4,8 +4,8 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Riwayat Ajukan Rapat
             </h2>
-
-            <a href="{{ route('calendar') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors">
+            <a href="{{ route('calendar') }}"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors">
                 ← Kembali ke Kalender
             </a>
         </div>
@@ -14,14 +14,15 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        .riwayat-wrap { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .riwayat-wrap {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
-        /* ---- FILTER BAR ---- */
         .filter-bar {
             background: #fff;
             border-radius: 20px;
             padding: 16px 20px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
             display: flex;
             flex-wrap: wrap;
             align-items: center;
@@ -29,7 +30,11 @@
             gap: 12px;
         }
 
-        .tab-group { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tab-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
 
         .tab {
             padding: 7px 16px;
@@ -42,11 +47,26 @@
             cursor: pointer;
         }
 
-        .tab-active { background: #6366f1; color: #fff; }
-        .tab-ghost  { background: #f1f5f9; color: #475569; }
-        .tab-ghost:hover { background: #e2e8f0; color: #1e293b; }
+        .tab-active {
+            background: #6366f1;
+            color: #fff;
+        }
 
-        .search-group { display: flex; gap: 8px; align-items: center; }
+        .tab-ghost {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .tab-ghost:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .search-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
 
         .search-input {
             border: 1.5px solid #e2e8f0;
@@ -60,7 +80,9 @@
             transition: border-color 0.2s;
         }
 
-        .search-input:focus { border-color: #6366f1; }
+        .search-input:focus {
+            border-color: #6366f1;
+        }
 
         .btn-search {
             padding: 8px 18px;
@@ -75,13 +97,14 @@
             transition: background 0.15s;
         }
 
-        .btn-search:hover { background: #4f46e5; }
+        .btn-search:hover {
+            background: #4f46e5;
+        }
 
-        /* ---- BOOKING CARD ---- */
         .booking-list {
             background: #fff;
             border-radius: 20px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
             overflow: hidden;
         }
 
@@ -110,18 +133,42 @@
             border-radius: 99px;
         }
 
+        .date-separator {
+            padding: 8px 24px;
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .date-separator span {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .date-separator.today span {
+            color: #6366f1;
+        }
+
         .booking-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            padding: 16px 24px;
+            padding: 14px 24px;
             border-bottom: 1px solid #f8fafc;
             transition: background 0.1s;
         }
 
-        .booking-row:last-child { border-bottom: none; }
-        .booking-row:hover { background: #fafafa; }
+        .booking-row:last-child {
+            border-bottom: none;
+        }
+
+        .booking-row:hover {
+            background: #fafafa;
+        }
 
         .booking-left {
             display: flex;
@@ -132,21 +179,41 @@
 
         .room-bar {
             width: 4px;
-            height: 48px;
+            height: 44px;
             border-radius: 4px;
             flex-shrink: 0;
         }
 
-        .room-bar-1 { background: #94a3b8; }
-        .room-bar-2 { background: #14b8a6; }
-        .room-bar-3 { background: #8b5cf6; }
-        .room-bar-4 { background: #f59e0b; }
-        .room-bar-5 { background: #d946ef; }
-        .room-bar-6 { background: #f43f5e; }
-        .room-bar-default { background: #e2e8f0; }
+        .room-bar-1 {
+            background: #94a3b8;
+        }
+
+        .room-bar-2 {
+            background: #14b8a6;
+        }
+
+        .room-bar-3 {
+            background: #8b5cf6;
+        }
+
+        .room-bar-4 {
+            background: #f59e0b;
+        }
+
+        .room-bar-5 {
+            background: #d946ef;
+        }
+
+        .room-bar-6 {
+            background: #f43f5e;
+        }
+
+        .room-bar-default {
+            background: #e2e8f0;
+        }
 
         .booking-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: #0f172a;
             line-height: 1.3;
@@ -155,7 +222,7 @@
         .booking-meta {
             font-size: 12px;
             color: #94a3b8;
-            margin-top: 3px;
+            margin-top: 2px;
         }
 
         .booking-desc {
@@ -175,7 +242,6 @@
             flex-shrink: 0;
         }
 
-        /* badges */
         .badge {
             padding: 4px 12px;
             border-radius: 99px;
@@ -185,14 +251,36 @@
             white-space: nowrap;
         }
 
-        .badge-approved  { background: #dcfce7; color: #15803d; }
-        .badge-pending   { background: #fef9c3; color: #a16207; }
-        .badge-rejected  { background: #fee2e2; color: #b91c1c; }
-        .badge-canceled  { background: #f1f5f9; color: #64748b; }
-        .badge-done      { background: #dbeafe; color: #1d4ed8; }
-        .badge-default   { background: #f1f5f9; color: #475569; }
+        .badge-approved {
+            background: #dcfce7;
+            color: #15803d;
+        }
 
-        /* cancel btn */
+        .badge-pending {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .badge-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-canceled {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .badge-done {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-default {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
         .btn-cancel {
             padding: 5px 14px;
             border-radius: 99px;
@@ -206,26 +294,36 @@
             font-family: inherit;
         }
 
-        .btn-cancel:hover { background: #334155; }
+        .btn-cancel:hover {
+            background: #334155;
+        }
 
-        /* empty */
         .empty-state {
             padding: 60px 24px;
             text-align: center;
             color: #94a3b8;
         }
 
-        .empty-icon { font-size: 40px; margin-bottom: 12px; }
-        .empty-text { font-size: 14px; font-weight: 500; }
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
 
-        /* pagination */
-        .pagination-wrap { padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+        .empty-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .pagination-wrap {
+            padding: 16px 24px;
+            border-top: 1px solid #f1f5f9;
+        }
 
         /* cancel modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 50;
             display: flex;
             align-items: center;
@@ -237,7 +335,7 @@
             width: 100%;
             max-width: 480px;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             overflow: hidden;
             margin: 16px;
         }
@@ -250,7 +348,11 @@
             justify-content: space-between;
         }
 
-        .modal-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+        }
 
         .modal-close {
             background: #f1f5f9;
@@ -263,9 +365,13 @@
             font-family: inherit;
         }
 
-        .modal-close:hover { background: #e2e8f0; }
+        .modal-close:hover {
+            background: #e2e8f0;
+        }
 
-        .modal-body { padding: 20px 24px; }
+        .modal-body {
+            padding: 20px 24px;
+        }
 
         .modal-label {
             display: block;
@@ -291,7 +397,9 @@
             box-sizing: border-box;
         }
 
-        .modal-textarea:focus { border-color: #6366f1; }
+        .modal-textarea:focus {
+            border-color: #6366f1;
+        }
 
         .modal-footer {
             padding: 16px 24px;
@@ -314,7 +422,9 @@
             transition: background 0.15s;
         }
 
-        .btn-modal-close:hover { background: #e2e8f0; }
+        .btn-modal-close:hover {
+            background: #e2e8f0;
+        }
 
         .btn-modal-confirm {
             padding: 9px 18px;
@@ -329,7 +439,9 @@
             transition: background 0.15s;
         }
 
-        .btn-modal-confirm:hover { background: #b91c1c; }
+        .btn-modal-confirm:hover {
+            background: #b91c1c;
+        }
     </style>
 
     <div class="py-6 riwayat-wrap">
@@ -347,7 +459,6 @@
                             'CANCELED' => 'Canceled',
                         ];
                     @endphp
-
                     @foreach($tabs as $key => $label)
                         <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q])) }}"
                             class="tab {{ ($status === $key || (empty($status) && $key === '')) ? 'tab-active' : 'tab-ghost' }}">
@@ -357,8 +468,7 @@
                 </div>
 
                 <form method="GET" class="search-group">
-                    <input type="text" name="q" value="{{ $q }}"
-                        placeholder="Cari judul rapat..."
+                    <input type="text" name="q" value="{{ $q }}" placeholder="Cari judul rapat..."
                         class="search-input" />
                     @if($status)
                         <input type="hidden" name="status" value="{{ $status }}">
@@ -376,9 +486,16 @@
                     @endif
                 </div>
 
+                @php $lastDate = null;
+                $todayStr = now()->format('Y-m-d'); @endphp
+
                 @forelse($bookings as $b)
                     @php
                         $now = now();
+                        $bDateStr = \Carbon\Carbon::parse($b->start_at)->format('Y-m-d');
+                        $bDateLabel = \Carbon\Carbon::parse($b->start_at)->translatedFormat('l, d F Y');
+                        $isToday = $bDateStr === $todayStr;
+
                         $displayStatus = strtoupper($b->status);
                         $isDone = ($b->status === 'APPROVED' && \Carbon\Carbon::parse($b->end_at)->lt($now));
                         if ($isDone)
@@ -404,17 +521,25 @@
                         ][$b->room_id ?? 0] ?? 'room-bar-default';
                     @endphp
 
+                    {{-- Date separator --}}
+                    @if($bDateStr !== $lastDate)
+                        @php $lastDate = $bDateStr; @endphp
+                        <div class="date-separator {{ $isToday ? 'today' : '' }}">
+                            <span>
+                                {{ $bDateLabel }}
+                                @if($isToday) &nbsp;· Hari ini @endif
+                            </span>
+                        </div>
+                    @endif
+
                     <div class="booking-row">
                         <div class="booking-left">
                             <div class="room-bar {{ $roomBarClass }}"></div>
-
                             <div style="min-width:0">
                                 <div class="booking-title">{{ $b->title }}</div>
                                 <div class="booking-meta">
                                     {{ $b->room?->name ?? '-' }}
                                     &nbsp;·&nbsp;
-                                    {{ \Carbon\Carbon::parse($b->start_at)->translatedFormat('d M Y') }}
-                                    &nbsp;
                                     {{ \Carbon\Carbon::parse($b->start_at)->format('H:i') }}
                                     –
                                     {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
@@ -427,10 +552,8 @@
 
                         <div class="booking-right">
                             <span class="badge {{ $badge }}">{{ $displayStatus }}</span>
-
                             @if(in_array($b->status, ['PENDING', 'APPROVED']) && !$isDone)
-                                <button type="button" class="btn-cancel"
-                                    onclick="openCancelModal({{ $b->id }})">
+                                <button type="button" class="btn-cancel" onclick="openCancelModal({{ $b->id }})">
                                     Cancel
                                 </button>
                             @endif
@@ -460,24 +583,16 @@
                 <div class="modal-title">Batalkan Booking</div>
                 <button type="button" class="modal-close" onclick="closeCancelModal()">✕</button>
             </div>
-
             <form id="cancelForm" method="POST">
                 @csrf
-
                 <div class="modal-body">
                     <label class="modal-label">Alasan Pembatalan</label>
-                    <textarea name="cancel_reason" rows="4" required
-                        class="modal-textarea"
+                    <textarea name="cancel_reason" rows="4" required class="modal-textarea"
                         placeholder="Masukkan alasan pembatalan..."></textarea>
                 </div>
-
                 <div class="modal-footer">
-                    <button type="button" class="btn-modal-close" onclick="closeCancelModal()">
-                        Tutup
-                    </button>
-                    <button type="submit" class="btn-modal-confirm">
-                        Konfirmasi Batal
-                    </button>
+                    <button type="button" class="btn-modal-close" onclick="closeCancelModal()">Tutup</button>
+                    <button type="submit" class="btn-modal-confirm">Konfirmasi Batal</button>
                 </div>
             </form>
         </div>
@@ -488,7 +603,6 @@
             document.getElementById('cancelForm').action = `/bookings/${bookingId}/cancel`;
             document.getElementById('cancelModal').style.display = 'flex';
         }
-
         function closeCancelModal() {
             document.getElementById('cancelModal').style.display = 'none';
         }

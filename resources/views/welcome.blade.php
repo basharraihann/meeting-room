@@ -338,12 +338,12 @@
             white-space: nowrap;
         }
 
-        .status-approved {
+        .status-terjadwal {
             background: #dcfce7;
             color: #15803d;
         }
 
-        .status-pending {
+        .status-segera {
             background: #fef9c3;
             color: #a16207;
         }
@@ -358,25 +358,16 @@
             color: #94a3b8;
         }
 
+        .status-pending {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
         .time-cell {
             font-weight: 700;
             font-size: 12px;
             color: var(--indigo);
             white-space: nowrap;
-        }
-
-        .empty-row td {
-            text-align: center;
-            padding: 48px 16px;
-            color: #94a3b8;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .empty-icon {
-            font-size: 28px;
-            display: block;
-            margin-bottom: 8px;
         }
 
         .loading-row td {
@@ -605,15 +596,23 @@
             return dateStr === toLocalDateStr(new Date())
         }
 
-        function isNowBetween(startIso, endIso) {
-            const now = new Date()
-            return now >= new Date(startIso) && now <= new Date(endIso)
-        }
-
         function getDateRange(numDays) {
             const start = new Date(); start.setHours(0, 0, 0, 0)
             const end = new Date(start); end.setDate(end.getDate() + numDays)
             return { start, end }
+        }
+
+        function getStatus(b) {
+            const now = new Date()
+            const startTime = new Date(b.start)
+            const endTime = new Date(b.end)
+            const diffMins = (startTime - now) / 60000
+
+            if (b.status === 'PENDING') return { cls: 'status-pending', label: 'Menunggu' }
+            if (now >= startTime && now <= endTime) return { cls: 'status-berlangsung', label: '● Sedang Berlangsung' }
+            if (now > endTime) return { cls: 'status-selesai', label: '✓ Selesai' }
+            if (diffMins <= 30) return { cls: 'status-segera', label: '⚡ Segera' }
+            return { cls: 'status-terjadwal', label: '✓ Terjadwal' }
         }
 
         function escHtml(str) {
@@ -646,7 +645,7 @@
             } catch (e) {
                 console.error('ERROR:', e)
                 document.getElementById('scheduleBody').innerHTML =
-                    `<tr class="empty-row"><td colspan="6"><span class="empty-icon">⚠️</span>Gagal memuat data.</td></tr>`
+                    `<tr><td colspan="6" style="text-align:center;padding:48px;color:#94a3b8;font-size:13px;">⚠️ Gagal memuat data.</td></tr>`
             }
         }
 
@@ -715,10 +714,9 @@
 
             if (allDates.length === 0) {
                 wrap.innerHTML = `
-                    <div style="background:white;border-radius:16px;border:1px solid var(--border);">
-                        <div class="empty-row"><td colspan="6">
-                            <span class="empty-icon">📭</span>Tidak ada jadwal pada periode ini.
-                        </td></div>
+                    <div style="background:white;border-radius:16px;border:1px solid var(--border);padding:48px 16px;text-align:center;color:#94a3b8;font-size:13px;font-weight:500;">
+                        <span style="font-size:28px;display:block;margin-bottom:8px;">📭</span>
+                        Tidak ada jadwal pada periode ini.
                     </div>`
                 return
             }
@@ -777,21 +775,7 @@
                     const startFmt = fmtTime(b.start)
                     const endFmt = fmtTime(b.end)
                     const roomName = b.room_name ?? info.label
-
-                    let statusClass = b.status === 'APPROVED' ? 'status-approved' : 'status-pending'
-                    let statusLabel = b.status === 'APPROVED' ? 'Disetujui' : 'Menunggu'
-
-                    const now = new Date()
-                    const endTime = new Date(b.end)
-                    const startTime = new Date(b.start)
-
-                    if (now >= startTime && now <= endTime) {
-                        statusClass = 'status-berlangsung'
-                        statusLabel = '● Sedang Berlangsung'
-                    } else if (now > endTime) {
-                        statusClass = 'status-selesai'
-                        statusLabel = '✓ Selesai'
-                    }
+                    const { cls: statusClass, label: statusLabel } = getStatus(b)
 
                     tableHtml += `<tr>
                         <td>${i + 1}</td>

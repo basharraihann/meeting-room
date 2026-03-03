@@ -43,6 +43,13 @@
                     </x-nav-link>
                     @endrole
 
+                    {{-- LINK UNTUK ADMIN --}}
+                    @if(auth()->user()->hasRole('admin'))
+                        <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                            Manajemen User
+                        </x-nav-link>
+                    @endif
+
                 </div>
             </div>
 
@@ -130,6 +137,13 @@
 
                 <x-responsive-nav-link :href="route('my_bookings.index')" :active="request()->routeIs('my_bookings.*')">
                     Riwayat Pengajuan
+                </x-responsive-nav-link>
+            @endif
+
+            {{-- MOBILE: LINK UNTUK ADMIN --}}
+            @if(auth()->user()->hasRole('admin'))
+                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                    Manajemen User
                 </x-responsive-nav-link>
             @endif
         </div>

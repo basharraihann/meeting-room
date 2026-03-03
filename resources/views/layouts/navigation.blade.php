@@ -12,9 +12,11 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                    @if(!auth()->user()->hasRole('Admin'))
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    @endif
 
                     {{-- LINK APPROVALS UNTUK TU --}}
                     @if(auth()->user()->hasRole('TU'))
@@ -44,7 +46,7 @@
                     @endrole
 
                     {{-- LINK UNTUK ADMIN --}}
-                    @if(auth()->user()->hasRole('admin'))
+                    @if(auth()->user()->hasRole('Admin'))
                         <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                             Manajemen User
                         </x-nav-link>
@@ -109,9 +111,11 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            @if(!auth()->user()->hasRole('Admin'))
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
 
             {{-- MOBILE: LINK APPROVALS UNTUK TU --}}
             @if(auth()->user()->hasRole('TU'))
@@ -141,7 +145,7 @@
             @endif
 
             {{-- MOBILE: LINK UNTUK ADMIN --}}
-            @if(auth()->user()->hasRole('admin'))
+            @if(auth()->user()->hasRole('Admin'))
                 <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                     Manajemen User
                 </x-responsive-nav-link>

@@ -82,7 +82,15 @@
                                 </button>
 
                                 @php
-                                    $roomDotColors = [1 => 'bg-slate-500', 2 => 'bg-teal-500', 3 => 'bg-violet-500', 4 => 'bg-amber-500', 5 => 'bg-fuchsia-500', 6 => 'bg-rose-500'];
+                                    $roomDotColors = [
+                                        1 => 'bg-zinc-700',
+                                        2 => 'bg-teal-400',
+                                        3 => 'bg-purple-500',
+                                        4 => 'bg-yellow-400',
+                                        5 => 'bg-cyan-400',
+                                        6 => 'bg-red-500',
+                                        7 => 'bg-pink-500',
+                                    ];
                                 @endphp
 
                                 @foreach(\App\Models\Room::orderBy('id')->get() as $room)

@@ -633,7 +633,15 @@
     <footer>© {{ date('Y') }} Kementerian Koordinator Bidang Pangan Republik Indonesia</footer>
 
     <script>
-        const RC = { 1: { dot: '#94a3b8', label: 'Ruang Rapat Utama' }, 2: { dot: '#14b8a6', label: 'Ruang Rapat KDKMP' }, 3: { dot: '#8b5cf6', label: 'Ruang Rapat Setmenko' }, 4: { dot: '#f59e0b', label: 'Ruang Rapat D2' }, 5: { dot: '#d946ef', label: 'Ruang Rapat D3' }, 6: { dot: '#f43f5e', label: 'Ruang Rapat D4' } }
+        const RC = {
+            1: { dot: '#3d3d3d', label: 'Ruang Rapat Utama' },
+            2: { dot: '#5bc8af', label: 'Ruang Rapat KDKMP' },
+            3: { dot: '#7b68aa', label: 'Ruang Rapat Setmenko' },
+            4: { dot: '#f0c040', label: 'Ruang Rapat D2' },
+            5: { dot: '#4bbfd4', label: 'Ruang Rapat D3' },
+            6: { dot: '#e8604c', label: 'Ruang Rapat D4' },
+            7: { dot: '#ec4899', label: 'Ruang Dharma Wanita' },
+        }
         const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
         const MON = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
         let all = [], room = 'all', range = 3

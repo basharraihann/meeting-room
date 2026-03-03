@@ -16,6 +16,7 @@ class RoomSeeder extends Seeder
             'Ruang Rapat D2',
             'Ruang Rapat D3',
             'Ruang Rapat D4',
+            'Ruang Dharma Wanita',
         ];
 
         foreach ($names as $name) {

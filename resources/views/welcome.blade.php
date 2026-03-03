@@ -153,8 +153,15 @@
         .filter-wrap {
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 6px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .filter-wrap::-webkit-scrollbar {
+            display: none;
         }
 
         .filter-label {
@@ -169,17 +176,19 @@
         .filter-btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
+            gap: 5px;
+            padding: 4px 11px;
             border-radius: 99px;
             border: 1.5px solid var(--border);
             background: white;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--muted);
             cursor: pointer;
             transition: all 0.15s;
             font-family: inherit;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .filter-btn:hover {
@@ -568,12 +577,12 @@
 
     <script>
         const roomColors = {
-            1: { dot: '#94a3b8', label: 'Ruang Utama' },
-            2: { dot: '#14b8a6', label: 'Ruang KDKMP' },
-            3: { dot: '#8b5cf6', label: 'Ruang Setmenko' },
-            4: { dot: '#f59e0b', label: 'Ruang D2' },
-            5: { dot: '#d946ef', label: 'Ruang D3' },
-            6: { dot: '#f43f5e', label: 'Ruang D4' },
+            1: { dot: '#94a3b8', label: 'Ruang Rapat Utama' },
+            2: { dot: '#14b8a6', label: 'Ruang Rapat KDKMP' },
+            3: { dot: '#8b5cf6', label: 'Ruang Rapat Setmenko' },
+            4: { dot: '#f59e0b', label: 'Ruang Rapat D2' },
+            5: { dot: '#d946ef', label: 'Ruang Rapat D3' },
+            6: { dot: '#f43f5e', label: 'Ruang Rapat D4' },
         }
 
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
@@ -620,6 +629,20 @@
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
         }
 
+        // Selalu tampilkan semua ruangan dari roomColors, tidak tergantung data booking
+        function buildRoomFilters() {
+            const wrap = document.getElementById('roomFilters')
+            wrap.querySelectorAll('[data-room]:not([data-room="all"])').forEach(el => el.remove())
+            Object.entries(roomColors).forEach(([rid, info]) => {
+                const btn = document.createElement('button')
+                btn.className = 'filter-btn'
+                btn.dataset.room = rid
+                btn.onclick = function () { setRoom(rid, this) }
+                btn.innerHTML = `<span class="room-dot" style="background:${info.dot}"></span>${info.label}`
+                wrap.appendChild(btn)
+            })
+        }
+
         async function loadBookings() {
             try {
                 const { start, end } = getDateRange(activeRange)
@@ -640,30 +663,12 @@
                     description: e.extendedProps?.description ?? e.description ?? '',
                 }))
 
-                buildRoomFilters(allBookings)
                 render()
             } catch (e) {
                 console.error('ERROR:', e)
                 document.getElementById('scheduleBody').innerHTML =
                     `<tr><td colspan="6" style="text-align:center;padding:48px;color:#94a3b8;font-size:13px;">⚠️ Gagal memuat data.</td></tr>`
             }
-        }
-
-        function buildRoomFilters(bookings) {
-            const roomIds = [...new Set(bookings.map(b => b.room_id).filter(Boolean))].sort((a, b) => a - b)
-            const wrap = document.getElementById('roomFilters')
-            wrap.querySelectorAll('[data-room]:not([data-room="all"])').forEach(el => el.remove())
-            roomIds.forEach(rid => {
-                const info = roomColors[rid] || { dot: '#94a3b8', label: `Ruang ${rid}` }
-                const sample = bookings.find(b => b.room_id == rid)
-                const label = sample?.room_name ?? info.label
-                const btn = document.createElement('button')
-                btn.className = 'filter-btn'
-                btn.dataset.room = rid
-                btn.onclick = function () { setRoom(rid, this) }
-                btn.innerHTML = `<span class="room-dot" style="background:${info.dot}"></span>${label}`
-                wrap.appendChild(btn)
-            })
         }
 
         function setRoom(room, el) {
@@ -803,6 +808,8 @@
             })
         }
 
+        // Build filter dulu sebelum load data
+        buildRoomFilters()
         loadBookings()
     </script>
 </body>

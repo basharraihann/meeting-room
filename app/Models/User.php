@@ -15,6 +15,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'room_id',
     ];
 
     protected $hidden = [
@@ -28,5 +29,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
     }
 }

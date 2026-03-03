@@ -10,102 +10,107 @@ use App\Notifications\BookingStatusNotification;
 class ApprovalController extends Controller
 {
     /**
-     * Tampilkan inbox TU
-     * Booking akan dikelompokkan per cluster bentrok (overlap)
-     * Bisa difilter per ruangan: ?room_id=
+     * Tampilkan inbox TU — hanya room yang ditugaskan ke TU ini
      */
     public function index(Request $request)
     {
-        $roomId = $request->query('room_id'); // nullable
+        $tu = auth()->user();
 
-        // daftar rooms buat sidebar
-        $rooms = Room::orderBy('name')->get();
+        // TU hanya bisa handle room yang ditugaskan
+        // Kalau room_id null = belum ditugaskan, tampilkan kosong
+        $assignedRoomId = $tu->room_id;
 
-        // count pending per room (buat badge sidebar)
-        $pendingCounts = Booking::where('status', 'PENDING')
-            ->selectRaw('room_id, COUNT(*) as total')
-            ->groupBy('room_id')
-            ->pluck('total', 'room_id'); // [room_id => total]
-
-        // ambil pending bookings (dengan filter room kalau dipilih)
-        $pendingQuery = Booking::with(['room', 'pic'])
-            ->where('status', 'PENDING')
-            ->orderBy('room_id')
-            ->orderBy('start_at');
-
-        if ($roomId) {
-            $pendingQuery->where('room_id', $roomId);
+        if (!$assignedRoomId) {
+            return view('approvals.index', [
+                'clusters' => collect(),
+                'rooms' => collect(),
+                'roomId' => null,
+                'pendingCounts' => collect(),
+                'assignedRoom' => null,
+                'noRoom' => true,
+            ]);
         }
 
-        $pending = $pendingQuery->get();
+        $assignedRoom = Room::find($assignedRoomId);
 
-        // ===============================
-        // CLUSTERING OVERLAP PER ROOM
-        // ===============================
-        $groupedByRoom = $pending->groupBy('room_id');
+        // count pending hanya untuk room ini
+        $pendingCounts = Booking::where('status', 'PENDING')
+            ->where('room_id', $assignedRoomId)
+            ->selectRaw('room_id, COUNT(*) as total')
+            ->groupBy('room_id')
+            ->pluck('total', 'room_id');
+
+        // ambil pending bookings untuk room ini saja
+        $pending = Booking::with(['room', 'pic'])
+            ->where('status', 'PENDING')
+            ->where('room_id', $assignedRoomId)
+            ->orderBy('start_at')
+            ->get();
+
+        // CLUSTERING OVERLAP
         $clusters = collect();
+        $items = $pending->values();
+        $current = [];
+        $currentEnd = null;
 
-        foreach ($groupedByRoom as $rid => $items) {
-            $items = $items->values();
-            $current = [];
-            $currentEnd = null;
-
-            foreach ($items as $b) {
-                if (empty($current)) {
-                    $current = [$b];
-                    $currentEnd = $b->end_at;
-                    continue;
-                }
-
-                // overlap jika start < currentEnd
-                if ($b->start_at < $currentEnd) {
-                    $current[] = $b;
-
-                    if ($b->end_at > $currentEnd) {
-                        $currentEnd = $b->end_at;
-                    }
-                } else {
-                    $clusters->push([
-                        'room_id' => $rid,
-                        'room_name' => optional($current[0]->room)->name,
-                        'start' => $current[0]->start_at,
-                        'end' => $currentEnd,
-                        'items' => collect($current),
-                    ]);
-
-                    $current = [$b];
-                    $currentEnd = $b->end_at;
-                }
+        foreach ($items as $b) {
+            if (empty($current)) {
+                $current = [$b];
+                $currentEnd = $b->end_at;
+                continue;
             }
 
-            if (!empty($current)) {
+            if ($b->start_at < $currentEnd) {
+                $current[] = $b;
+                if ($b->end_at > $currentEnd) {
+                    $currentEnd = $b->end_at;
+                }
+            } else {
                 $clusters->push([
-                    'room_id' => $rid,
+                    'room_id' => $assignedRoomId,
                     'room_name' => optional($current[0]->room)->name,
                     'start' => $current[0]->start_at,
                     'end' => $currentEnd,
                     'items' => collect($current),
                 ]);
+                $current = [$b];
+                $currentEnd = $b->end_at;
             }
         }
 
-        // Sort cluster berdasarkan waktu mulai
+        if (!empty($current)) {
+            $clusters->push([
+                'room_id' => $assignedRoomId,
+                'room_name' => optional($current[0]->room)->name,
+                'start' => $current[0]->start_at,
+                'end' => $currentEnd,
+                'items' => collect($current),
+            ]);
+        }
+
         $clusters = $clusters->sortBy('start')->values();
 
         return view('approvals.index', [
             'clusters' => $clusters,
-            'rooms' => $rooms,
-            'roomId' => $roomId,
+            'rooms' => collect([$assignedRoom]),
+            'roomId' => $assignedRoomId,
             'pendingCounts' => $pendingCounts,
+            'assignedRoom' => $assignedRoom,
+            'noRoom' => false,
         ]);
     }
 
     /**
-     * Approve booking
-     * Otomatis reject booking lain yang bentrok
+     * Approve booking — pastikan TU hanya bisa approve room miliknya
      */
     public function approve(Booking $booking)
     {
+        $tu = auth()->user();
+
+        if ($tu->room_id && $booking->room_id !== $tu->room_id) {
+            abort(403, 'Anda tidak berwenang approve booking ruangan ini.');
+        }
+
         if ($booking->status !== 'PENDING') {
             return back()->withErrors(['msg' => 'Booking bukan status PENDING.']);
         }
@@ -119,27 +124,19 @@ class ApprovalController extends Controller
             ->where('end_at', '>', $booking->start_at)
             ->get();
 
-        // approve booking utama
-        $booking->update([
-            'status' => 'APPROVED',
-            'tu_note' => null,
-        ]);
+        $booking->update(['status' => 'APPROVED', 'tu_note' => null]);
 
-        // notif ke PIC booking utama
-        if ($booking->relationLoaded('pic') === false) {
+        if (!$booking->relationLoaded('pic'))
             $booking->load('pic');
-        }
         if ($booking->pic && !empty($booking->pic->email)) {
             $booking->pic->notify(new BookingStatusNotification($booking));
         }
 
-        // auto reject yang bentrok + notif ke PIC masing-masing
         foreach ($conflicts as $c) {
             $c->update([
                 'status' => 'REJECTED',
-                'tu_note' => 'Ditolak otomatis karena bentrok dengan booking APPROVED: "' . $booking->title . '".'
+                'tu_note' => 'Ditolak otomatis karena bentrok dengan booking APPROVED: "' . $booking->title . '".',
             ]);
-
             if ($c->pic && !empty($c->pic->email)) {
                 $c->pic->notify(new BookingStatusNotification($c));
             }
@@ -149,10 +146,16 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Reject manual oleh TU
+     * Reject manual — pastikan TU hanya bisa reject room miliknya
      */
     public function reject(Request $request, Booking $booking)
     {
+        $tu = auth()->user();
+
+        if ($tu->room_id && $booking->room_id !== $tu->room_id) {
+            abort(403, 'Anda tidak berwenang reject booking ruangan ini.');
+        }
+
         $request->validate([
             'tu_note' => ['required', 'string', 'max:500'],
         ]);
@@ -161,15 +164,10 @@ class ApprovalController extends Controller
             return back()->withErrors(['msg' => 'Booking bukan status PENDING.']);
         }
 
-        $booking->update([
-            'status' => 'REJECTED',
-            'tu_note' => $request->tu_note,
-        ]);
+        $booking->update(['status' => 'REJECTED', 'tu_note' => $request->tu_note]);
 
-        // notif ke PIC booking yang direject
-        if ($booking->relationLoaded('pic') === false) {
+        if (!$booking->relationLoaded('pic'))
             $booking->load('pic');
-        }
         if ($booking->pic && !empty($booking->pic->email)) {
             $booking->pic->notify(new BookingStatusNotification($booking));
         }

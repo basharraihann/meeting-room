@@ -10,6 +10,7 @@ use App\Http\Controllers\BookingCheckController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\MyBookingController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\AdminUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,9 +26,6 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 | Temporary Seeder Route (Production Safe with Key)
 |--------------------------------------------------------------------------
-| 1) Add SEED_KEY in Railway Variables (meeting-room service)
-| 2) Run: https://your-domain/run-seed?key=SEED_KEY_VALUE
-| 3) After success, REMOVE this route and push again
 */
 Route::get('/run-seed', function () {
     abort_unless(request('key') === env('SEED_KEY'), 403);
@@ -120,6 +118,30 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/approvals/{booking}/reject', [ApprovalController::class, 'reject'])
             ->name('approvals.reject');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware(['role:Admin'])->prefix('admin')->name('admin.')->group(function () {
+
+        Route::get('/users', [AdminUserController::class, 'index'])
+            ->name('users.index');
+
+        Route::post('/users', [AdminUserController::class, 'store'])
+            ->name('users.store');
+
+        Route::patch('/users/{user}/role', [AdminUserController::class, 'updateRole'])
+            ->name('users.updateRole');
+
+        Route::patch('/users/{user}/room', [AdminUserController::class, 'updateRoom'])
+            ->name('users.updateRoom');
+
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])
+            ->name('users.destroy');
     });
 
     /*

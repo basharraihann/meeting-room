@@ -150,6 +150,33 @@
             font-weight: 500;
         }
 
+        .range-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 3px;
+        }
+
+        .range-tab {
+            padding: 5px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .range-tab.active {
+            background: white;
+            color: var(--text);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
         .filter-wrap {
             display: flex;
             align-items: center;
@@ -158,6 +185,8 @@
             overflow-x: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            padding-bottom: 4px;
+            margin-bottom: 16px;
         }
 
         .filter-wrap::-webkit-scrollbar {
@@ -170,7 +199,8 @@
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-right: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .filter-btn {
@@ -211,33 +241,6 @@
             height: 7px;
             border-radius: 50%;
             flex-shrink: 0;
-        }
-
-        .range-tabs {
-            display: flex;
-            gap: 4px;
-            background: #f1f5f9;
-            border-radius: 10px;
-            padding: 3px;
-        }
-
-        .range-tab {
-            padding: 5px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--muted);
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            font-family: inherit;
-            transition: all 0.15s;
-        }
-
-        .range-tab.active {
-            background: white;
-            color: var(--text);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
 
         .table-wrap {
@@ -337,6 +340,13 @@
             white-space: nowrap;
         }
 
+        .time-cell {
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--indigo);
+            white-space: nowrap;
+        }
+
         .status-badge {
             display: inline-block;
             padding: 3px 10px;
@@ -372,18 +382,81 @@
             color: #6d28d9;
         }
 
-        .time-cell {
-            font-weight: 700;
-            font-size: 12px;
-            color: var(--indigo);
-            white-space: nowrap;
+        /* Mobile card */
+        .mobile-cards {
+            display: none;
         }
 
-        .loading-row td {
-            text-align: center;
-            padding: 40px;
+        .booking-card-mobile {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .booking-card-mobile:last-child {
+            border-bottom: none;
+        }
+
+        .card-bar {
+            width: 3px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            align-self: stretch;
+            min-height: 48px;
+        }
+
+        .card-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 11px;
             color: var(--muted);
-            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            align-items: center;
+        }
+
+        .card-time {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--indigo);
+            background: var(--indigo-light);
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+
+        .card-room {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            background: #f1f5f9;
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+
+        .card-pic {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
         }
 
         .spinner {
@@ -453,7 +526,19 @@
             background: white;
         }
 
-        @media (max-width: 640px) {
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @media (max-width:640px) {
             nav {
                 padding: 0 1rem;
             }
@@ -463,35 +548,34 @@
             }
 
             .main {
-                padding: 16px 1rem 32px;
+                padding: 14px 1rem 32px;
             }
 
             .page-title {
-                font-size: 15px;
+                font-size: 16px;
             }
 
-            .schedule-table th.th-room,
-            .schedule-table td:nth-child(3),
-            .schedule-table th:nth-child(5),
-            .schedule-table td:nth-child(5) {
-                display: none;
+            .page-header {
+                gap: 8px;
+                margin-bottom: 14px;
             }
 
-            .schedule-table th,
-            .schedule-table td {
-                padding: 10px 10px;
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
+            .desktop-table {
+                display: none !important;
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .mobile-cards {
+                display: block;
+            }
+
+            .login-cta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-login-cta {
+                width: 100%;
+                text-align: center;
             }
         }
     </style>
@@ -500,24 +584,15 @@
 <body>
     <nav>
         <div class="nav-left">
-            <div class="nav-logo">
-                <img src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenkopangan">
-            </div>
-            <div class="nav-title">
-                Jadwal Ruang Rapat
-                <span>Kementerian Koordinator Bidang Pangan</span>
-            </div>
+            <div class="nav-logo"><img src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenkopangan"></div>
+            <div class="nav-title">Jadwal Ruang Rapat<span>Kementerian Koordinator Bidang Pangan</span></div>
         </div>
         <div class="nav-right">
             @auth
                 <a href="{{ url('/dashboard') }}" class="btn-solid">Dashboard</a>
             @else
-                @if(Route::has('login'))
-                    <a href="{{ route('login') }}" class="btn-ghost">Masuk</a>
-                @endif
-                @if(Route::has('register'))
-                    <a href="{{ route('register') }}" class="btn-solid">Daftar</a>
-                @endif
+                @if(Route::has('login'))<a href="{{ route('login') }}" class="btn-ghost">Masuk</a>@endif
+                @if(Route::has('register'))<a href="{{ route('register') }}" class="btn-solid">Daftar</a>@endif
             @endauth
         </div>
     </nav>
@@ -529,288 +604,121 @@
                 <div class="page-subtitle" id="dateRangeLabel">Memuat jadwal...</div>
             </div>
             <div class="range-tabs">
-                <button class="range-tab active" data-range="3" onclick="setRange(3, this)">3 Hari</button>
-                <button class="range-tab" data-range="7" onclick="setRange(7, this)">7 Hari</button>
-                <button class="range-tab" data-range="14" onclick="setRange(14, this)">2 Minggu</button>
+                <button class="range-tab active" onclick="setRange(3,this)">3 Hari</button>
+                <button class="range-tab" onclick="setRange(7,this)">7 Hari</button>
+                <button class="range-tab" onclick="setRange(14,this)">2 Minggu</button>
             </div>
         </div>
 
-        <div class="filter-wrap" style="margin-bottom: 16px;" id="roomFilters">
+        <div class="filter-wrap" id="roomFilters">
             <span class="filter-label">Ruangan:</span>
-            <button class="filter-btn active" data-room="all" onclick="setRoom('all', this)">Semua Ruang</button>
+            <button class="filter-btn active" data-room="all" onclick="setRoom('all',this)">Semua Ruang</button>
         </div>
 
         <div class="table-wrap" id="tableWrap">
-            <table class="schedule-table">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Nama Kegiatan</th>
-                        <th class="th-room">Ruangan</th>
-                        <th class="th-time">Waktu</th>
-                        <th class="th-pic">PIC</th>
-                        <th class="th-status">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="scheduleBody">
-                    <tr class="loading-row">
-                        <td colspan="6"><span class="spinner"></span> Memuat jadwal...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div
+                style="background:white;border-radius:16px;padding:40px;text-align:center;color:var(--muted);font-size:13px;">
+                <span class="spinner"></span> Memuat jadwal...
+            </div>
         </div>
 
         @guest
             <div class="login-cta">
-                <div class="login-cta-text">
-                    🔒 Ingin mengajukan booking ruang rapat?
-                    <span>Silakan login untuk menambahkan agenda.</span>
-                </div>
+                <div class="login-cta-text">🔒 Ingin mengajukan booking ruang rapat? <span>Silakan login untuk menambahkan
+                        agenda.</span></div>
                 <a href="{{ route('login') }}" class="btn-login-cta">Masuk Sekarang →</a>
             </div>
         @endguest
     </div>
 
-    <footer>
-        © {{ date('Y') }} Kementerian Koordinator Bidang Pangan Republik Indonesia
-    </footer>
+    <footer>© {{ date('Y') }} Kementerian Koordinator Bidang Pangan Republik Indonesia</footer>
 
     <script>
-        const roomColors = {
-            1: { dot: '#94a3b8', label: 'Ruang Rapat Utama' },
-            2: { dot: '#14b8a6', label: 'Ruang Rapat KDKMP' },
-            3: { dot: '#8b5cf6', label: 'Ruang Rapat Setmenko' },
-            4: { dot: '#f59e0b', label: 'Ruang Rapat D2' },
-            5: { dot: '#d946ef', label: 'Ruang Rapat D3' },
-            6: { dot: '#f43f5e', label: 'Ruang Rapat D4' },
+        const RC = { 1: { dot: '#94a3b8', label: 'Ruang Rapat Utama' }, 2: { dot: '#14b8a6', label: 'Ruang Rapat KDKMP' }, 3: { dot: '#8b5cf6', label: 'Ruang Rapat Setmenko' }, 4: { dot: '#f59e0b', label: 'Ruang Rapat D2' }, 5: { dot: '#d946ef', label: 'Ruang Rapat D3' }, 6: { dot: '#f43f5e', label: 'Ruang Rapat D4' } }
+        const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+        const MON = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+        let all = [], room = 'all', range = 3
+        const mobile = () => window.innerWidth <= 640
+        const pad = n => String(n).padStart(2, '0')
+        const dateStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+        const fmtT = s => { const p = s.replace('T', ' ').split(/[- :]/); return `${p[3]}.${p[4]}` }
+        const today = s => s === dateStr(new Date())
+        const getRange = n => { const s = new Date(); s.setHours(0, 0, 0, 0); const e = new Date(s); e.setDate(e.getDate() + n); return { s, e } }
+        const esc = s => s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''
+        function status(b) {
+            const now = new Date(), st = new Date(b.start), en = new Date(b.end), d = (st - now) / 60000
+            if (b.status === 'PENDING') return { c: 'status-pending', l: 'Menunggu' }
+            if (now >= st && now <= en) return { c: 'status-berlangsung', l: '● Sedang Berlangsung' }
+            if (now > en) return { c: 'status-selesai', l: '✓ Selesai' }
+            if (d <= 30) return { c: 'status-segera', l: '⚡ Segera' }
+            return { c: 'status-terjadwal', l: '✓ Terjadwal' }
         }
-
-        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-        const monthsFull = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-
-        let allBookings = []
-        let activeRoom = 'all'
-        let activeRange = 3
-
-        function toLocalDateStr(date) {
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-        }
-
-        function fmtTime(isoStr) {
-            const parts = isoStr.replace('T', ' ').split(/[- :]/)
-            return `${parts[3]}.${parts[4]}`
-        }
-
-        function isToday(dateStr) {
-            return dateStr === toLocalDateStr(new Date())
-        }
-
-        function getDateRange(numDays) {
-            const start = new Date(); start.setHours(0, 0, 0, 0)
-            const end = new Date(start); end.setDate(end.getDate() + numDays)
-            return { start, end }
-        }
-
-        function getStatus(b) {
-            const now = new Date()
-            const startTime = new Date(b.start)
-            const endTime = new Date(b.end)
-            const diffMins = (startTime - now) / 60000
-
-            if (b.status === 'PENDING') return { cls: 'status-pending', label: 'Menunggu' }
-            if (now >= startTime && now <= endTime) return { cls: 'status-berlangsung', label: '● Sedang Berlangsung' }
-            if (now > endTime) return { cls: 'status-selesai', label: '✓ Selesai' }
-            if (diffMins <= 30) return { cls: 'status-segera', label: '⚡ Segera' }
-            return { cls: 'status-terjadwal', label: '✓ Terjadwal' }
-        }
-
-        function escHtml(str) {
-            if (!str) return ''
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-        }
-
-        // Selalu tampilkan semua ruangan dari roomColors, tidak tergantung data booking
-        function buildRoomFilters() {
-            const wrap = document.getElementById('roomFilters')
-            wrap.querySelectorAll('[data-room]:not([data-room="all"])').forEach(el => el.remove())
-            Object.entries(roomColors).forEach(([rid, info]) => {
-                const btn = document.createElement('button')
-                btn.className = 'filter-btn'
-                btn.dataset.room = rid
-                btn.onclick = function () { setRoom(rid, this) }
-                btn.innerHTML = `<span class="room-dot" style="background:${info.dot}"></span>${info.label}`
-                wrap.appendChild(btn)
+        function buildFilters() {
+            const w = document.getElementById('roomFilters')
+            w.querySelectorAll('[data-room]:not([data-room="all"])').forEach(e => e.remove())
+            Object.entries(RC).forEach(([id, i]) => {
+                const b = document.createElement('button')
+                b.className = 'filter-btn'; b.dataset.room = id
+                b.onclick = () => setRoom(id, b)
+                b.innerHTML = `<span class="room-dot" style="background:${i.dot}"></span>${i.label}`
+                w.appendChild(b)
             })
         }
-
-        async function loadBookings() {
+        async function load() {
+            const { s, e } = getRange(range)
             try {
-                const { start, end } = getDateRange(activeRange)
-                const startStr = toLocalDateStr(start)
-                const endStr = toLocalDateStr(end)
-
-                const res = await fetch(`/api/display-bookings?start=${startStr}&end=${endStr}`)
-                const data = await res.json()
-
-                allBookings = data.map(e => ({
-                    title: e.title,
-                    start: e.start?.replace(' ', 'T'),
-                    end: e.end?.replace(' ', 'T'),
-                    room_id: e.extendedProps?.room_id ?? e.room_id,
-                    room_name: e.extendedProps?.room_name ?? e.room_name ?? null,
-                    pic: e.extendedProps?.pic ?? e.pic ?? '-',
-                    status: e.extendedProps?.status ?? e.status ?? 'APPROVED',
-                    description: e.extendedProps?.description ?? e.description ?? '',
-                }))
-
+                const r = await fetch(`/api/display-bookings?start=${dateStr(s)}&end=${dateStr(e)}`)
+                const d = await r.json()
+                all = d.map(e => ({ title: e.title, start: (e.start || '').replace(' ', 'T'), end: (e.end || '').replace(' ', 'T'), room_id: e.extendedProps?.room_id ?? e.room_id, room_name: e.extendedProps?.room_name ?? e.room_name ?? null, pic: e.extendedProps?.pic ?? e.pic ?? '-', status: e.extendedProps?.status ?? e.status ?? 'APPROVED', description: e.extendedProps?.description ?? e.description ?? '' }))
                 render()
-            } catch (e) {
-                console.error('ERROR:', e)
-                document.getElementById('scheduleBody').innerHTML =
-                    `<tr><td colspan="6" style="text-align:center;padding:48px;color:#94a3b8;font-size:13px;">⚠️ Gagal memuat data.</td></tr>`
-            }
+            } catch (err) { document.getElementById('tableWrap').innerHTML = '<div style="background:white;border-radius:16px;padding:48px;text-align:center;color:#94a3b8;font-size:13px;">⚠️ Gagal memuat data.</div>' }
         }
-
-        function setRoom(room, el) {
-            activeRoom = room
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
-            el.classList.add('active')
-            render()
-        }
-
-        function setRange(range, el) {
-            activeRange = range
-            document.querySelectorAll('.range-tab').forEach(b => b.classList.remove('active'))
-            el.classList.add('active')
-            loadBookings()
-        }
-
+        function setRoom(r, el) { room = r; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); render() }
+        function setRange(r, el) { range = r; document.querySelectorAll('.range-tab').forEach(b => b.classList.remove('active')); el.classList.add('active'); load() }
         function render() {
-            const { start, end } = getDateRange(activeRange)
-
-            const endLabel = new Date(start)
-            endLabel.setDate(endLabel.getDate() + activeRange - 1)
-            document.getElementById('dateRangeLabel').textContent =
-                `${String(start.getDate()).padStart(2, '0')} ${monthsFull[start.getMonth()]} – ${String(endLabel.getDate()).padStart(2, '0')} ${monthsFull[endLabel.getMonth()]} ${endLabel.getFullYear()}`
-
-            let filtered = allBookings.filter(b => {
-                const bDate = b.start.split('T')[0]
-                const startDate = toLocalDateStr(start)
-                const endDate = toLocalDateStr(end)
-                return bDate >= startDate && bDate < endDate && ['APPROVED', 'PENDING'].includes(b.status)
-            })
-
-            if (activeRoom !== 'all') {
-                filtered = filtered.filter(b => String(b.room_id) === String(activeRoom))
-            }
-
-            filtered.sort((a, b) => new Date(a.start) - new Date(b.start))
-
-            const grouped = {}
-            filtered.forEach(b => {
-                const key = b.start.split('T')[0]
-                if (!grouped[key]) grouped[key] = []
-                grouped[key].push(b)
-            })
-
-            const allDates = Object.keys(grouped).sort()
-            const wrap = document.getElementById('tableWrap')
-            wrap.innerHTML = ''
-
-            if (allDates.length === 0) {
-                wrap.innerHTML = `
-                    <div style="background:white;border-radius:16px;border:1px solid var(--border);padding:48px 16px;text-align:center;color:#94a3b8;font-size:13px;font-weight:500;">
-                        <span style="font-size:28px;display:block;margin-bottom:8px;">📭</span>
-                        Tidak ada jadwal pada periode ini.
-                    </div>`
-                return
-            }
-
-            allDates.forEach(dateKey => {
-                const items = grouped[dateKey] || []
-                const d = new Date(dateKey + 'T00:00:00')
-                const todayFlag = isToday(dateKey)
-                const dayLabel = `${days[d.getDay()]}, ${String(d.getDate()).padStart(2, '0')} ${monthsFull[d.getMonth()]} ${d.getFullYear()}`
-
-                const section = document.createElement('div')
-                section.style.cssText = 'margin-bottom: 20px;'
-
-                const dateHeader = document.createElement('div')
-                dateHeader.style.cssText = `
-                    padding: 10px 16px;
-                    font-size: 11px;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    letter-spacing: 0.07em;
-                    color: ${todayFlag ? '#ffffff' : '#475569'};
-                    background: ${todayFlag ? 'linear-gradient(135deg, #050068, #4b4dce)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)'};
-                    border: 1px solid ${todayFlag ? '#4F46E5' : '#e2e8f0'};
-                    border-bottom: none;
-                    border-radius: 12px 12px 0 0;
-                `
-                dateHeader.innerHTML = dayLabel + (todayFlag ? ' <span style="font-weight:500;color:#FFF;font-size:10px;text-transform:none;letter-spacing:0;margin-left:6px;">● Hari ini</span>' : '')
-
-                const tableWrap = document.createElement('div')
-                tableWrap.style.cssText = `
-                    background: white;
-                    border: 1px solid var(--border);
-                    border-radius: 0 0 12px 12px;
-                    overflow: hidden;
-                    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
-                `
-
-                let tableHtml = `
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Nama Kegiatan</th>
-                                <th class="th-room">Ruangan</th>
-                                <th class="th-time">Waktu</th>
-                                <th class="th-pic">PIC</th>
-                                <th class="th-status">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `
-
-                items.forEach((b, i) => {
-                    const rid = b.room_id
-                    const info = roomColors[rid] || { dot: '#94a3b8', label: `Ruang ${rid}` }
-                    const startFmt = fmtTime(b.start)
-                    const endFmt = fmtTime(b.end)
-                    const roomName = b.room_name ?? info.label
-                    const { cls: statusClass, label: statusLabel } = getStatus(b)
-
-                    tableHtml += `<tr>
-                        <td>${i + 1}</td>
-                        <td>
-                            <div class="booking-title">${escHtml(b.title)}</div>
-                            ${b.description ? `<div class="booking-desc">${escHtml(b.description.substring(0, 60))}${b.description.length > 60 ? '…' : ''}</div>` : ''}
-                        </td>
-                        <td>
-                            <span class="room-badge">
-                                <span class="room-dot" style="background:${info.dot}"></span>
-                                ${escHtml(roomName)}
-                            </span>
-                        </td>
-                        <td class="time-cell">${startFmt} – ${endFmt}</td>
-                        <td style="font-size:12px;font-weight:600;color:#475569;">${escHtml(b.pic ?? '-')}</td>
-                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                    </tr>`
-                })
-
-                tableHtml += `</tbody></table>`
-                tableWrap.innerHTML = tableHtml
-                section.appendChild(dateHeader)
-                section.appendChild(tableWrap)
-                wrap.appendChild(section)
+            const { s, e } = getRange(range)
+            const el = new Date(s); el.setDate(el.getDate() + range - 1)
+            document.getElementById('dateRangeLabel').textContent = `${pad(s.getDate())} ${MON[s.getMonth()]} – ${pad(el.getDate())} ${MON[el.getMonth()]} ${el.getFullYear()}`
+            let f = all.filter(b => { const d = b.start.split('T')[0]; return d >= dateStr(s) && d < dateStr(e) && ['APPROVED', 'PENDING'].includes(b.status) })
+            if (room !== 'all') f = f.filter(b => String(b.room_id) === String(room))
+            f.sort((a, b) => new Date(a.start) - new Date(b.start))
+            const g = {}; f.forEach(b => { const k = b.start.split('T')[0]; (g[k] = g[k] || []).push(b) })
+            const wrap = document.getElementById('tableWrap'); wrap.innerHTML = ''
+            const keys = Object.keys(g).sort()
+            if (!keys.length) { wrap.innerHTML = '<div style="background:white;border-radius:16px;border:1px solid var(--border);padding:48px 16px;text-align:center;color:#94a3b8;font-size:13px;font-weight:500;"><span style="font-size:28px;display:block;margin-bottom:8px;">📭</span>Tidak ada jadwal pada periode ini.</div>'; return }
+            keys.forEach(dk => {
+                const items = g[dk], d = new Date(dk + 'T00:00:00'), td = today(dk)
+                const dl = `${DAYS[d.getDay()]}, ${pad(d.getDate())} ${MON[d.getMonth()]} ${d.getFullYear()}`
+                const sec = document.createElement('div'); sec.style.marginBottom = '20px'
+                const hdr = document.createElement('div')
+                hdr.style.cssText = `padding:10px 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:${td ? '#fff' : '#475569'};background:${td ? 'linear-gradient(135deg,#050068,#4b4dce)' : 'linear-gradient(135deg,#f1f5f9,#e2e8f0)'};border:1px solid ${td ? '#4F46E5' : '#e2e8f0'};border-bottom:none;border-radius:12px 12px 0 0;`
+                hdr.innerHTML = dl + (td ? ' <span style="font-weight:500;color:#FFF;font-size:10px;text-transform:none;letter-spacing:0;margin-left:6px;">● Hari ini</span>' : '')
+                const body = document.createElement('div')
+                body.style.cssText = 'background:white;border:1px solid var(--border);border-radius:0 0 12px 12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.04);'
+                if (mobile()) {
+                    const cards = document.createElement('div'); cards.className = 'mobile-cards'
+                    items.forEach(b => {
+                        const inf = RC[b.room_id] || { dot: '#94a3b8', label: `Ruang ${b.room_id}` }
+                        const rn = b.room_name ?? inf.label, { c, l } = status(b)
+                        const card = document.createElement('div'); card.className = 'booking-card-mobile'
+                        card.innerHTML = `<div class="card-bar" style="background:${inf.dot}"></div><div class="card-body"><div class="card-title">${esc(b.title)}</div>${b.description ? `<div class="card-desc">${esc(b.description.substring(0, 80))}${b.description.length > 80 ? '…' : ''}</div>` : ''}<div class="card-meta"><span class="card-time">${fmtT(b.start)} – ${fmtT(b.end)}</span><span class="card-room"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span><span class="card-pic">👤 ${esc(b.pic ?? '-')}</span><span class="status-badge ${c}">${l}</span></div></div>`
+                        cards.appendChild(card)
+                    })
+                    body.appendChild(cards)
+                } else {
+                    let t = `<table class="schedule-table desktop-table"><thead><tr><th>No.</th><th>Nama Kegiatan</th><th class="th-room">Ruangan</th><th class="th-time">Waktu</th><th class="th-pic">PIC</th><th class="th-status">Status</th></tr></thead><tbody>`
+                    items.forEach((b, i) => {
+                        const inf = RC[b.room_id] || { dot: '#94a3b8', label: `Ruang ${b.room_id}` }
+                        const rn = b.room_name ?? inf.label, { c, l } = status(b)
+                        t += `<tr><td>${i + 1}</td><td><div class="booking-title">${esc(b.title)}</div>${b.description ? `<div class="booking-desc">${esc(b.description.substring(0, 60))}${b.description.length > 60 ? '…' : ''}</div>` : ''}</td><td><span class="room-badge"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span></td><td class="time-cell">${fmtT(b.start)} – ${fmtT(b.end)}</td><td style="font-size:12px;font-weight:600;color:#475569;">${esc(b.pic ?? '-')}</td><td><span class="status-badge ${c}">${l}</span></td></tr>`
+                    })
+                    t += `</tbody></table>`; body.innerHTML = t
+                }
+                sec.appendChild(hdr); sec.appendChild(body); wrap.appendChild(sec)
             })
         }
-
-        // Build filter dulu sebelum load data
-        buildRoomFilters()
-        loadBookings()
+        let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150) })
+        buildFilters(); load()
     </script>
 </body>
 

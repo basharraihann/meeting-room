@@ -28,6 +28,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Redirect Admin langsung ke halaman manajemen user
+        if (Auth::user()->hasRole('Admin')) {
+            return redirect()->route('admin.users.index');
+        }
+
         // Hindari redirect ke API endpoint (misal /api/bookings)
         $intended = session()->pull('url.intended');
         if ($intended && str_contains($intended, '/api/')) {

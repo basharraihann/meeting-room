@@ -150,39 +150,51 @@
                 @else
                     <div class="divide-y divide-gray-50">
                         @foreach($todayBookings as $booking)
-                                    @php
-                                        $isActive = $now->between(
-                                            \Carbon\Carbon::parse($booking->start_at),
-                                            \Carbon\Carbon::parse($booking->end_at)
-                                        );
-                                    @endphp
-                                    <div class="px-5 py-4 flex items-center gap-4 {{ $isActive ? 'bg-indigo-50' : '' }}">
-                                        <div class="text-center min-w-[48px]">
-                                            <div class="text-sm font-bold {{ $isActive ? 'text-indigo-600' : 'text-gray-700' }}">
-                                                {{ \Carbon\Carbon::parse($booking->start_at)->format('H:i') }}
-                                            </div>
-                                            <div class="text-xs text-gray-400">
-                                                {{ \Carbon\Carbon::parse($booking->end_at)->format('H:i') }}
-                                            </div>
-                                        </div>
-                                        <div class="w-px h-10 {{ $isActive ? 'bg-indigo-300' : 'bg-gray-200' }}"></div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="font-semibold text-sm text-gray-900 truncate flex items-center gap-2">
-                                                @if($isActive)
-                                                    <span
-                                                        class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse inline-block flex-shrink-0"></span>
-                                                @endif
-                                                {{ $booking->title }}
-                                            </div>
-                                            <div class="text-xs text-gray-400 mt-0.5">{{ $booking->room?->name }}</div>
-                                        </div>
-                                        <span
-                                            class="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0
-                                                    {{ $isActive ? 'bg-indigo-100 text-indigo-700' :
-                            ($booking->status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700') }}">
-                                            {{ $isActive ? 'Berlangsung' : ($booking->status === 'APPROVED' ? 'Disetujui' : 'Pending') }}
-                                        </span>
+                            @php
+                                $start = \Carbon\Carbon::parse($booking->start_at);
+                                $end = \Carbon\Carbon::parse($booking->end_at);
+                                $isActive = $now->between($start, $end);
+                                $isDone = $now->greaterThan($end);
+                                $isSoon = !$isActive && !$isDone && $start->diffInMinutes($now) <= 30 && $start->greaterThan($now);
+
+                                if ($isActive) {
+                                    $statusLabel = 'Berlangsung';
+                                    $statusClass = 'bg-indigo-100 text-indigo-700';
+                                } elseif ($isDone) {
+                                    $statusLabel = 'Selesai';
+                                    $statusClass = 'bg-gray-100 text-gray-400';
+                                } elseif ($isSoon) {
+                                    $statusLabel = '⚡ Segera';
+                                    $statusClass = 'bg-yellow-100 text-yellow-700';
+                                } else {
+                                    $statusLabel = 'Terjadwal';
+                                    $statusClass = 'bg-green-100 text-green-700';
+                                }
+                            @endphp
+                            <div class="px-5 py-4 flex items-center gap-4 {{ $isActive ? 'bg-indigo-50' : '' }}">
+                                <div class="text-center min-w-[48px]">
+                                    <div class="text-sm font-bold {{ $isActive ? 'text-indigo-600' : 'text-gray-700' }}">
+                                        {{ \Carbon\Carbon::parse($booking->start_at)->format('H:i') }}
                                     </div>
+                                    <div class="text-xs text-gray-400">
+                                        {{ \Carbon\Carbon::parse($booking->end_at)->format('H:i') }}
+                                    </div>
+                                </div>
+                                <div class="w-px h-10 {{ $isActive ? 'bg-indigo-300' : 'bg-gray-200' }}"></div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold text-sm text-gray-900 truncate flex items-center gap-2">
+                                        @if($isActive)
+                                            <span
+                                                class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse inline-block flex-shrink-0"></span>
+                                        @endif
+                                        {{ $booking->title }}
+                                    </div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ $booking->room?->name }}</div>
+                                </div>
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 {{ $statusClass }}">
+                                    {{ $statusLabel }}
+                                </span>
+                            </div>
                         @endforeach
                     </div>
                 @endif

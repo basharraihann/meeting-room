@@ -181,7 +181,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             overflow-x: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -206,12 +206,12 @@
         .filter-btn {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 4px 11px;
+            gap: 4px;
+            padding: 3px 8px;
             border-radius: 99px;
             border: 1.5px solid var(--border);
             background: white;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: var(--muted);
             cursor: pointer;
@@ -237,8 +237,8 @@
         }
 
         .room-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             flex-shrink: 0;
         }

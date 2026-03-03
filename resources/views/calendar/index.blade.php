@@ -340,8 +340,9 @@
             function bookingModal() {
                 return {
                     open: {{ $errors->any() ? 'true' : 'false' }},
-                    start: @json(old('start_at', '')),
-                    end: @json(old('end_at', '')),
+                    bookingDate: @json(old('booking_date', '')),
+                    startTime: @json(old('start_time', '')),
+                    endTime: @json(old('end_time', '')),
                     roomId: @json(old('room_id', '')),
                     roomName: '',
                     lockRoom: false,
@@ -364,9 +365,22 @@
 
                     openModal(payload = {}) {
                         this.open = true
-                        this.start = payload.start ?? this.start ?? ''
-                        this.end = payload.end ?? this.end ?? ''
                         this.syncWithSidebar()
+
+                        if (payload.start) {
+                            this.bookingDate = payload.start.split('T')[0]
+                        }
+                    },
+
+                    autoSetEndTime() {
+                        if (!this.startTime) return
+                        const [h, m] = this.startTime.split(':').map(Number)
+                        const totalMins = h * 60 + m + 60
+                        const nh = Math.floor(totalMins / 60)
+                        const nm = totalMins % 60
+                        if (nh <= 21) {
+                            this.endTime = String(nh).padStart(2, '0') + ':' + String(nm).padStart(2, '0')
+                        }
                     },
 
                     close() {

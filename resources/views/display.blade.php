@@ -45,58 +45,67 @@
         .display-header {
             background: white;
             border-bottom: 1.5px solid var(--border);
-            padding: 14px 28px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 12px;
+            flex-wrap: nowrap;
+            min-width: 0;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             flex-wrap: wrap;
+            min-width: 0;
+            flex: 1;
         }
 
         .header-logo img {
-            height: 40px;
+            height: 44px;
             width: auto;
+            flex-shrink: 0;
         }
 
         .header-title {
             border-left: 2px solid var(--border);
-            padding-left: 14px;
+            padding-left: 12px;
+            min-width: 0;
         }
 
         .header-title h1 {
-            font-size: 16px;
+            font-size: clamp(15px, 1.6vw, 26px);
             font-weight: 900;
             color: var(--text);
             letter-spacing: -0.02em;
+            white-space: nowrap;
         }
 
         .header-title p {
-            font-size: 11px;
+            font-size: clamp(11px, 1vw, 16px);
             color: var(--muted);
             font-weight: 500;
             margin-top: 2px;
+            white-space: nowrap;
         }
 
         /* ===== DROPDOWN ===== */
         .room-dropdown-wrap {
             position: relative;
+            flex-shrink: 0;
         }
 
         .room-dropdown-btn {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 7px 14px;
+            gap: 6px;
+            padding: 8px 16px;
             background: var(--indigo-light);
             border: 1.5px solid #c7d2fe;
             border-radius: 99px;
-            font-size: 12px;
+            font-size: clamp(12px, 1vw, 16px);
             font-weight: 800;
             color: var(--indigo);
             cursor: pointer;
@@ -118,7 +127,7 @@
         }
 
         .chevron {
-            font-size: 10px;
+            font-size: 11px;
             margin-left: 2px;
             transition: transform 0.15s;
         }
@@ -136,7 +145,7 @@
             border: 1.5px solid var(--border);
             border-radius: 14px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            min-width: 200px;
+            min-width: 220px;
             z-index: 100;
             overflow: hidden;
             padding: 6px;
@@ -150,9 +159,9 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 9px 12px;
+            padding: 11px 14px;
             border-radius: 10px;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--text);
             cursor: pointer;
@@ -173,12 +182,13 @@
         /* ===== STATUS HEADER BADGE ===== */
         .room-status-badge {
             display: inline-block;
-            padding: 5px 14px;
+            padding: 5px 12px;
             border-radius: 99px;
-            font-size: 11px;
+            font-size: clamp(10px, 0.85vw, 14px);
             font-weight: 800;
             letter-spacing: 0.05em;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .hdr-berlangsung {
@@ -203,7 +213,7 @@
         }
 
         .clock-display {
-            font-size: 32px;
+            font-size: clamp(28px, 3.2vw, 60px);
             font-weight: 900;
             color: var(--text);
             letter-spacing: -0.04em;
@@ -211,27 +221,28 @@
         }
 
         .date-display {
-            font-size: 12px;
+            font-size: clamp(11px, 1.1vw, 18px);
             font-weight: 700;
             color: var(--muted);
-            margin-top: 3px;
+            margin-top: 4px;
+            white-space: nowrap;
         }
 
         /* ===== CONTENT ===== */
         .content {
             flex: 1;
-            padding: 20px 28px 28px;
+            padding: 20px 16px 28px;
             overflow-y: auto;
         }
 
         /* ===== DAY SECTIONS ===== */
         .day-section {
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .day-header {
-            padding: 10px 16px;
-            font-size: 11px;
+            padding: 10px 20px;
+            font-size: clamp(12px, 1.1vw, 17px);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.07em;
@@ -253,10 +264,10 @@
 
         .today-tag {
             font-weight: 500;
-            font-size: 10px;
+            font-size: 13px;
             text-transform: none;
             letter-spacing: 0;
-            margin-left: 8px;
+            margin-left: 10px;
             opacity: 0.9;
         }
 
@@ -268,8 +279,16 @@
             box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
         }
 
+        /* ===== TABLE — key fix: no fixed widths, overflow scroll wrapper ===== */
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .schedule-table {
             width: 100%;
+            min-width: 680px; /* prevents collapse on narrow viewports */
             border-collapse: collapse;
             table-layout: fixed;
         }
@@ -280,47 +299,36 @@
         }
 
         .schedule-table th {
-            padding: 10px 16px;
-            font-size: 11px;
+            padding: 12px 10px;
+            font-size: clamp(11px, 1vw, 15px);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.07em;
             color: var(--muted);
             text-align: left;
+            overflow: hidden;
         }
 
-        .schedule-table th:first-child {
-            width: 48px;
-            text-align: center;
-        }
-
-        .schedule-table th.th-room {
-            width: 180px;
-        }
-
-        .schedule-table th.th-time {
-            width: 140px;
-        }
-
-        .schedule-table th.th-pic {
-            width: 120px;
-        }
-
-        .schedule-table th.th-status {
-            width: 160px;
-        }
+        /* Column widths as percentages — add up to 100% */
+        .col-no     { width: 4%; text-align: center; }
+        .col-nama   { width: 36%; }
+        .col-room   { width: 17%; }
+        .col-time   { width: 13%; }
+        .col-pic    { width: 12%; }
+        .col-status { width: 15%; }
 
         .schedule-table td {
-            padding: 13px 16px;
-            font-size: 13px;
+            padding: clamp(10px, 1vh, 18px) 10px;
+            font-size: clamp(13px, 1.2vw, 18px);
             border-bottom: 1px solid #f1f5f9;
             color: var(--text);
             vertical-align: middle;
+
         }
 
-        .schedule-table td:first-child {
+        .schedule-table td.col-no {
             text-align: center;
-            font-size: 12px;
+            font-size: clamp(12px, 1vw, 16px);
             font-weight: 600;
             color: #94a3b8;
         }
@@ -335,34 +343,39 @@
 
         .booking-title {
             font-weight: 700;
-            font-size: 13px;
+            font-size: clamp(13px, 1.2vw, 18px);
             color: var(--text);
-            line-height: 1.35;
+            line-height: 1.4;
+            white-space: normal;
+            word-break: break-word;
         }
 
         .room-badge {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 3px 10px;
+            padding: 4px 10px;
             border-radius: 99px;
-            font-size: 11px;
+            font-size: clamp(11px, 0.95vw, 15px);
             font-weight: 600;
             background: #f1f5f9;
             color: var(--muted);
             white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             flex-shrink: 0;
         }
 
         .time-cell {
             font-weight: 700;
-            font-size: 13px;
+            font-size: clamp(12px, 1.1vw, 17px);
             color: var(--indigo);
             white-space: nowrap;
         }
@@ -371,39 +384,20 @@
         .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
+            gap: 4px;
+            padding: 5px 10px;
             border-radius: 99px;
-            font-size: 10px;
+            font-size: clamp(11px, 0.9vw, 14px);
             font-weight: 800;
             letter-spacing: 0.03em;
             white-space: nowrap;
         }
 
-        .pill-berlangsung {
-            background: #1e293b;
-            color: white;
-        }
-
-        .pill-segera {
-            background: #fef9c3;
-            color: #a16207;
-        }
-
-        .pill-selesai {
-            background: #f1f5f9;
-            color: #94a3b8;
-        }
-
-        .pill-terjadwal {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .pill-pending {
-            background: #fff7ed;
-            color: #c2410c;
-        }
+        .pill-berlangsung { background: #1e293b; color: white; }
+        .pill-segera      { background: #fef9c3; color: #a16207; }
+        .pill-selesai     { background: #f1f5f9; color: #94a3b8; }
+        .pill-terjadwal   { background: #dcfce7; color: #15803d; }
+        .pill-pending     { background: #fff7ed; color: #c2410c; }
 
         /* ===== REFRESH BAR ===== */
         .refresh-bar {
@@ -418,28 +412,39 @@
         }
 
         @keyframes shrink {
-            from {
-                transform: scaleX(1);
+            from { transform: scaleX(1); }
+            to   { transform: scaleX(0); }
+        }
+
+        /* ===== MOBILE ≤640px ===== */
+        @media (max-width: 640px) {
+            .display-header {
+                padding: 8px 10px;
+                flex-wrap: wrap;
             }
 
-            to {
-                transform: scaleX(0);
-            }
+            .header-logo img { height: 30px; }
+            .header-title { padding-left: 8px; }
+
+            /* Hide room & PIC columns on mobile */
+            .col-room, .col-pic { display: none; }
+
+            .booking-title { white-space: normal; }
         }
 
         /* ===== EMPTY ===== */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #94a3b8;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 600;
         }
 
         .empty-state .icon {
-            font-size: 36px;
+            font-size: 48px;
             display: block;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -449,12 +454,14 @@
     @php
         $now = now('Asia/Jakarta');
         $dotColorMap = [
-            1 => '#94a3b8',
-            2 => '#14b8a6',
-            3 => '#8b5cf6',
-            4 => '#f59e0b',
-            5 => '#d946ef',
-            6 => '#f43f5e',
+            1 => '#1a1a1a',
+            2 => '#a855f7',
+            3 => '#92400e',
+            4 => '#facc15',
+            5 => '#22d3ee',
+            6 => '#ef4444',
+            7 => '#ec4899',
+            8 => '#468432',
         ];
         $activeDot = $room ? ($dotColorMap[$room->id] ?? '#94a3b8') : '#6366f1';
         $rooms = \App\Models\Room::orderBy('id')->get();
@@ -486,19 +493,16 @@
             {{-- DROPDOWN RUANGAN --}}
             <div class="room-dropdown-wrap">
                 <button class="room-dropdown-btn" id="dropdownBtn" onclick="toggleDropdown()">
-                    <span class="room-dot-hdr" style="background:{{ $activeDot }}"></span>
                     {{ $room?->name ?? 'Semua Ruang' }}
                     <span class="chevron">▼</span>
                 </button>
                 <div class="room-dropdown-menu" id="dropdownMenu">
                     <a href="/display" class="dropdown-item {{ !$room ? 'active' : '' }}">
-                        <span class="dot" style="background:#6366f1"></span>
                         Semua Ruang
                     </a>
                     @foreach($rooms as $r)
-                        @php $dc = $dotColorMap[$r->id] ?? '#94a3b8'; @endphp
                         <a href="/display/{{ $r->id }}" class="dropdown-item {{ $room?->id === $r->id ? 'active' : '' }}">
-                            <span class="dot" style="background:{{ $dc }}"></span>
+                            <span class="room-dot-hdr" style="background:{{ $dotColorMap[$r->id] ?? '#94a3b8' }}"></span>
                             {{ $r->name }}
                         </a>
                     @endforeach
@@ -532,8 +536,8 @@
 
     <script>
         const roomColors = {
-            1: '#94a3b8', 2: '#14b8a6', 3: '#8b5cf6',
-            4: '#f59e0b', 5: '#d946ef', 6: '#f43f5e',
+            1: '#1a1a1a', 2: '#a855f7', 3: '#92400e',
+            4: '#facc15', 5: '#22d3ee', 6: '#ef4444', 7: '#ec4899',
         }
         const daysArr = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
         const monthsArr = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
@@ -589,7 +593,7 @@
         // ===== LOAD & RENDER =====
         async function loadAndRender() {
             const start = new Date(); start.setHours(0, 0, 0, 0)
-            const end = new Date(start); end.setDate(end.getDate() + 3)
+            const end = new Date(start); end.setDate(end.getDate() + 1)
             const startStr = toLocalDateStr(start)
             const endStr = toLocalDateStr(end)
 
@@ -607,7 +611,7 @@
                     end: e.end?.replace(' ', 'T'),
                     room_id: e.extendedProps?.room_id ?? e.room_id,
                     room_name: e.extendedProps?.room_name ?? e.room_name ?? null,
-                    pic: e.extendedProps?.pic ?? e.pic ?? '-',
+                    unit_kerja: e.extendedProps?.unit_kerja ?? e.unit_kerja ?? '-',
                     status: e.extendedProps?.status ?? e.status ?? 'APPROVED',
                 }))
 
@@ -628,7 +632,7 @@
                 const content = document.getElementById('scheduleContent')
 
                 if (Object.keys(grouped).length === 0) {
-                    content.innerHTML = `<div class="empty-state"><span class="icon">📭</span>Tidak ada jadwal dalam 3 hari ke depan</div>`
+                    content.innerHTML = `<div class="empty-state"><span class="icon">📭</span>Tidak ada jadwal hari ini</div>`
                     return
                 }
 
@@ -645,14 +649,15 @@
                             ${todayFlag ? '<span class="today-tag">● Hari ini</span>' : ''}
                         </div>
                         <div class="day-table-wrap">
+                        <div class="table-scroll">
                         <table class="schedule-table">
                             <thead><tr>
-                                <th>No.</th>
-                                <th>Nama Kegiatan</th>
-                                <th class="th-room">Ruangan</th>
-                                <th class="th-time">Waktu</th>
-                                <th class="th-pic">PIC</th>
-                                <th class="th-status">Status</th>
+                                <th class="col-no">No.</th>
+                                <th class="col-nama">Nama Kegiatan</th>
+                                <th class="col-room">Ruangan</th>
+                                <th class="col-time">Waktu</th>
+                                <th class="col-pic">Pengusul</th>
+                                <th class="col-status">Status</th>
                             </tr></thead>
                             <tbody>`
 
@@ -660,21 +665,21 @@
                         const dotColor = roomColors[b.room_id] || '#94a3b8'
                         const roomName = b.room_name || `Ruang ${b.room_id}`
                         html += `<tr>
-                            <td>${i + 1}</td>
-                            <td><div class="booking-title">${escHtml(b.title)}</div></td>
-                            <td>
+                            <td class="col-no">${i + 1}</td>
+                            <td class="col-nama"><div class="booking-title">${escHtml(b.title)}</div></td>
+                            <td class="col-room">
                                 <span class="room-badge">
                                     <span class="dot" style="background:${dotColor}"></span>
                                     ${escHtml(roomName)}
                                 </span>
                             </td>
-                            <td class="time-cell">${fmtTime(b.start)} – ${fmtTime(b.end)}</td>
-                            <td style="font-size:12px;font-weight:600;color:#475569;">${escHtml(b.pic ?? '-')}</td>
-                            <td>${getStatusPill(b.start, b.end, b.status)}</td>
+                            <td class="col-time time-cell">${fmtTime(b.start)} – ${fmtTime(b.end)}</td>
+                            <td class="col-pic" style="font-weight:600;color:#475569;font-size:clamp(12px,1vw,16px);">${escHtml(b.unit_kerja ?? '-')}</td>
+                            <td class="col-status">${getStatusPill(b.start, b.end, b.status)}</td>
                         </tr>`
                     })
 
-                    html += `</tbody></table></div></div>`
+                    html += `</tbody></table></div></div></div>`
                 })
 
                 content.innerHTML = html

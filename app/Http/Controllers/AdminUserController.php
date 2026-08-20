@@ -12,12 +12,13 @@ class AdminUserController extends Controller
 {
     public function index(Request $request)
     {
-        $q = $request->query('q');
+        $q = $request->query('search');
         $filterRole = $request->query('role');
 
         $users = User::with(['roles', 'room'])
             ->when($q, fn($query) => $query->where('name', 'like', "%{$q}%")
-                ->orWhere('email', 'like', "%{$q}%"))
+                ->orWhere('email', 'like', "%{$q}%")
+                ->orWhere('username', 'like', "%{$q}%"))
             ->when($filterRole, fn($query) => $query->whereHas('roles', fn($r) => $r->where('name', $filterRole)))
             ->orderBy('name')
             ->paginate(15)
@@ -33,22 +34,26 @@ class AdminUserController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'exists:roles,name'],
             'room_id' => ['nullable', 'exists:rooms,id'],
+            'email' => ['nullable', 'email', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'username' => $data['username'],
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password']),
             'room_id' => $data['room_id'] ?? null,
         ]);
 
         $user->assignRole($data['role']);
 
-        return back()->with('status', "User {$user->name} berhasil ditambahkan.");
+        return back()->with('success', "User {$user->name} berhasil ditambahkan.");
     }
 
     public function updateRole(Request $request, User $user)
@@ -59,12 +64,11 @@ class AdminUserController extends Controller
 
         $user->syncRoles([$request->role]);
 
-        // Kalau bukan TU, hapus room assignment
         if ($request->role !== 'TU') {
             $user->update(['room_id' => null]);
         }
 
-        return back()->with('status', "Role {$user->name} diubah ke {$request->role}.");
+        return back()->with('success', "Role {$user->name} diubah ke {$request->role}.");
     }
 
     public function updateRoom(Request $request, User $user)
@@ -79,7 +83,34 @@ class AdminUserController extends Controller
             ? Room::find($request->room_id)?->name
             : 'tidak ada';
 
-        return back()->with('status', "Room {$user->name} diubah ke {$roomName}.");
+        return back()->with('success', "Room {$user->name} diubah ke {$roomName}.");
+    }
+
+    public function updateProfile(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $user->id],
+            'email' => ['nullable', 'email', 'unique:users,email,' . $user->id],
+            'phone' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $user->update($data);
+
+        return back()->with('success', "Profil {$user->name} berhasil diperbarui.");
+    }
+
+    public function updatePassword(Request $request, User $user)
+    {
+        $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return back()->with('success', "Password {$user->name} berhasil direset.");
     }
 
     public function destroy(User $user)
@@ -91,6 +122,6 @@ class AdminUserController extends Controller
         $name = $user->name;
         $user->delete();
 
-        return back()->with('status', "User {$name} berhasil dihapus.");
+        return back()->with('success', "User {$name} berhasil dihapus.");
     }
 }

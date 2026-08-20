@@ -42,7 +42,7 @@
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
             padding: 0 1.5rem;
-            height: 60px;
+            height: 68px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -121,8 +121,8 @@
 
         .main {
             flex: 1;
-            padding: 24px 1.5rem 40px;
-            max-width: 1100px;
+            padding: 28px 2rem 48px;
+            max-width: 1400px;
             margin: 0 auto;
             width: 100%;
         }
@@ -137,7 +137,7 @@
         }
 
         .page-title {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 800;
             color: var(--text);
             letter-spacing: -0.02em;
@@ -159,9 +159,9 @@
         }
 
         .range-tab {
-            padding: 5px 14px;
+            padding: 7px 18px;
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--muted);
             cursor: pointer;
@@ -178,15 +178,23 @@
         }
 
         .filter-wrap {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-bottom: 4px;
             margin-bottom: 16px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
         }
 
         .filter-wrap::-webkit-scrollbar {
@@ -206,12 +214,12 @@
         .filter-btn {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
+            gap: 6px;
+            padding: 4px 10px;
             border-radius: 99px;
             border: 1.5px solid var(--border);
             background: white;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--muted);
             cursor: pointer;
@@ -261,8 +269,8 @@
         }
 
         .schedule-table th {
-            padding: 11px 16px;
-            font-size: 11px;
+            padding: 14px 18px;
+            font-size: 13px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.07em;
@@ -271,29 +279,29 @@
         }
 
         .schedule-table th:first-child {
-            width: 52px;
+            width: 60px;
             text-align: center;
         }
 
-        .schedule-table th.th-room {
-            width: 200px;
+            {
+            width: 220px;
         }
 
         .schedule-table th.th-time {
-            width: 150px;
+            width: 170px;
         }
 
         .schedule-table th.th-pic {
-            width: 130px;
+            width: 150px;
         }
 
         .schedule-table th.th-status {
-            width: 160px;
+            width: 185px;
         }
 
         .schedule-table td {
-            padding: 13px 16px;
-            font-size: 13px;
+            padding: 16px 18px;
+            font-size: 15px;
             border-bottom: 1px solid #f1f5f9;
             color: var(--text);
             vertical-align: middle;
@@ -316,7 +324,7 @@
 
         .booking-title {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 15px;
             color: var(--text);
             line-height: 1.3;
         }
@@ -333,7 +341,7 @@
             gap: 5px;
             padding: 3px 10px;
             border-radius: 99px;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
             background: #f1f5f9;
             color: var(--muted);
@@ -342,16 +350,16 @@
 
         .time-cell {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 14px;
             color: var(--indigo);
             white-space: nowrap;
         }
 
         .status-badge {
             display: inline-block;
-            padding: 3px 10px;
+            padding: 5px 12px;
             border-radius: 99px;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.04em;
             white-space: nowrap;
@@ -608,10 +616,11 @@
                 <button class="range-tab" onclick="setRange(14,this)">2 Minggu</button>
             </div>
         </div>
-
-        <div class="filter-wrap" id="roomFilters">
+        <div class="filter-wrap">
             <span class="filter-label">Ruangan:</span>
-            <button class="filter-btn active" data-room="all" onclick="setRoom('all',this)">Semua Ruang</button>
+            <div class="filter-buttons" id="roomFilters">
+                <button class="filter-btn active" data-room="all" onclick="setRoom('all',this)">Semua Ruang</button>
+            </div>
         </div>
 
         <div class="table-wrap" id="tableWrap">
@@ -623,7 +632,7 @@
 
         @guest
             <div class="login-cta">
-                <div class="login-cta-text">🔒 Ingin mengajukan booking ruang rapat? <span>Silakan login untuk menambahkan
+                <div class="login-cta-text">🔒︎ Ingin mengajukan booking ruang rapat? <span>Silakan login untuk menambahkan
                         agenda.</span></div>
                 <a href="{{ route('login') }}" class="btn-login-cta">Masuk Sekarang →</a>
             </div>
@@ -635,12 +644,13 @@
     <script>
         const RC = {
             1: { dot: '#3d3d3d', label: 'Ruang Rapat Utama' },
-            2: { dot: '#5bc8af', label: 'Ruang Rapat KDKMP' },
-            3: { dot: '#7b68aa', label: 'Ruang Rapat Setmenko' },
+            2: { dot: '#7b68aa', label: 'Ruang Rapat Setmenko' },
+            3: { dot: '#92400e', label: 'Ruang Rapat D1' },
             4: { dot: '#f0c040', label: 'Ruang Rapat D2' },
             5: { dot: '#4bbfd4', label: 'Ruang Rapat D3' },
             6: { dot: '#e8604c', label: 'Ruang Rapat D4' },
             7: { dot: '#ec4899', label: 'Ruang Dharma Wanita' },
+            8: { dot: '#468432', label: 'Ruang Rapat ABT' },
         }
         const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
         const MON = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
@@ -676,7 +686,7 @@
             try {
                 const r = await fetch(`/api/display-bookings?start=${dateStr(s)}&end=${dateStr(e)}`)
                 const d = await r.json()
-                all = d.map(e => ({ title: e.title, start: (e.start || '').replace(' ', 'T'), end: (e.end || '').replace(' ', 'T'), room_id: e.extendedProps?.room_id ?? e.room_id, room_name: e.extendedProps?.room_name ?? e.room_name ?? null, pic: e.extendedProps?.pic ?? e.pic ?? '-', status: e.extendedProps?.status ?? e.status ?? 'APPROVED', description: e.extendedProps?.description ?? e.description ?? '' }))
+                all = d.map(e => ({ title: e.title, start: (e.start || '').replace(' ', 'T'), end: (e.end || '').replace(' ', 'T'), room_id: e.extendedProps?.room_id ?? e.room_id, room_name: e.extendedProps?.room_name ?? e.room_name ?? null, unit_kerja: e.extendedProps?.unit_kerja ?? e.unit_kerja ?? '-', status: e.extendedProps?.status ?? e.status ?? 'APPROVED', description: e.extendedProps?.description ?? e.description ?? '' }))
                 render()
             } catch (err) { document.getElementById('tableWrap').innerHTML = '<div style="background:white;border-radius:16px;padding:48px;text-align:center;color:#94a3b8;font-size:13px;">⚠️ Gagal memuat data.</div>' }
         }
@@ -692,7 +702,15 @@
             const g = {}; f.forEach(b => { const k = b.start.split('T')[0]; (g[k] = g[k] || []).push(b) })
             const wrap = document.getElementById('tableWrap'); wrap.innerHTML = ''
             const keys = Object.keys(g).sort()
-            if (!keys.length) { wrap.innerHTML = '<div style="background:white;border-radius:16px;border:1px solid var(--border);padding:48px 16px;text-align:center;color:#94a3b8;font-size:13px;font-weight:500;"><span style="font-size:28px;display:block;margin-bottom:8px;">📭</span>Tidak ada jadwal pada periode ini.</div>'; return }
+            if (!keys.length) {
+                const maintRooms = window.MAINTENANCE_ROOMS || [];
+                let icon = '', msg = 'Tidak ada jadwal pada periode ini.';
+                if (room !== 'all' && maintRooms.map(Number).includes(Number(room))) {
+                    icon = ''; msg = 'Ruang rapat ini digunakan untuk Kegiatan BPK.';
+                }
+                wrap.innerHTML = `<div style="background:white;border-radius:16px;border:1px solid var(--border);padding:48px 16px;text-align:center;color:#94a3b8;font-size:13px;font-weight:500;"><span style="font-size:28px;display:block;margin-bottom:8px;">${icon}</span>${msg}</div>`;
+                return
+            }
             keys.forEach(dk => {
                 const items = g[dk], d = new Date(dk + 'T00:00:00'), td = today(dk)
                 const dl = `${DAYS[d.getDay()]}, ${pad(d.getDate())} ${MON[d.getMonth()]} ${d.getFullYear()}`
@@ -708,16 +726,16 @@
                         const inf = RC[b.room_id] || { dot: '#94a3b8', label: `Ruang ${b.room_id}` }
                         const rn = b.room_name ?? inf.label, { c, l } = status(b)
                         const card = document.createElement('div'); card.className = 'booking-card-mobile'
-                        card.innerHTML = `<div class="card-bar" style="background:${inf.dot}"></div><div class="card-body"><div class="card-title">${esc(b.title)}</div>${b.description ? `<div class="card-desc">${esc(b.description.substring(0, 80))}${b.description.length > 80 ? '…' : ''}</div>` : ''}<div class="card-meta"><span class="card-time">${fmtT(b.start)} – ${fmtT(b.end)}</span><span class="card-room"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span><span class="card-pic">👤 ${esc(b.pic ?? '-')}</span><span class="status-badge ${c}">${l}</span></div></div>`
+                        card.innerHTML = `<div class="card-bar" style="background:${inf.dot}"></div><div class="card-body"><div class="card-title">${esc(b.title)}</div>${b.description ? `<div class="card-desc">${esc(b.description.substring(0, 80))}${b.description.length > 80 ? '…' : ''}</div>` : ''}<div class="card-meta"><span class="card-time">${fmtT(b.start)} – ${fmtT(b.end)}</span><span class="card-room"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span><span class="card-pic">🏢 ${esc(b.unit_kerja ?? '-')}</span><span class="status-badge ${c}">${l}</span></div></div>`
                         cards.appendChild(card)
                     })
                     body.appendChild(cards)
                 } else {
-                    let t = `<table class="schedule-table desktop-table"><thead><tr><th>No.</th><th>Nama Kegiatan</th><th class="th-room">Ruangan</th><th class="th-time">Waktu</th><th class="th-pic">PIC</th><th class="th-status">Status</th></tr></thead><tbody>`
+                    let t = `<table class="schedule-table desktop-table"><thead><tr><th>No.</th><th>Nama Kegiatan</th><th class="th-room">Ruangan</th><th class="th-time">Waktu</th><th class="th-pic">Pengusul</th><th class="th-status">Status</th></tr></thead><tbody>`
                     items.forEach((b, i) => {
                         const inf = RC[b.room_id] || { dot: '#94a3b8', label: `Ruang ${b.room_id}` }
                         const rn = b.room_name ?? inf.label, { c, l } = status(b)
-                        t += `<tr><td>${i + 1}</td><td><div class="booking-title">${esc(b.title)}</div>${b.description ? `<div class="booking-desc">${esc(b.description.substring(0, 60))}${b.description.length > 60 ? '…' : ''}</div>` : ''}</td><td><span class="room-badge"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span></td><td class="time-cell">${fmtT(b.start)} – ${fmtT(b.end)}</td><td style="font-size:12px;font-weight:600;color:#475569;">${esc(b.pic ?? '-')}</td><td><span class="status-badge ${c}">${l}</span></td></tr>`
+                        t += `<tr><td>${i + 1}</td><td><div class="booking-title">${esc(b.title)}</div>${b.description ? `<div class="booking-desc">${esc(b.description.substring(0, 60))}${b.description.length > 60 ? '…' : ''}</div>` : ''}</td><td><span class="room-badge"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span></td><td class="time-cell">${fmtT(b.start)} – ${fmtT(b.end)}</td><td style="font-size:14px;font-weight:600;color:#475569;">${esc(b.unit_kerja ?? '-')}</td><td><span class="status-badge ${c}">${l}</span></td></tr>`
                     })
                     t += `</tbody></table>`; body.innerHTML = t
                 }
@@ -725,6 +743,8 @@
             })
         }
         let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150) })
+        window.MAINTENANCE_ROOMS = [];
+        fetch('/api/maintenance-rooms').then(r => r.json()).then(ids => { window.MAINTENANCE_ROOMS = ids; render(); }).catch(() => { });
         buildFilters(); load()
     </script>
 </body>

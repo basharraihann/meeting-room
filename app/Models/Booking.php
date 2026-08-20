@@ -18,15 +18,16 @@ class Booking extends Model
 
     protected $fillable = [
         'room_id',
+        'room_name',  // ← tambah ini
         'pic_user_id',
+        'applicant_email',
+        'unit_kerja',
         'title',
         'description',
         'start_at',
         'end_at',
         'status',
         'tu_note',
-
-        // ✅ cancel fields
         'cancel_reason',
         'canceled_at',
         'canceled_by',

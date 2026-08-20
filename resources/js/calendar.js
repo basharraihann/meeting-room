@@ -18,13 +18,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const isTU = userRole === 'TU' || userRole === 'ADMIN'
 
   const roomDotColor = {
-    1: '#3d3d3d',
-    2: '#5bc8af',
-    3: '#7b68aa',
-    4: '#f0c040',
-    5: '#4bbfd4',
-    6: '#e8604c',
+    1: '#1a1a1a',
+    2: '#a855f7',
+    3: '#92400e',
+    4: '#facc15',
+    5: '#22d3ee',
+    6: '#ef4444',
     7: '#ec4899',
+    8: '#468432',
   }
 
   let selectedRoomId = new URLSearchParams(window.location.search).get('room_id') || ''
@@ -118,6 +119,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const dotSpan = (color) =>
     `<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${color};margin-top:3px;display:inline-block;"></span>`
 
+  // Hanya true kalau benar-benar HP (< 480px), laptop setengah layar tetap desktop
+  const isMobile = window.innerWidth < 480
+
   const calendarConfig = {
     plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
 
@@ -133,11 +137,21 @@ document.addEventListener('DOMContentLoaded', function () {
     eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
 
-    initialView: window.innerWidth < 640 ? 'listMonth' : 'dayGridMonth',
+    initialView: 'dayGridMonth',
 
-    headerToolbar: window.innerWidth < 640
-      ? { left: 'prev,next', center: 'title', right: 'listMonth,dayGridMonth' }
+    headerToolbar: isMobile
+      ? { left: 'prev,next today', center: 'title', right: '' }
       : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+
+    views: {
+      listWeek: {
+        buttonText: 'Minggu',
+        noEventsText: 'Tidak ada jadwal minggu ini',
+      },
+      timeGridDay: {
+        buttonText: 'Hari',
+      }
+    },
 
     events: {
       url: '/api/bookings',
@@ -165,7 +179,19 @@ document.addEventListener('DOMContentLoaded', function () {
       const end = fmtTime(arg.event.end)
       const range = start && end ? `${start} – ${end}` : (arg.timeText || '')
       const title = arg.event.title
-      const pic = p.pic ?? '-'
+      const unitKerja = p.unit_kerja ?? p.pic ?? '-'
+
+      // Mobile dayGridMonth: dot + judul kepotong
+      if (isMobile && arg.view.type === 'dayGridMonth') {
+        return {
+          html: `
+            <div style="display:flex;align-items:center;gap:2px;padding:1px 3px;overflow:hidden;">
+              <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${dot};"></span>
+              <span style="font-size:9px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
+            </div>
+          `
+        }
+      }
 
       if (isPIC) {
         return {
@@ -176,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="min-w-0 w-full">
                   <div class="text-[11px] font-semibold text-gray-700 whitespace-nowrap">${range}</div>
                   <div class="text-[12px] font-semibold leading-tight whitespace-nowrap overflow-hidden text-ellipsis">${title}</div>
-                  <div class="text-[11px] font-semibold text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">PIC: ${pic}</div>
+                  <div class="text-[11px] font-semibold text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">PIC: ${unitKerja}</div>
                 </div>
               </div>
             </div>
@@ -239,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
         title: info.event.title,
         room: p.room_name ? `Ruang: ${p.room_name}` : '',
         status: p.status || '',
-        pic: p.pic ?? '',
+        pic: p.unit_kerja ?? p.pic ?? '',
         start: fmtHuman(info.event.start),
         end: fmtHuman(info.event.end),
         description: p.description ?? '',
@@ -256,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const calendar = new Calendar(el, calendarConfig)
   calendar.render()
 
+  // PIC: sidebar filter
   if (isPIC) {
     setActiveSidebar()
 
@@ -281,6 +308,34 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.refetchEvents()
       })
     }
+  }
+
+  // TU: pill filter
+  if (isTU) {
+    const tuRoomFilters = document.querySelectorAll('.room-filter')
+
+    const setActivePill = () => {
+      tuRoomFilters.forEach((btn) => {
+        const id = btn.dataset.roomId || ''
+        const isActive = id === String(selectedRoomId)
+        btn.classList.toggle('bg-indigo-600', isActive)
+        btn.classList.toggle('text-white', isActive)
+        btn.classList.toggle('bg-gray-100', !isActive)
+        btn.classList.toggle('text-gray-600', !isActive)
+      })
+    }
+
+    setActivePill()
+
+    tuRoomFilters.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        selectedRoomId = btn.dataset.roomId || ''
+        const roomName = btn.dataset.roomName || 'Semua Ruang'
+        setLabel(roomName)
+        setActivePill()
+        calendar.refetchEvents()
+      })
+    })
   }
 })
 

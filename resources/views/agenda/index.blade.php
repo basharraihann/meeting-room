@@ -14,13 +14,15 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        .agenda-wrap { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .agenda-wrap {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
         .filter-card {
             background: #fff;
             border-radius: 20px;
             padding: 20px 24px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
             display: flex;
             flex-wrap: wrap;
             align-items: flex-end;
@@ -55,7 +57,9 @@
             transition: border-color 0.2s;
         }
 
-        .date-input:focus { border-color: #6366f1; }
+        .date-input:focus {
+            border-color: #6366f1;
+        }
 
         .btn {
             display: inline-flex;
@@ -72,18 +76,44 @@
             text-decoration: none;
         }
 
-        .btn-primary { background: #6366f1; color: #fff; }
-        .btn-primary:hover { background: #4f46e5; color: #fff; }
-        .btn-active { background: #6366f1; color: #fff; }
-        .btn-ghost { background: #f1f5f9; color: #475569; }
-        .btn-ghost:hover { background: #e2e8f0; color: #1e293b; }
-        .btn-copy { background: #10b981; color: #fff; }
-        .btn-copy:hover { background: #059669; }
+        .btn-primary {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            color: #fff;
+        }
+
+        .btn-active {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .btn-ghost {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-ghost:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-copy {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .btn-copy:hover {
+            background: #059669;
+        }
 
         .agenda-card {
             background: #fff;
             border-radius: 20px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
             overflow: hidden;
         }
 
@@ -131,8 +161,13 @@
             transition: background 0.1s;
         }
 
-        .booking-row:last-child { border-bottom: none; }
-        .booking-row:hover { background: #fafafa; }
+        .booking-row:last-child {
+            border-bottom: none;
+        }
+
+        .booking-row:hover {
+            background: #fafafa;
+        }
 
         .booking-left {
             display: flex;
@@ -177,10 +212,25 @@
             white-space: nowrap;
         }
 
-        .badge-approved { background: #dcfce7; color: #15803d; }
-        .badge-pending  { background: #fef9c3; color: #a16207; }
-        .badge-rejected { background: #fee2e2; color: #b91c1c; }
-        .badge-default  { background: #f1f5f9; color: #475569; }
+        .badge-approved {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-pending {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .badge-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-default {
+            background: #f1f5f9;
+            color: #475569;
+        }
 
         .empty-state {
             padding: 60px 24px;
@@ -188,16 +238,43 @@
             color: #94a3b8;
         }
 
-        .empty-icon { font-size: 40px; margin-bottom: 12px; }
-        .empty-text { font-size: 14px; font-weight: 500; }
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
 
-        .room-bar-1 { background: #94a3b8; }
-        .room-bar-2 { background: #14b8a6; }
-        .room-bar-3 { background: #8b5cf6; }
-        .room-bar-4 { background: #f59e0b; }
-        .room-bar-5 { background: #d946ef; }
-        .room-bar-6 { background: #f43f5e; }
-        .room-bar-default { background: #e2e8f0; }
+        .empty-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .room-bar-1 {
+            background: #94a3b8;
+        }
+
+        .room-bar-2 {
+            background: #14b8a6;
+        }
+
+        .room-bar-3 {
+            background: #8b5cf6;
+        }
+
+        .room-bar-4 {
+            background: #f59e0b;
+        }
+
+        .room-bar-5 {
+            background: #d946ef;
+        }
+
+        .room-bar-6 {
+            background: #f43f5e;
+        }
+
+        .room-bar-default {
+            background: #e2e8f0;
+        }
     </style>
 
     <div class="py-6 agenda-wrap">
@@ -235,6 +312,29 @@
                     📋 Copy agenda
                 </button>
             </div>
+
+            {{-- Filter Unit Kerja --}}
+            @if($unitKerjaOptions->isNotEmpty())
+                <div class="filter-card" style="padding:14px 24px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                        <span
+                            style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-right:2px;">Unit
+                            Kerja:</span>
+                        <a href="{{ route('agenda', ['mode' => $mode, 'date' => $date]) }}"
+                            class="btn {{ !$unitKerja ? 'btn-active' : 'btn-ghost' }}"
+                            style="padding:4px 12px;font-size:12px;">
+                            Semua
+                        </a>
+                        @foreach($unitKerjaOptions as $uk)
+                            <a href="{{ route('agenda', ['mode' => $mode, 'date' => $date, 'unit_kerja' => $uk]) }}"
+                                class="btn {{ $unitKerja === $uk ? 'btn-active' : 'btn-ghost' }}"
+                                style="padding:4px 12px;font-size:12px;">
+                                {{ $uk }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             {{-- Agenda List --}}
             <div class="agenda-card">
@@ -279,11 +379,11 @@
                         @foreach($items as $b)
                             @php
                                 $barClass = $roomBarClass[$b->room_id ?? 0] ?? 'room-bar-default';
-                                $badge = match($b->status) {
+                                $badge = match ($b->status) {
                                     'APPROVED' => 'badge-approved',
-                                    'PENDING'  => 'badge-pending',
+                                    'PENDING' => 'badge-pending',
                                     'REJECTED' => 'badge-rejected',
-                                    default    => 'badge-default',
+                                    default => 'badge-default',
                                 };
                             @endphp
 
@@ -301,6 +401,9 @@
                                         <div class="booking-title">{{ $b->title }}</div>
                                         <div class="booking-meta">
                                             {{ $b->room?->name ?? '-' }}
+                                            @if($b->unit_kerja)
+                                                · {{ $b->unit_kerja }}
+                                            @endif
                                             @if($b->description)
                                                 · {{ Str::limit($b->description, 60) }}
                                             @endif

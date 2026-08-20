@@ -11,14 +11,13 @@ class AgendaController extends Controller
 {
     public function index(Request $request)
     {
-        $mode = $request->input('mode', 'day'); // day | week | month
-
+        $mode = $request->input('mode', 'day');
         $date = $request->input('date', now()->toDateString());
+        $unitKerja = $request->input('unit_kerja');
         $base = Carbon::parse($date);
 
-        // Tentukan range
         if ($mode === 'week') {
-            $start = $base->copy()->startOfWeek();   // default Carbon: Monday
+            $start = $base->copy()->startOfWeek();
             $end = $base->copy()->endOfWeek();
             $title = "Minggu ini (" . $start->format('d M') . " - " . $end->format('d M Y') . ")";
         } elseif ($mode === 'month') {
@@ -36,8 +35,17 @@ class AgendaController extends Controller
             ->whereIn('status', ['PENDING', 'APPROVED'])
             ->where('start_at', '<=', $end)
             ->where('end_at', '>=', $start)
+            ->when($unitKerja, fn($q) => $q->where('unit_kerja', $unitKerja))
             ->orderBy('start_at')
             ->get();
+
+        // Semua unit_kerja unik milik user ini
+        $unitKerjaOptions = Booking::where('pic_user_id', Auth::id())
+            ->whereNotNull('unit_kerja')
+            ->distinct()
+            ->pluck('unit_kerja')
+            ->sort()
+            ->values();
 
         // Summary buat copas
         $summaryLines = [];
@@ -64,6 +72,8 @@ class AgendaController extends Controller
             'mode' => $mode,
             'title' => $title,
             'summaryText' => $summaryText,
+            'unitKerja' => $unitKerja,
+            'unitKerjaOptions' => $unitKerjaOptions,
         ]);
     }
 }

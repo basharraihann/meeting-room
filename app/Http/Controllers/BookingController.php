@@ -6,12 +6,13 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Notifications\BookingSubmittedNotification;
+use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class BookingController extends Controller
 {
     public function store(Request $request)
     {
-        // Gabungkan date + time jika dikirim terpisah
         if ($request->filled('booking_date') && $request->filled('start_time')) {
             $request->merge([
                 'start_at' => $request->booking_date . ' ' . $request->start_time . ':00',
@@ -23,7 +24,6 @@ class BookingController extends Controller
             ]);
         }
 
-        // Normalize format dari hidden input (T → spasi)
         if ($request->filled('start_at')) {
             $request->merge(['start_at' => str_replace('T', ' ', $request->start_at)]);
         }
@@ -32,14 +32,40 @@ class BookingController extends Controller
         }
 
         $data = $request->validate([
-            'room_id' => ['required', 'exists:rooms,id'],
+            // PATCH: room_id sekarang hanya lolos "exists" jika ruangan aktif DAN tidak sedang maintenance.
+            // Ini mencegah booking ke ruangan maintenance (mis. Ruang Rapat ABT) tembus dari jalur manapun
+            // (hidden input di modal, filter mobile, atau request manual di luar UI).
+            'room_id' => [
+                'required',
+                Rule::exists('rooms', 'id')->where(function ($query) {
+                    $query->where('active', true)
+                        ->where('maintenance', false);
+                }),
+            ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'applicant_email' => ['required', 'email'],
+            'unit_kerja' => ['required', 'string', 'max:100'],
             'start_at' => ['required', 'date_format:Y-m-d H:i:s'],
             'end_at' => ['required', 'date_format:Y-m-d H:i:s', 'after:start_at'],
+        ], [
+            'room_id.exists' => 'Ruangan yang dipilih tidak tersedia untuk booking (sedang maintenance atau tidak aktif). Silakan pilih ruangan lain.',
         ]);
 
-        // Cek bentrok dengan booking APPROVED
+        // Cek tebar jala - unit kerja sudah punya PENDING di waktu yang sama
+        $tebarJala = Booking::where('unit_kerja', $data['unit_kerja'])
+            ->where('status', 'PENDING')
+            ->where('start_at', '<', $data['end_at'])
+            ->where('end_at', '>', $data['start_at'])
+            ->exists();
+
+        if ($tebarJala) {
+            return back()
+                ->withErrors(['start_at' => 'Unit kerja Anda sudah memiliki pengajuan yang sedang menunggu persetujuan di waktu yang sama. Harap tunggu hingga pengajuan sebelumnya diproses.'])
+                ->withInput();
+        }
+
+        // Cek bentrok langsung
         $conflict = Booking::where('room_id', $data['room_id'])
             ->where('status', 'APPROVED')
             ->where('start_at', '<', $data['end_at'])
@@ -52,9 +78,27 @@ class BookingController extends Controller
                 ->withInput();
         }
 
+        // Cek jeda 15 menit pembersihan ruangan
+        $startWithBuffer = Carbon::parse($data['start_at'])->subMinutes(15)->format('Y-m-d H:i:s');
+
+        $tooClose = Booking::where('room_id', $data['room_id'])
+            ->where('status', 'APPROVED')
+            ->where('end_at', '>', $startWithBuffer)
+            ->where('end_at', '<=', $data['start_at'])
+            ->exists();
+
+        if ($tooClose) {
+            return back()
+                ->withErrors(['start_at' => 'Waktu mulai terlalu dekat dengan booking sebelumnya. Diperlukan jeda minimal 15 menit untuk pembersihan ruangan.'])
+                ->withInput();
+        }
+
         $booking = Booking::create([
             'room_id' => $data['room_id'],
+            'room_name' => \App\Models\Room::find($data['room_id'])?->name,
             'pic_user_id' => $request->user()->id,
+            'applicant_email' => $data['applicant_email'],
+            'unit_kerja' => $data['unit_kerja'],
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'start_at' => $data['start_at'],
@@ -62,8 +106,8 @@ class BookingController extends Controller
             'status' => 'PENDING',
         ]);
 
-        // Notif email ke semua TU
-        $tuUsers = User::role('TU')->get();
+        // Notif email ke TU yang assigned ke ruangan ini
+        $tuUsers = User::role('TU')->where('room_id', $booking->room_id)->get();
         foreach ($tuUsers as $tu) {
             if (!empty($tu->email)) {
                 try {

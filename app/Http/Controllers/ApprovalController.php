@@ -5,19 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Room;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use App\Notifications\BookingStatusNotification;
 
 class ApprovalController extends Controller
 {
-    /**
-     * Tampilkan inbox TU — hanya room yang ditugaskan ke TU ini
-     */
     public function index(Request $request)
     {
         $tu = auth()->user();
-
-        // TU hanya bisa handle room yang ditugaskan
-        // Kalau room_id null = belum ditugaskan, tampilkan kosong
         $assignedRoomId = $tu->room_id;
 
         if (!$assignedRoomId) {
@@ -28,19 +23,18 @@ class ApprovalController extends Controller
                 'pendingCounts' => collect(),
                 'assignedRoom' => null,
                 'noRoom' => true,
+                'riwayat' => collect(),
             ]);
         }
 
         $assignedRoom = Room::find($assignedRoomId);
 
-        // count pending hanya untuk room ini
         $pendingCounts = Booking::where('status', 'PENDING')
             ->where('room_id', $assignedRoomId)
             ->selectRaw('room_id, COUNT(*) as total')
             ->groupBy('room_id')
             ->pluck('total', 'room_id');
 
-        // ambil pending bookings untuk room ini saja
         $pending = Booking::with(['room', 'pic'])
             ->where('status', 'PENDING')
             ->where('room_id', $assignedRoomId)
@@ -90,6 +84,12 @@ class ApprovalController extends Controller
 
         $clusters = $clusters->sortBy('start')->values();
 
+        $riwayat = Booking::where('room_id', $assignedRoomId)
+            ->whereIn('status', ['APPROVED', 'REJECTED', 'CANCELLED'])
+            ->with(['pic', 'room'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(15);
+
         return view('approvals.index', [
             'clusters' => $clusters,
             'rooms' => collect([$assignedRoom]),
@@ -97,12 +97,10 @@ class ApprovalController extends Controller
             'pendingCounts' => $pendingCounts,
             'assignedRoom' => $assignedRoom,
             'noRoom' => false,
+            'riwayat' => $riwayat,
         ]);
     }
 
-    /**
-     * Approve booking — pastikan TU hanya bisa approve room miliknya
-     */
     public function approve(Booking $booking)
     {
         $tu = auth()->user();
@@ -115,7 +113,6 @@ class ApprovalController extends Controller
             return back()->withErrors(['msg' => 'Booking bukan status PENDING.']);
         }
 
-        // cari booking lain yang bentrok
         $conflicts = Booking::with('pic')
             ->where('room_id', $booking->room_id)
             ->where('status', 'PENDING')
@@ -128,8 +125,13 @@ class ApprovalController extends Controller
 
         if (!$booking->relationLoaded('pic'))
             $booking->load('pic');
-        if ($booking->pic && !empty($booking->pic->email)) {
-            $booking->pic->notify(new BookingStatusNotification($booking));
+        if (!empty($booking->applicant_email)) {
+            try {
+                Notification::route('mail', $booking->applicant_email)
+                    ->notify(new BookingStatusNotification($booking));
+            } catch (\Exception $e) {
+                \Log::error('Email gagal: ' . $e->getMessage());
+            }
         }
 
         foreach ($conflicts as $c) {
@@ -137,17 +139,19 @@ class ApprovalController extends Controller
                 'status' => 'REJECTED',
                 'tu_note' => 'Ditolak otomatis karena bentrok dengan booking APPROVED: "' . $booking->title . '".',
             ]);
-            if ($c->pic && !empty($c->pic->email)) {
-                $c->pic->notify(new BookingStatusNotification($c));
+            if (!empty($c->applicant_email)) {
+                try {
+                    Notification::route('mail', $c->applicant_email)
+                        ->notify(new BookingStatusNotification($c));
+                } catch (\Exception $e) {
+                    \Log::error('Email gagal: ' . $e->getMessage());
+                }
             }
         }
 
         return back()->with('status', 'Booking approved. Booking lain yang bentrok otomatis ditolak.');
     }
 
-    /**
-     * Reject manual — pastikan TU hanya bisa reject room miliknya
-     */
     public function reject(Request $request, Booking $booking)
     {
         $tu = auth()->user();
@@ -168,10 +172,55 @@ class ApprovalController extends Controller
 
         if (!$booking->relationLoaded('pic'))
             $booking->load('pic');
-        if ($booking->pic && !empty($booking->pic->email)) {
-            $booking->pic->notify(new BookingStatusNotification($booking));
+        if (!empty($booking->applicant_email)) {
+            try {
+                Notification::route('mail', $booking->applicant_email)
+                    ->notify(new BookingStatusNotification($booking));
+            } catch (\Exception $e) {
+                \Log::error('Email gagal: ' . $e->getMessage());
+            }
         }
 
         return back()->with('status', 'Booking rejected.');
+    }
+
+    /**
+     * Cancel approve — kembalikan status APPROVED → PENDING
+     * POST /approvals/{booking}/cancel-approve
+     */
+    public function cancelApprove(Request $request, Booking $booking)
+    {
+        $tu = auth()->user();
+
+        if ($tu->room_id && $booking->room_id !== $tu->room_id) {
+            abort(403, 'Anda tidak berwenang membatalkan approval ruangan ini.');
+        }
+
+        if ($booking->status !== 'APPROVED') {
+            return back()->withErrors(['msg' => 'Hanya booking berstatus APPROVED yang bisa dibatalkan approvalnya.']);
+        }
+
+        $request->validate([
+            'tu_note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $booking->update([
+            'status' => 'CANCELLED',
+            'tu_note' => $request->tu_note ?: 'Approval dibatalkan oleh TU.',
+        ]);
+
+        // Notif ke pengaju bahwa booking dibatalkan
+        if (!$booking->relationLoaded('pic'))
+            $booking->load('pic');
+        if (!empty($booking->applicant_email)) {
+            try {
+                Notification::route('mail', $booking->applicant_email)
+                    ->notify(new BookingStatusNotification($booking));
+            } catch (\Exception $e) {
+                \Log::error('Email gagal: ' . $e->getMessage());
+            }
+        }
+
+        return back()->with('status', 'Approval untuk "' . $booking->title . '" berhasil dibatalkan.');
     }
 }

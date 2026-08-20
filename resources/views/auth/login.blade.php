@@ -38,13 +38,13 @@
                     <form method="POST" action="{{ route('login') }}" class="space-y-5">
                         @csrf
 
-                        {{-- Email --}}
+                        {{-- Username --}}
                         <div>
-                            <x-input-label for="email" :value="__('Email')" />
-                            <x-text-input id="email" name="email" type="email" :value="old('email')" required autofocus
-                                autocomplete="username" placeholder="nama@gmail.com" class="mt-2 block w-full rounded-2xl border-slate-200 bg-white px-4 py-3
+                            <x-input-label for="username" value="Username" />
+                            <x-text-input id="username" name="username" type="text" :value="old('username')" required
+                                autofocus autocomplete="username" placeholder="Masukkan username" class="mt-2 block w-full rounded-2xl border-slate-200 bg-white px-4 py-3
                                        focus:border-indigo-400 focus:ring-indigo-200" />
-                            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                            <x-input-error :messages="$errors->get('username')" class="mt-2" />
                         </div>
 
                         {{-- Password --}}
@@ -64,13 +64,6 @@
                                     name="remember">
                                 <span class="text-sm text-slate-600">Remember me</span>
                             </label>
-
-                            @if (Route::has('password.request'))
-                                <a href="{{ route('password.request') }}"
-                                    class="text-sm font-medium text-slate-600 hover:text-slate-900 underline underline-offset-4">
-                                    Lupa password?
-                                </a>
-                            @endif
                         </div>
 
                         {{-- Button --}}
@@ -79,17 +72,6 @@
                                    hover:bg-indigo-700 hover:-translate-y-0.5 hover:shadow-xl">
                             Masuk →
                         </button>
-
-                        {{-- Register link --}}
-                        @if (Route::has('register'))
-                            <p class="text-center text-sm text-slate-600">
-                                Belum punya akun?
-                                <a href="{{ route('register') }}"
-                                    class="font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-4">
-                                    Buat akun
-                                </a>
-                            </p>
-                        @endif
                     </form>
                 </div>
 

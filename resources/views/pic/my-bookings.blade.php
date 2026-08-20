@@ -448,33 +448,51 @@
         <div class="mx-auto sm:px-6 lg:px-8 space-y-4" style="max-width:90%">
 
             {{-- Filter Bar --}}
-            <div class="filter-bar">
-                <div class="tab-group">
-                    @php
-                        $tabs = [
-                            '' => 'Semua',
-                            'PENDING' => 'Pending',
-                            'APPROVED' => 'Approved',
-                            'REJECTED' => 'Rejected',
-                            'CANCELED' => 'Canceled',
-                        ];
-                    @endphp
-                    @foreach($tabs as $key => $label)
-                        <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q])) }}"
-                            class="tab {{ ($status === $key || (empty($status) && $key === '')) ? 'tab-active' : 'tab-ghost' }}">
-                            {{ $label }}
-                        </a>
-                    @endforeach
+            <div class="filter-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
+                {{-- Row 1: Status tabs + Search --}}
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">
+                    <div class="tab-group">
+                        @php
+                            $tabs = [
+                                '' => 'Semua',
+                                'PENDING' => 'Pending',
+                                'APPROVED' => 'Approved',
+                                'REJECTED' => 'Rejected',
+                                'CANCELED' => 'Canceled',
+                            ];
+                        @endphp
+                        @foreach($tabs as $key => $label)
+                            <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q, 'unit_kerja' => $unitKerja])) }}"
+                                class="tab {{ ($status === $key || (empty($status) && $key === '')) ? 'tab-active' : 'tab-ghost' }}">
+                                {{ $label }}
+                            </a>
+                        @endforeach
+                    </div>
+
+                    <form method="GET" class="search-group">
+                        <input type="text" name="q" value="{{ $q }}" placeholder="Cari judul rapat..." class="search-input" />
+                        @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
+                        @if($unitKerja)<input type="hidden" name="unit_kerja" value="{{ $unitKerja }}">@endif
+                        <button type="submit" class="btn-search">Cari</button>
+                    </form>
                 </div>
 
-                <form method="GET" class="search-group">
-                    <input type="text" name="q" value="{{ $q }}" placeholder="Cari judul rapat..."
-                        class="search-input" />
-                    @if($status)
-                        <input type="hidden" name="status" value="{{ $status }}">
-                    @endif
-                    <button type="submit" class="btn-search">Cari</button>
-                </form>
+                {{-- Row 2: Filter Unit Kerja --}}
+                @if($unitKerjaOptions->isNotEmpty())
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-right:2px;">Unit Kerja:</span>
+                        <a href="{{ route('my_bookings.index', array_filter(['status' => $status, 'q' => $q])) }}"
+                            class="tab {{ !$unitKerja ? 'tab-active' : 'tab-ghost' }}" style="padding:4px 12px;font-size:12px;">
+                            Semua
+                        </a>
+                        @foreach($unitKerjaOptions as $uk)
+                            <a href="{{ route('my_bookings.index', array_filter(['status' => $status, 'q' => $q, 'unit_kerja' => $uk])) }}"
+                                class="tab {{ $unitKerja === $uk ? 'tab-active' : 'tab-ghost' }}" style="padding:4px 12px;font-size:12px;">
+                                {{ $uk }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             {{-- Booking List --}}
@@ -539,10 +557,35 @@
                                 <div class="booking-title">{{ $b->title }}</div>
                                 <div class="booking-meta">
                                     {{ $b->room?->name ?? '-' }}
+                                    @if($b->room?->tuUser?->phone && $b->status === 'PENDING')
+                                        @php
+                                            $tuPhone = preg_replace('/^0/', '62', $b->room->tuUser->phone);
+                                            $tuPhone = ltrim($tuPhone, '+');
+                                            $start   = \Carbon\Carbon::parse($b->start_at)->translatedFormat('d F Y');
+                                            $jam     = \Carbon\Carbon::parse($b->start_at)->format('H:i') . ' - ' . \Carbon\Carbon::parse($b->end_at)->format('H:i');
+                                            $waMsg   = "Halo Bapak/Ibu {$b->room->tuUser->name},\n\n"
+                                                     . "Saya PIC {$b->unit_kerja} ingin mengkonfirmasi pengajuan peminjaman ruang rapat:\n\n"
+                                                     . "*{$b->title}*\n"
+                                                     . "Ruangan: {$b->room->name}\n"
+                                                     . "Tanggal: {$start}\n"
+                                                     . "Waktu: {$jam}\n\n"
+                                                     . "Mohon konfirmasinya apakah jadwal tersebut tersedia. Jika tersedia, mohon untuk melakukan approval di sistem.\n\nTerima kasih.";
+                                            $waUrl   = 'https://wa.me/' . $tuPhone . '?text=' . rawurlencode($waMsg);
+                                        @endphp
+                                        &nbsp;·&nbsp;
+                                        <a href="{{ $waUrl }}" target="_blank"
+                                            style="color:#25d366;font-weight:600;text-decoration:none;font-size:11px;"
+                                            title="Chat TU {{ $b->room->tuUser->name }}">
+                                            💬 Chat TU
+                                        </a>
+                                    @endif
                                     &nbsp;·&nbsp;
                                     {{ \Carbon\Carbon::parse($b->start_at)->format('H:i') }}
-                                    –
-                                    {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
+–
+{{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
+@if($b->unit_kerja)
+    &nbsp;·&nbsp;{{ $b->unit_kerja }}
+@endif
                                 </div>
                                 @if($b->description)
                                     <div class="booking-desc">{{ $b->description }}</div>

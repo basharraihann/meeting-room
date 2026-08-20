@@ -2,36 +2,48 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage;
 use App\Models\Booking;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
 class BookingStatusNotification extends Notification
 {
     use Queueable;
 
-    public $booking;
+    public function __construct(public Booking $booking) {}
 
-    public function __construct(Booking $booking)
-    {
-        $this->booking = $booking;
-    }
-
-    public function via(object $notifiable): array
+    public function via($notifiable): array
     {
         return ['mail'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('Status Booking Anda')
-            ->greeting('Halo PIC,')
-            ->line('Pengajuan booking Anda telah diperbarui.')
-            ->line('Judul: ' . $this->booking->title)
-            ->line('Status: ' . $this->booking->status)
-            ->action('Lihat Booking Saya', url('/my-bookings'))
-            ->line('Terima kasih.');
+        $booking  = $this->booking;
+        $room     = $booking->room?->name ?? '-';
+        $start    = \Carbon\Carbon::parse($booking->start_at)->format('d M Y, H:i');
+        $end      = \Carbon\Carbon::parse($booking->end_at)->format('H:i');
+        $approved = $booking->status === 'APPROVED';
+
+        $mail = (new MailMessage)
+            ->subject($approved
+                ? '✅ Booking Disetujui — ' . $booking->title
+                : '❌ Booking Ditolak — ' . $booking->title)
+            ->greeting('Halo!')
+            ->line($approved
+                ? 'Kabar baik! Pengajuan booking ruang rapat kamu telah **disetujui**.'
+                : 'Mohon maaf, pengajuan booking ruang rapat kamu **ditolak**.')
+            ->line('**Judul:** ' . $booking->title)
+            ->line('**Ruangan:** ' . $room)
+            ->line('**Waktu:** ' . $start . ' – ' . $end);
+
+        if (!$approved && $booking->tu_note) {
+            $mail->line('**Alasan Penolakan:** ' . $booking->tu_note);
+        }
+
+        return $mail
+            ->action('Lihat Riwayat Pengajuan', url('/my-bookings'))
+            ->line('Terima kasih telah menggunakan Sistem Manajemen Rapat.');
     }
 }

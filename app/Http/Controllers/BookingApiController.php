@@ -34,7 +34,8 @@ class BookingApiController extends Controller
                 'end' => $b->end_at,
                 'extendedProps' => [
                     'status' => $b->status,
-                    'pic' => $b->pic?->name,
+                    'pic' => $b->unit_kerja ?? $b->pic?->name,
+                    'unit_kerja' => $b->unit_kerja,
                     'description' => $b->description,
                     'room_name' => $b->room?->name,
                     'room_id' => $b->room_id,

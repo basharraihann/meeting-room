@@ -32,7 +32,6 @@
                 <div class="p-6">
 
                     @if($activeBooking)
-                        {{-- Sedang berlangsung --}}
                         <div class="flex items-start justify-between gap-4 flex-wrap">
                             <div>
                                 <div class="flex items-center gap-2 mb-2">
@@ -69,7 +68,6 @@
                         </script>
 
                     @elseif($nextBooking)
-                        {{-- Ada rapat berikutnya --}}
                         <div class="flex items-start justify-between gap-4 flex-wrap">
                             <div>
                                 <div class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Rapat Berikutnya
@@ -112,7 +110,6 @@
                         </script>
 
                     @else
-                        {{-- Tidak ada rapat --}}
                         <div class="flex items-center justify-between flex-wrap gap-4">
                             <div>
                                 <div class="text-xl font-bold text-gray-900">Tidak ada rapat mendatang 🎉</div>
@@ -134,12 +131,11 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <div>
-                        <div class="font-bold text-gray-900">Agenda Hari Ini</div>
+                        <div class="font-bold text-gray-900">Agenda Saya Hari Ini</div>
                         <div class="text-xs text-gray-400 mt-0.5">{{ $now->isoFormat('dddd, D MMMM Y') }}</div>
                     </div>
-                    <a href="{{ route('agenda') }}" class="text-xs text-indigo-600 font-semibold hover:underline">
-                        Lihat Semua →
-                    </a>
+                    <a href="{{ route('agenda') }}" class="text-xs text-indigo-600 font-semibold hover:underline">Lihat
+                        Semua →</a>
                 </div>
 
                 @if($todayBookings->isEmpty())
@@ -156,7 +152,6 @@
                                 $isActive = $now->between($start, $end);
                                 $isDone = $now->greaterThan($end);
                                 $isSoon = !$isActive && !$isDone && $start->diffInMinutes($now) <= 30 && $start->greaterThan($now);
-
                                 if ($isActive) {
                                     $statusLabel = 'Berlangsung';
                                     $statusClass = 'bg-indigo-100 text-indigo-700';
@@ -177,8 +172,7 @@
                                         {{ \Carbon\Carbon::parse($booking->start_at)->format('H:i') }}
                                     </div>
                                     <div class="text-xs text-gray-400">
-                                        {{ \Carbon\Carbon::parse($booking->end_at)->format('H:i') }}
-                                    </div>
+                                        {{ \Carbon\Carbon::parse($booking->end_at)->format('H:i') }}</div>
                                 </div>
                                 <div class="w-px h-10 {{ $isActive ? 'bg-indigo-300' : 'bg-gray-200' }}"></div>
                                 <div class="flex-1 min-w-0">
@@ -189,7 +183,12 @@
                                         @endif
                                         {{ $booking->title }}
                                     </div>
-                                    <div class="text-xs text-gray-400 mt-0.5">{{ $booking->room?->name }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">
+                                        {{ $booking->room?->name }}
+                                        @if($booking->unit_kerja)
+                                            &middot; <span class="text-gray-500 font-medium">{{ $booking->unit_kerja }}</span>
+                                        @endif
+                                    </div>
                                 </div>
                                 <span class="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 {{ $statusClass }}">
                                     {{ $statusLabel }}
@@ -208,9 +207,7 @@
                         <div class="text-xs text-gray-400 mt-0.5">5 booking terakhir yang diajukan</div>
                     </div>
                     <a href="{{ route('my_bookings.index') }}"
-                        class="text-xs text-indigo-600 font-semibold hover:underline">
-                        Semua →
-                    </a>
+                        class="text-xs text-indigo-600 font-semibold hover:underline">Semua →</a>
                 </div>
 
                 @if($recentBookings->isEmpty())
@@ -245,6 +242,9 @@
                                         {{ $booking->room?->name }} &middot;
                                         {{ \Carbon\Carbon::parse($booking->start_at)->format('H:i') }} –
                                         {{ \Carbon\Carbon::parse($booking->end_at)->format('H:i') }}
+                                        @if($booking->unit_kerja)
+                                            &middot; <span class="text-gray-500 font-medium">{{ $booking->unit_kerja }}</span>
+                                        @endif
                                     </div>
                                 </div>
                                 <span class="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 {{ $s['class'] }}">

@@ -11,6 +11,8 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\MyBookingController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminRoomController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -22,11 +24,16 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/api/maintenance-rooms', function () {
+    return \App\Models\Room::where('maintenance', true)->pluck('id');
+});
+
 /*
 |--------------------------------------------------------------------------
 | Temporary Seeder Route (Production Safe with Key)
 |--------------------------------------------------------------------------
 */
+
 Route::get('/run-seed', function () {
     abort_unless(request('key') === env('SEED_KEY'), 403);
 
@@ -118,6 +125,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/approvals/{booking}/reject', [ApprovalController::class, 'reject'])
             ->name('approvals.reject');
+
+        Route::post('/approvals/{booking}/cancel-approve', [ApprovalController::class, 'cancelApprove'])
+            ->name('approvals.cancelApprove');
     });
 
     /*
@@ -140,8 +150,16 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/users/{user}/room', [AdminUserController::class, 'updateRoom'])
             ->name('users.updateRoom');
 
+        Route::patch('/users/{user}/profile', [AdminUserController::class, 'updateProfile'])
+            ->name('users.updateProfile');
+
+        Route::patch('/users/{user}/password', [AdminUserController::class, 'updatePassword'])
+            ->name('users.updatePassword');
+
         Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])
             ->name('users.destroy');
+        Route::patch('/rooms/{room}/maintenance', [AdminRoomController::class, 'toggleMaintenance'])
+            ->name('rooms.maintenance');
     });
 
     /*
@@ -166,10 +184,13 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/display', [\App\Http\Controllers\DisplayController::class, 'show'])->name('display');
-Route::get('/display/{roomId}', [\App\Http\Controllers\DisplayController::class, 'show'])->name('display.room');
+Route::get('/display', [\App\Http\Controllers\DisplayController::class, 'show'])
+    ->name('display');
 
-// Public API for display monitor (no auth)
-Route::get('/api/display-bookings', [BookingApiController::class, 'index'])->name('api.display.bookings');
+Route::get('/display/{roomId}', [\App\Http\Controllers\DisplayController::class, 'show'])
+    ->name('display.room');
+
+Route::get('/api/display-bookings', [BookingApiController::class, 'index'])
+    ->name('api.display.bookings');
 
 require __DIR__ . '/auth.php';

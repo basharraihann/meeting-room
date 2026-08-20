@@ -60,6 +60,38 @@
             font-weight: 700;
         }
 
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .tab-btn {
+            padding: 9px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .tab-btn-active {
+            background: #6366f1;
+            color: white;
+        }
+
+        .tab-btn-inactive {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .tab-btn-inactive:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
         .content-card {
             background: #fff;
             border-radius: 20px;
@@ -407,6 +439,60 @@
         .btn-modal-reject:hover {
             background: #b91c1c;
         }
+
+        .btn-modal-cancel-approve {
+            padding: 9px 18px;
+            border-radius: 12px;
+            background: #f97316;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-modal-cancel-approve:hover {
+            background: #ea580c;
+        }
+
+        .riwayat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 24px;
+            border-bottom: 1px solid #f8fafc;
+            transition: background 0.1s;
+        }
+
+        .riwayat-row:last-child {
+            border-bottom: none;
+        }
+
+        .riwayat-row:hover {
+            background: #fafafa;
+        }
+
+        .btn-cancel-approve {
+            padding: 4px 12px;
+            border-radius: 8px;
+            background: #fff7ed;
+            color: #c2410c;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid #fed7aa;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+
+        .btn-cancel-approve:hover {
+            background: #f97316;
+            color: #fff;
+            border-color: #f97316;
+        }
     </style>
 
     <div class="py-6 approvals-wrap">
@@ -419,7 +505,6 @@
                 <div class="alert-error">⚠ {{ $errors->first() }}</div>
             @endif
 
-            {{-- Belum ditugaskan ke room --}}
             @if($noRoom)
                 <div class="no-room-state">
                     <div class="empty-icon">🏢</div>
@@ -443,115 +528,265 @@
                         </div>
                     </div>
                     @php $totalPending = $clusters->sum(fn($c) => $c['items']->count()); @endphp
-                    <div class="room-banner-badge">
-                        {{ $totalPending }} request pending
-                    </div>
+                    <div class="room-banner-badge">{{ $totalPending }} request pending</div>
                 </div>
 
-                {{-- Content --}}
-                <div class="content-card">
-                    <div class="content-header">
-                        <div class="content-title">Pending Requests</div>
-                        @if($totalPending > 0)
-                            <span class="pending-count">{{ $totalPending }} menunggu</span>
-                        @endif
+                {{-- Tabs --}}
+                <div x-data="{ tab: 'pending' }">
+                    <div class="tab-bar">
+                        <button @click="tab='pending'"
+                            :class="tab==='pending' ? 'tab-btn tab-btn-active' : 'tab-btn tab-btn-inactive'"
+                            class="tab-btn">
+                            Pending Requests
+                            @if($totalPending > 0)
+                                <span
+                                    style="margin-left:6px;background:rgba(255,200,0,0.25);padding:2px 8px;border-radius:99px;font-size:11px;color:#b45309;">{{ $totalPending }}</span>
+                            @endif
+                        </button>
+                        <button @click="tab='riwayat'"
+                            :class="tab==='riwayat' ? 'tab-btn tab-btn-active' : 'tab-btn tab-btn-inactive'"
+                            class="tab-btn">
+                            Riwayat Approval
+                        </button>
                     </div>
 
-                    @forelse($clusters as $c)
-                        <div class="cluster">
-                            <div class="cluster-header">
-                                <div>
-                                    <div class="cluster-room">{{ $c['room_name'] ?? '-' }}</div>
-                                    <div class="cluster-time">
-                                        {{ \Carbon\Carbon::parse($c['start'])->format('d M Y H:i') }}
-                                        –
-                                        {{ \Carbon\Carbon::parse($c['end'])->format('H:i') }}
+                    {{-- TAB: Pending --}}
+                    <div x-show="tab==='pending'" class="content-card">
+                        <div class="content-header">
+                            <div class="content-title">Pending Requests</div>
+                            @if($totalPending > 0)
+                                <span class="pending-count">{{ $totalPending }} menunggu</span>
+                            @endif
+                        </div>
+
+                        @forelse($clusters as $c)
+                            <div class="cluster">
+                                <div class="cluster-header">
+                                    <div>
+                                        <div class="cluster-room">
+                                            {{ \Carbon\Carbon::parse($c['start'])->translatedFormat('d F Y') }}
+                                        </div>
+                                        <div class="cluster-time">
+                                            {{ $c['room_name'] ?? '-' }} &nbsp;·&nbsp;
+                                            {{ \Carbon\Carbon::parse($c['start'])->format('H:i') }}
+                                            –
+                                            {{ \Carbon\Carbon::parse($c['end'])->format('H:i') }}
+                                        </div>
+                                    </div>
+                                    <div class="cluster-right">
+                                        @php $count = $c['items']->count(); @endphp
+                                        @if($count > 1)
+                                            <span class="badge-bentrok">⚠ BENTROK ({{ $count }})</span>
+                                            <span class="bentrok-note">Pilih salah satu untuk approve</span>
+                                        @else
+                                            <span class="badge-tunggal">TUNGGAL</span>
+                                        @endif
                                     </div>
                                 </div>
-                                <div class="cluster-right">
-                                    @php $count = $c['items']->count(); @endphp
-                                    @if($count > 1)
-                                        <span class="badge-bentrok">⚠ BENTROK ({{ $count }})</span>
-                                        <span class="bentrok-note">Pilih salah satu untuk approve</span>
-                                    @else
-                                        <span class="badge-tunggal">TUNGGAL</span>
-                                    @endif
-                                </div>
-                            </div>
 
-                            <div class="cluster-body">
-                                <div class="booking-grid">
-                                    @foreach($c['items'] as $b)
-                                        <div class="booking-card">
-                                            <div class="booking-card-top">
-                                                <div class="booking-card-title">{{ $b->title }}</div>
-                                                <span class="badge-pending">PENDING</span>
-                                            </div>
+                                <div class="cluster-body">
+                                    <div class="booking-grid">
+                                        @foreach($c['items'] as $b)
+                                            <div class="booking-card">
+                                                <div class="booking-card-top">
+                                                    <div class="booking-card-title">{{ $b->title }}</div>
+                                                    <span class="badge-pending">PENDING</span>
+                                                </div>
 
-                                            <div class="booking-card-meta">
-                                                PIC: <b>{{ $b->pic->name }}</b><br>
-                                                {{ \Carbon\Carbon::parse($b->start_at)->format('d M Y H:i') }}
-                                                –
-                                                {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
-                                            </div>
+                                                <div class="booking-card-meta">
+                                                    PIC: <b>{{ $b->pic->name }}</b><br>
+                                                    {{ \Carbon\Carbon::parse($b->start_at)->format('d M Y H:i') }}
+                                                    –
+                                                    {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}<br>
+                                                    <span style="font-size:11px;color:#94a3b8;">
+                                                        🕐 Diajukan:
+                                                        {{ \Carbon\Carbon::parse($b->created_at)->translatedFormat('d M Y, H:i') }}
+                                                    </span>
+                                                </div>
 
-                                            @if($b->description)
-                                                <div class="booking-card-desc">{{ $b->description }}</div>
-                                            @endif
+                                                @if($b->description)
+                                                    <div class="booking-card-desc">{{ $b->description }}</div>
+                                                @endif
 
-                                            <div class="booking-card-actions">
-                                                <form method="POST" action="{{ route('approvals.approve', $b) }}" style="flex:1">
-                                                    @csrf
-                                                    <button type="submit" class="btn-approve" style="width:100%">✓ Approve</button>
-                                                </form>
+                                                <div class="booking-card-actions">
+                                                    <form method="POST" action="{{ route('approvals.approve', $b) }}"
+                                                        style="flex:1">
+                                                        @csrf
+                                                        <button type="submit" class="btn-approve" style="width:100%">✓
+                                                            Approve</button>
+                                                    </form>
 
-                                                <div x-data="{ open: false }" style="flex:1">
-                                                    <button type="button" class="btn-reject" style="width:100%" @click="open=true">✕
-                                                        Reject</button>
+                                                    <div x-data="{ open: false }" style="flex:1">
+                                                        <button type="button" class="btn-reject" style="width:100%"
+                                                            @click="open=true">✕ Reject</button>
 
-                                                    <div x-show="open" x-cloak
-                                                        class="fixed inset-0 z-50 flex items-center justify-center">
-                                                        <div class="absolute inset-0 bg-black/40" @click="open=false"></div>
-                                                        <div class="modal-box" style="position:relative">
-                                                            <div class="modal-header">
-                                                                <div>
-                                                                    <div class="modal-title">Reject Request</div>
-                                                                    <div class="modal-sub">{{ $b->title }}</div>
+                                                        <div x-show="open" x-cloak
+                                                            class="fixed inset-0 z-50 flex items-center justify-center">
+                                                            <div class="absolute inset-0 bg-black/40" @click="open=false"></div>
+                                                            <div class="modal-box" style="position:relative">
+                                                                <div class="modal-header">
+                                                                    <div>
+                                                                        <div class="modal-title">Reject Request</div>
+                                                                        <div class="modal-sub">{{ $b->title }}</div>
+                                                                    </div>
+                                                                    <button type="button" @click="open=false"
+                                                                        style="background:#f1f5f9;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:14px;color:#64748b;">✕</button>
                                                                 </div>
-                                                                <button type="button" @click="open=false"
-                                                                    style="background:#f1f5f9;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:14px;color:#64748b;">✕</button>
+                                                                <form method="POST" action="{{ route('approvals.reject', $b) }}">
+                                                                    @csrf
+                                                                    <div class="modal-body">
+                                                                        <label class="modal-label">Alasan Reject</label>
+                                                                        <textarea name="tu_note" required rows="3"
+                                                                            class="modal-textarea"
+                                                                            placeholder="Tulis alasan reject..."></textarea>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn-modal-close"
+                                                                            @click="open=false">Batal</button>
+                                                                        <button type="submit" class="btn-modal-reject">Kirim
+                                                                            Reject</button>
+                                                                    </div>
+                                                                </form>
                                                             </div>
-                                                            <form method="POST" action="{{ route('approvals.reject', $b) }}">
-                                                                @csrf
-                                                                <div class="modal-body">
-                                                                    <label class="modal-label">Alasan Reject</label>
-                                                                    <textarea name="tu_note" required rows="3"
-                                                                        class="modal-textarea"
-                                                                        placeholder="Tulis alasan reject..."></textarea>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn-modal-close"
-                                                                        @click="open=false">Batal</button>
-                                                                    <button type="submit" class="btn-modal-reject">Kirim
-                                                                        Reject</button>
-                                                                </div>
-                                                            </form>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endforeach
+                                        @endforeach
+                                    </div>
                                 </div>
                             </div>
+                        @empty
+                            <div class="empty-state">
+                                <div class="empty-icon">✅</div>
+                                <div class="empty-text">Tidak ada request pending untuk ruangan ini.</div>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- TAB: Riwayat --}}
+                    <div x-show="tab==='riwayat'" class="content-card">
+                        <div class="content-header">
+                            <div class="content-title">Riwayat Approval</div>
+                            <span
+                                style="font-size:12px;font-weight:600;color:#6366f1;background:#eef2ff;padding:3px 10px;border-radius:99px;">
+                                {{ $riwayat->total() }} total
+                            </span>
                         </div>
-                    @empty
-                        <div class="empty-state">
-                            <div class="empty-icon">✅</div>
-                            <div class="empty-text">Tidak ada request pending untuk ruangan ini.</div>
-                        </div>
-                    @endforelse
-                </div>
+
+                        @php $lastRiwayatDate = null; @endphp
+                        @forelse($riwayat as $b)
+                            @php
+                                $bDate = \Carbon\Carbon::parse($b->start_at)->format('Y-m-d');
+                                $bDateLabel = \Carbon\Carbon::parse($b->start_at)->translatedFormat('l, d F Y');
+                                $badge = match ($b->status) {
+                                    'APPROVED' => ['bg' => '#dcfce7', 'color' => '#15803d'],
+                                    'REJECTED' => ['bg' => '#fee2e2', 'color' => '#b91c1c'],
+                                    'CANCELLED' => ['bg' => '#f1f5f9', 'color' => '#64748b'],
+                                    default => ['bg' => '#f1f5f9', 'color' => '#475569'],
+                                };
+                            @endphp
+
+                            @if($bDate !== $lastRiwayatDate)
+                                @php $lastRiwayatDate = $bDate; @endphp
+                                <div
+                                    style="padding:8px 24px;background:#f8fafc;border-bottom:1px solid #f1f5f9;border-top:1px solid #f1f5f9;">
+                                    <span
+                                        style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;">
+                                        {{ $bDateLabel }}
+                                    </span>
+                                </div>
+                            @endif
+
+                            <div class="riwayat-row">
+                                <div style="min-width:0;flex:1;">
+                                    <div style="font-size:14px;font-weight:700;color:#0f172a;line-height:1.3;">{{ $b->title }}
+                                    </div>
+                                    <div style="font-size:12px;color:#94a3b8;margin-top:3px;">
+                                        {{ $b->room?->name ?? '-' }}
+                                        &nbsp;·&nbsp;
+                                        {{ \Carbon\Carbon::parse($b->start_at)->translatedFormat('d M Y') }},
+                                        {{ \Carbon\Carbon::parse($b->start_at)->format('H:i') }}
+                                        –
+                                        {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
+                                        &nbsp;·&nbsp;
+                                        {{ $b->unit_kerja ?? '-' }}
+                                    </div>
+                                    @if($b->tu_note)
+                                        <div style="font-size:11px;color:#64748b;margin-top:3px;font-style:italic;">
+                                            Catatan: {{ $b->tu_note }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                {{-- Badge status + tombol Cancel Approve --}}
+                                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                                    <span
+                                        style="padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap;background:{{ $badge['bg'] }};color:{{ $badge['color'] }};">
+                                        {{ $b->status }}
+                                    </span>
+
+                                    {{-- Tombol Cancel Approve hanya muncul untuk status APPROVED --}}
+                                    @if($b->status === 'APPROVED')
+                                        <div x-data="{ openCancel: false }">
+                                            <button type="button" class="btn-cancel-approve" @click="openCancel=true">
+                                                ↩ Cancel
+                                            </button>
+
+                                            <div x-show="openCancel" x-cloak
+                                                class="fixed inset-0 z-50 flex items-center justify-center">
+                                                <div class="absolute inset-0 bg-black/40" @click="openCancel=false"></div>
+                                                <div class="modal-box" style="position:relative">
+                                                    <div class="modal-header">
+                                                        <div>
+                                                            <div class="modal-title">Batalkan Approval</div>
+                                                            <div class="modal-sub">{{ $b->title }}</div>
+                                                        </div>
+                                                        <button type="button" @click="openCancel=false"
+                                                            style="background:#f1f5f9;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:14px;color:#64748b;">✕</button>
+                                                    </div>
+                                                    <form method="POST" action="{{ route('approvals.cancelApprove', $b) }}">
+                                                        @csrf
+                                                        <div class="modal-body">
+                                                            <p
+                                                                style="font-size:13px;color:#64748b;margin-bottom:14px;line-height:1.6;">
+                                                                Booking ini akan dibatalkan dan statusnya berubah ke
+                                                                <strong>CANCELLED</strong>. Pengaju perlu mengajukan ulang jika
+                                                                masih diperlukan.
+                                                            </p>
+                                                            <label class="modal-label">Alasan (opsional)</label>
+                                                            <textarea name="tu_note" rows="3" class="modal-textarea"
+                                                                style="border-color:#fed7aa;"
+                                                                placeholder="Tulis alasan pembatalan approval..."></textarea>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn-modal-close"
+                                                                @click="openCancel=false">Batal</button>
+                                                            <button type="submit" class="btn-modal-cancel-approve">↩ Ya, Batalkan
+                                                                Approval</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-state">
+                                <div class="empty-icon">📋</div>
+                                <div class="empty-text">Belum ada riwayat approval.</div>
+                            </div>
+                        @endforelse
+
+                        @if($riwayat->hasPages())
+                            <div style="padding:16px 24px;border-top:1px solid #f1f5f9;">
+                                {{ $riwayat->links() }}
+                            </div>
+                        @endif
+                    </div>
+
+                </div>{{-- end x-data tab --}}
             @endif
 
         </div>

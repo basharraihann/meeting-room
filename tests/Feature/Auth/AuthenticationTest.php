@@ -19,27 +19,40 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['username' => 'test-user']);
 
         $response = $this->post('/login', [
-            'email' => $user->email,
+            'username' => $user->username,
             'password' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('calendar', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['username' => 'test-user']);
 
         $this->post('/login', [
-            'email' => $user->email,
+            'username' => $user->username,
             'password' => 'wrong-password',
         ]);
 
         $this->assertGuest();
+    }
+
+    public function test_seeded_admin_can_authenticate_with_default_password(): void
+    {
+        $this->seed();
+
+        $response = $this->post('/login', [
+            'username' => 'admin',
+            'password' => 'password123',
+        ]);
+
+        $this->assertAuthenticatedAs(User::where('username', 'admin')->firstOrFail());
+        $response->assertRedirect(route('admin.users.index', absolute: false));
     }
 
     public function test_users_can_logout(): void

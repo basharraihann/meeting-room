@@ -677,7 +677,9 @@
         document.documentElement.setAttribute('data-user-role', window.userRole)
     </script>
 
-    @vite(['resources/js/calendar.js'])
+    @push('scripts')
+        @vite(['resources/js/calendar.js'])
+    @endpush
 
     <style>
         #calendar { font-family: 'Plus Jakarta Sans', sans-serif; }

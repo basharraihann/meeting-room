@@ -14,7 +14,63 @@
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>[x-cloak]{display:none !important}</style>
+    <script>
+        // Synchronous — sets sidebar width BEFORE any paint, zero flash
+        (function() {
+            var c = localStorage.getItem('sidebar_collapsed') === 'true';
+            var w = (c && window.innerWidth >= 1024) ? '5rem' : '18rem';
+            document.documentElement.style.setProperty('--sw', w);
+            if (c) document.documentElement.classList.add('sidebar-collapsed');
+        })();
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+
+        /* Sidebar width driven by --sw custom property (set inline, instant) */
+        @media (min-width: 1024px) {
+            aside.sidebar-container {
+                width: var(--sw, 18rem) !important;
+                transition: none !important;
+            }
+            .main-content-wrapper {
+                padding-left: var(--sw, 18rem) !important;
+                transition: none !important;
+            }
+
+            /* --- Visibility toggles --- */
+            html.sidebar-collapsed .sidebar-expanded-only {
+                display: none !important;
+            }
+            html:not(.sidebar-collapsed) .sidebar-collapsed-only {
+                display: none !important;
+            }
+
+            /* --- Collapsed: logo section --- */
+            html.sidebar-collapsed .sidebar-logo-section {
+                justify-content: center !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+
+            /* --- Collapsed: nav section --- */
+            html.sidebar-collapsed .sidebar-nav {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+
+            /* --- Collapsed: nav item links --- */
+            html.sidebar-collapsed .nav-item-link {
+                width: 3rem !important;
+                height: 3rem !important;
+                padding: 0 !important;
+                justify-content: center !important;
+            }
+        }
+    </style>
+    @stack('styles')
 </head>
 
 @php
@@ -24,24 +80,38 @@
         && \App\Models\Booking::where('status', 'PENDING')->where('room_id', $u->room_id)->exists();
 @endphp
 
-<body class="font-sans antialiased text-slate-900 bg-gradient-to-br from-slate-50 via-indigo-50/40 to-slate-50"
-    x-data="{ sidebar: false }">
+<body class="font-sans antialiased text-slate-900 bg-gradient-to-br from-slate-50 via-indigo-50/40 to-slate-50 min-h-screen"
+    x-data="{
+        sidebarMobile: false,
+        sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+        toggleSidebar() {
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed);
+            var w = this.sidebarCollapsed ? '5rem' : '18rem';
+            document.documentElement.style.setProperty('--sw', w);
+            if (this.sidebarCollapsed) {
+                document.documentElement.classList.add('sidebar-collapsed');
+            } else {
+                document.documentElement.classList.remove('sidebar-collapsed');
+            }
+        }
+    }">
 
     {{-- Overlay mobile --}}
-    <div x-show="sidebar" x-cloak @click="sidebar = false" class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden"></div>
+    <div x-show="sidebarMobile" x-cloak @click="sidebarMobile = false" class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden transition-opacity"></div>
 
     {{-- Sidebar --}}
     <aside
-        class="fixed inset-y-0 left-0 z-50 w-72 transform border-r border-slate-100 bg-gradient-to-b from-white to-indigo-50/60 transition-transform duration-200 lg:translate-x-0"
-        :class="sidebar ? 'translate-x-0' : '-translate-x-full'">
+        class="sidebar-container fixed inset-y-0 left-0 z-50 border-r border-slate-200/80 bg-white -translate-x-full lg:translate-x-0"
+        :class="sidebarMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
         @include('layouts.navigation')
     </aside>
 
-    <div class="min-h-screen lg:pl-72">
+    <div class="main-content-wrapper min-h-screen">
 
         {{-- Topbar --}}
         <header class="sticky top-0 z-30 flex h-20 items-center gap-4 border-b border-slate-100 bg-white/80 px-4 backdrop-blur sm:px-8">
-            <button @click="sidebar = true" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden">
+            <button @click="sidebarMobile = true" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
 
@@ -98,6 +168,8 @@
             {{ $slot }}
         </main>
     </div>
+
+    @stack('scripts')
 </body>
 
 </html>

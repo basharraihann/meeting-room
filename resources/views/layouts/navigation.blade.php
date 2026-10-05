@@ -3,10 +3,30 @@
     $links = [];
 
     if ($user->hasRole('PIC')) {
-        $links[] = ['Beranda', route('dashboard'), request()->routeIs('dashboard'), 'M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10'];
-        $links[] = ['Jadwal Ruang Rapat', route('calendar'), request()->routeIs('calendar'), 'M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'];
-        $links[] = ['Agenda Saya', route('agenda'), request()->routeIs('agenda'), 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'];
-        $links[] = ['Riwayat Booking', route('my_bookings.index'), request()->routeIs('my_bookings.*'), 'M12 8v4l3 3M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8m0-5v5h5'];
+        $links[] = [
+            'name'   => 'Beranda',
+            'url'    => route('dashboard'),
+            'active' => request()->routeIs('dashboard'),
+            'icon'   => 'M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10'
+        ];
+        $links[] = [
+            'name'   => 'Jadwal Ruang Rapat',
+            'url'    => route('calendar'),
+            'active' => request()->routeIs('calendar'),
+            'icon'   => 'M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'
+        ];
+        $links[] = [
+            'name'   => 'Agenda Saya',
+            'url'    => route('agenda'),
+            'active' => request()->routeIs('agenda'),
+            'icon'   => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+        ];
+        $links[] = [
+            'name'   => 'Riwayat Booking',
+            'url'    => route('my_bookings.index'),
+            'active' => request()->routeIs('my_bookings.*'),
+            'icon'   => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+        ];
     }
 
     $pendingCount = 0;
@@ -14,43 +34,177 @@
         $pendingCount = $user->room_id
             ? \App\Models\Booking::where('status', 'PENDING')->where('room_id', $user->room_id)->count()
             : 0;
-        $links[] = ['Jadwal Ruang Rapat', route('calendar'), request()->routeIs('calendar'), 'M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'];
-        $links[] = ['Approvals', route('approvals.index'), request()->routeIs('approvals.*'), 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', $pendingCount];
+        $links[] = [
+            'name'   => 'Jadwal Ruang Rapat',
+            'url'    => route('calendar'),
+            'active' => request()->routeIs('calendar'),
+            'icon'   => 'M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'
+        ];
+        $links[] = [
+            'name'   => 'Approvals',
+            'url'    => route('approvals.index'),
+            'active' => request()->routeIs('approvals.*'),
+            'icon'   => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+            'badge'  => $pendingCount
+        ];
     }
 
     if ($user->hasRole('Admin')) {
-        $links[] = ['Manajemen User', route('admin.users.index'), request()->routeIs('admin.users.*'), 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'];
+        $links[] = [
+            'name'   => 'Manajemen User',
+            'url'    => route('admin.users.index'),
+            'active' => request()->routeIs('admin.users.*'),
+            'icon'   => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'
+        ];
     }
 
-    $links[] = ['Pengaturan', route('profile.edit'), request()->routeIs('profile.*'), 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z'];
-    $links = collect($links)->unique(0)->values()->all();
+    $links = collect($links)->unique('name')->values()->all();
+
+    $initials = collect(preg_split('/\s+/', trim($user->name)))->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+    $primaryRole = $user->roles->pluck('name')->first() ?? ($user->hasRole('Admin') ? 'Admin' : ($user->hasRole('TU') ? 'TU' : 'PIC'));
+    $roleBadgeClass = match($primaryRole) {
+        'Admin' => 'bg-purple-100 text-purple-700',
+        'PIC'   => 'bg-indigo-100 text-indigo-700',
+        'TU'    => 'bg-emerald-100 text-emerald-700',
+        default => 'bg-slate-100 text-slate-700',
+    };
+    $homeUrl = $user->hasRole('PIC') ? route('dashboard') : ($user->hasRole('Admin') ? route('admin.users.index') : route('calendar'));
 @endphp
 
-<div class="flex h-full flex-col">
-    {{-- Logo --}}
-    <a href="{{ $user->hasRole('PIC') ? route('dashboard') : route('calendar') }}" class="flex items-center gap-3 px-6 pb-6 pt-6">
-        <img src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenko Pangan" class="h-12 w-auto">
-    </a>
+<div class="relative flex h-full flex-col justify-between overflow-visible select-none bg-white">
 
-    {{-- Menu --}}
-    <nav class="flex-1 space-y-1.5 px-4">
+    {{-- Toggle Collapse/Expand Button (Floating capsule on right border) --}}
+    <button type="button"
+        @click="toggleSidebar()"
+        class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-50 h-14 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:text-slate-600 hover:shadow focus:outline-none"
+        :title="sidebarCollapsed ? 'Perlebar Sidebar' : 'Tutup Sidebar'">
+        <svg x-show="!sidebarCollapsed" class="sidebar-expanded-only h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <svg x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+    </button>
+
+    {{-- Top Section: Logo --}}
+    <div class="sidebar-logo-section flex h-20 shrink-0 items-center border-b border-slate-100 justify-between px-5"
+        :class="sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'">
+        
+        <a href="{{ $homeUrl }}" class="flex items-center gap-3 overflow-hidden">
+            {{-- When expanded --}}
+            <img x-show="!sidebarCollapsed" src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenko Pangan" class="sidebar-expanded-only h-10 w-auto max-w-[190px] object-contain">
+            
+            {{-- When collapsed --}}
+            <img x-show="sidebarCollapsed" x-cloak src="{{ asset('images/logo.png') }}" alt="Logo" class="sidebar-collapsed-only h-9 w-9 object-contain" title="Kemenko Pangan">
+        </a>
+
+        {{-- Mobile close button --}}
+        <button @click="sidebarMobile = false" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 lg:hidden">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
+
+    {{-- Middle Section: Navigation Links --}}
+    <nav class="sidebar-nav flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-1.5 px-3"
+         :class="sidebarCollapsed ? 'px-2 flex flex-col items-center' : 'px-3'">
         @foreach($links as $l)
-            <a href="{{ $l[1] }}"
-                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition
-                       {{ $l[2] ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $l[3] }}" />
+            <a href="{{ $l['url'] }}"
+                :class="sidebarCollapsed
+                    ? 'h-12 w-12 justify-center {{ $l['active'] ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}'
+                    : 'w-full px-4 py-3 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}'"
+                class="nav-item-link group relative flex items-center rounded-2xl text-sm transition-colors w-full px-4 py-3 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}"
+                :title="sidebarCollapsed ? '{{ $l['name'] }}' : ''">
+
+                <svg class="h-5 w-5 shrink-0 {{ $l['active'] ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700' }}"
+                    fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $l['icon'] }}" />
                 </svg>
-                <span class="flex-1">{{ $l[0] }}</span>
-                @if(($l[4] ?? 0) > 0)
-                    <span class="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">{{ $l[4] }}</span>
+
+                <span x-show="!sidebarCollapsed" class="sidebar-expanded-only ml-3.5 truncate whitespace-nowrap">
+                    {{ $l['name'] }}
+                </span>
+
+                @if(($l['badge'] ?? 0) > 0)
+                    <span x-show="!sidebarCollapsed" class="sidebar-expanded-only ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+                        {{ $l['badge'] }}
+                    </span>
+                    <span x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only absolute -top-1 -right-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                        {{ $l['badge'] }}
+                    </span>
                 @endif
             </a>
         @endforeach
     </nav>
 
-    {{-- Footer sidebar --}}
-    <div class="px-6 pb-6 pt-8 text-xs leading-relaxed text-slate-500">
-        Kementerian Koordinator<br>Bidang Pangan - Republik Indonesia<br>&copy; {{ date('Y') }}
+    {{-- Bottom Section: User Info Card & Actions --}}
+    <div class="shrink-0 border-t border-slate-100">
+        {{-- Expanded Bottom View --}}
+        <div x-show="!sidebarCollapsed" class="sidebar-expanded-only p-3 pt-3">
+            {{-- User Info Box --}}
+            <div class="flex items-center gap-3 px-2 py-2">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">
+                    {{ $initials }}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="truncate text-sm font-bold text-slate-900 leading-tight">{{ $user->name }}</div>
+                    <div class="truncate text-xs text-slate-400 leading-tight mt-0.5">{{ $user->email }}</div>
+                </div>
+                <span class="shrink-0 rounded px-2 py-0.5 text-[11px] font-semibold {{ $roleBadgeClass }}">
+                    {{ $primaryRole }}
+                </span>
+            </div>
+
+            {{-- Actions --}}
+            <div class="mt-2 space-y-1">
+                <a href="{{ route('profile.edit') }}"
+                    class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors hover:bg-slate-50 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600' }}">
+                    <svg class="h-5 w-5 shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Profil</span>
+                </a>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"
+                        class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600">
+                        <svg class="h-5 w-5 shrink-0 text-slate-500 hover:text-red-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Keluar</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Collapsed Bottom View --}}
+        <div x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only flex flex-col items-center gap-3 py-4">
+            {{-- User Initial Avatar --}}
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600 cursor-default"
+                title="{{ $user->name }} ({{ $primaryRole }})">
+                {{ $initials }}
+            </div>
+
+            {{-- Profil Icon --}}
+            <a href="{{ route('profile.edit') }}"
+                class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600' : '' }}"
+                title="Profil">
+                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </a>
+
+            {{-- Keluar Icon --}}
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit"
+                    class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-red-50 hover:text-red-600"
+                    title="Keluar">
+                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </form>
+        </div>
     </div>
 </div>

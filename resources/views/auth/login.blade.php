@@ -1,128 +1,469 @@
 <x-guest-layout>
-    <x-slot name="title">Login</x-slot>
+    <x-slot name="title">Login - Rupat Kemenko Pangan</x-slot>
 
-    <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-indigo-50/60 to-white">
+    <style>
+        :root {
+            --deep: #1E1B4B;
+            --teal: #6366F1;
+            --teal-2: #4F46E5;
+            --violet: #A5B4FC;
+            --ink: #0F172A;
+            --ink-soft: #64748B;
+            --ink-faint: #94A3B8;
+            --line: #E2E8F0;
+            --red: #DC2626;
+            --green: #4F46E5;
+            --green-bg: #EEF2FF;
+            --radius-lg: 24px;
+            --radius-sm: 10px;
+        }
 
-        {{-- Dekorasi latar --}}
-        <div class="pointer-events-none absolute inset-0">
-            <div class="absolute -top-40 -right-40 h-[520px] w-[520px] rounded-full bg-indigo-200/40 blur-3xl"></div>
-            <div class="absolute -bottom-40 -left-32 h-[480px] w-[480px] rounded-full bg-sky-200/40 blur-3xl"></div>
-            <div class="absolute bottom-0 left-0 h-40 w-full bg-gradient-to-t from-emerald-100/40 to-transparent"></div>
-        </div>
+        .wave-wrap {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-        {{-- Header --}}
-        <header class="relative flex items-center gap-4 px-6 py-6 sm:px-12">
-            <img src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenko Pangan" class="h-12 w-auto">
-            <div class="hidden sm:block border-l border-slate-200 pl-4">
-                <div class="text-sm font-bold text-slate-900">Rupat Kemenko Pangan</div>
-                <div class="text-xs text-slate-500">Kementerian Koordinator Bidang Pangan</div>
-            </div>
-        </header>
+        .wave-wrap svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 58vh;
+            min-height: 400px;
+        }
 
-        <div class="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-4 sm:px-12 lg:min-h-[calc(100vh-180px)] lg:grid-cols-2">
+        .auth-topbar {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 30px;
+        }
 
-            {{-- Kiri: sambutan --}}
-            <div class="hidden lg:block">
-                <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-600">
-                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z"/></svg>
-                    Sistem Informasi
-                </span>
-                <h1 class="mt-5 text-4xl font-extrabold leading-tight text-slate-900">
-                    Selamat Datang di<br><span class="text-indigo-600">Rupat Kemenko Pangan</span>
-                </h1>
-                <p class="mt-4 max-w-md text-sm leading-relaxed text-slate-500">
-                    Platform digital untuk mempermudah koordinasi, monitoring, dan pengelolaan program kerja
-                    Kementerian Koordinator Bidang Pangan.
-                </p>
+        .auth-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
 
-                <div class="mt-8 flex gap-6">
-                    @foreach([
-                        ['Mudah', 'Akses cepat dan terintegrasi', 'M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'],
-                        ['Aman', 'Data terlindungi dengan baik', 'M12 3l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-3z'],
-                        ['Efisien', 'Mendukung kinerja terbaik', 'M13 2L4 14h6l-1 8 9-12h-6l1-8z'],
-                    ] as [$t, $d, $icon])
-                        <div class="flex items-start gap-2.5">
-                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
-                            </span>
-                            <div>
-                                <div class="text-sm font-bold text-slate-900">{{ $t }}</div>
-                                <div class="text-[11px] leading-snug text-slate-500">{{ $d }}</div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
+        .auth-brand .seal {
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            {{-- Kanan: kartu login --}}
-            <div class="w-full max-w-md justify-self-center lg:justify-self-end">
-                <div class="rounded-3xl bg-white p-8 shadow-2xl shadow-indigo-900/10 sm:p-10">
-                    <img src="{{ asset('images/logoheader.png') }}" alt="Logo" class="mb-6 h-12 w-auto">
+        .auth-brand .seal img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
 
-                    <h2 class="text-3xl font-extrabold text-slate-900">Masuk</h2>
-                    <p class="mt-2 text-sm text-slate-500">Silakan login untuk mengakses platform booking ruang rapat.</p>
+        .auth-brand .seal .seal-fallback {
+            display: none;
+            width: 42px;
+            height: 42px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--teal), var(--violet));
+            color: #fff;
+            font-weight: 800;
+            font-size: 12px;
+        }
 
-                    <x-auth-session-status class="mt-4" :status="session('status')" />
+        .auth-brand .divider {
+            width: 1px;
+            height: 34px;
+            background: var(--line);
+            flex-shrink: 0;
+        }
 
-                    <form method="POST" action="{{ route('login') }}" class="mt-6 space-y-5">
-                        @csrf
+        .auth-brand .txt h1 {
+            font-size: 15px;
+            margin: 0 0 2px;
+            font-weight: 700;
+            color: var(--ink);
+        }
 
-                        <div>
-                            <label for="username" class="mb-1.5 block text-sm font-bold text-slate-800">Username</label>
-                            <div class="relative">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.118a7.5 7.5 0 0115 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.5-1.632z"/></svg>
-                                </span>
-                                <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus
-                                    autocomplete="username" placeholder="Masukkan username"
-                                    class="block w-full rounded-2xl border-slate-200 bg-white py-3 pl-12 pr-4 text-sm placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
-                            </div>
-                            <x-input-error :messages="$errors->get('username')" class="mt-1.5" />
-                        </div>
+        .auth-brand .txt .sub {
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            font-weight: 500;
+        }
 
-                        <div x-data="{ show: false }">
-                            <label for="password" class="mb-1.5 block text-sm font-bold text-slate-800">Kata Sandi</label>
-                            <div class="relative">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
-                                </span>
-                                <input id="password" name="password" :type="show ? 'text' : 'password'" required
-                                    autocomplete="current-password" placeholder="Masukkan kata sandi"
-                                    class="block w-full rounded-2xl border-slate-200 bg-white py-3 pl-12 pr-12 text-sm placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10">
-                                <button type="button" @click="show = !show"
-                                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600">
-                                    <svg x-show="!show" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    <svg x-show="show" x-cloak class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.52 10.52 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
-                                </button>
-                            </div>
-                            <x-input-error :messages="$errors->get('password')" class="mt-1.5" />
-                        </div>
+        .auth-main {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px 60px;
+            min-height: calc(100vh - 78px);
+        }
 
-                        <div class="flex items-center justify-between">
-                            <label for="remember_me" class="inline-flex cursor-pointer items-center gap-2">
-                                <input id="remember_me" type="checkbox" name="remember"
-                                    class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20">
-                                <span class="text-sm text-slate-600">Ingat saya</span>
-                            </label>
-                            @if (Route::has('password.request'))
-                                <a href="{{ route('password.request') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">Lupa kata sandi?</a>
-                            @endif
-                        </div>
+        .auth-card {
+            width: 100%;
+            max-width: 380px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 0 0 6px rgba(99, 102, 241, .06), 0 24px 60px rgba(79, 70, 229, .16);
+            padding: 34px 32px 30px;
+        }
 
-                        <button type="submit"
-                            class="group flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition hover:-translate-y-0.5 hover:bg-indigo-700 active:translate-y-0">
-                            Masuk ke Akun
-                            <svg class="h-4 w-4 transition group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-                        </button>
-                    </form>
+        .auth-card-head {
+            text-align: center;
+            margin-bottom: 26px;
+        }
 
-                    <p class="mt-6 text-center text-xs text-slate-400">Butuh bantuan akses? Hubungi Biro MKDI.</p>
-                </div>
-            </div>
-        </div>
+        .auth-card-head h3 {
+            font-size: 21px;
+            margin: 0 0 6px;
+            font-weight: 800;
+            color: var(--ink);
+        }
 
-        <p class="relative pb-6 text-center text-xs text-slate-400">
-            Kementerian Koordinator Bidang Pangan · Republik Indonesia · &copy; {{ date('Y') }}
-        </p>
+        .auth-card-head p {
+            font-size: 13px;
+            color: var(--ink-soft);
+            margin: 0;
+        }
+
+        .status-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid #C7D2FE;
+            border-radius: var(--radius-sm);
+            padding: 11px 13px;
+            font-size: 12.5px;
+            font-weight: 500;
+            margin-bottom: 18px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 7px;
+        }
+
+        .field-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: #fff;
+            transition: .15s;
+        }
+
+        .field-input-wrap:focus-within {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+        }
+
+        .field-input-wrap.has-error {
+            border-color: var(--red);
+        }
+
+        .field-input-wrap .lead-ic {
+            width: 17px;
+            height: 17px;
+            color: var(--ink-faint);
+            margin-left: 13px;
+            flex-shrink: 0;
+        }
+
+        .field-input-wrap input {
+            flex: 1;
+            min-width: 0;
+            border: none !important;
+            outline: none;
+            background: transparent !important;
+            padding: 11px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            color: var(--ink);
+            box-shadow: none !important;
+        }
+
+        .toggle-pw {
+            background: none;
+            border: none;
+            padding: 0 13px;
+            display: flex;
+            align-items: center;
+            color: var(--ink-faint);
+            flex-shrink: 0;
+        }
+
+        .toggle-pw:hover {
+            color: var(--ink-soft);
+        }
+
+        .toggle-pw svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .field-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: -4px 0 20px;
+        }
+
+        .remember-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            font-weight: 500;
+            user-select: none;
+        }
+
+        .remember-check input {
+            width: 15px;
+            height: 15px;
+            border-radius: 4px;
+            border: 1.5px solid var(--line);
+            accent-color: var(--teal);
+        }
+
+        .forgot-link {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--teal-2);
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(90deg, var(--teal), var(--teal-2));
+            color: #fff;
+            border: none;
+            padding: 13px 18px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: .15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 10px 24px rgba(79, 70, 229, .35);
+        }
+
+        .btn-submit:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        .auth-foot-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--ink-soft);
+            margin-top: 20px;
+        }
+
+        .auth-page-footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            font-size: 11.5px;
+            color: rgba(255, 255, 255, .8);
+            padding: 0 20px 26px;
+            margin-top: -18px;
+        }
+
+        @media (max-width: 640px) {
+            .auth-topbar {
+                flex-direction: column;
+                gap: 14px;
+                padding: 26px 20px 16px;
+                text-align: center;
+            }
+
+            .auth-brand {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .auth-brand .divider {
+                width: 36px;
+                height: 1px;
+            }
+
+            .auth-main {
+                min-height: auto;
+                align-items: flex-start;
+                padding: 14px 18px 50px;
+            }
+
+            .wave-wrap svg {
+                height: 44vh;
+                min-height: 280px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 28px 22px 24px;
+            }
+        }
+    </style>
+
+    {{-- Wave beda arah & 2 layer, warna indigo/violet --}}
+    <div class="wave-wrap">
+        <svg viewBox="0 0 1440 500" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="waveGradBack" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#C7D2FE" />
+                    <stop offset="55%" stop-color="#6366F1" />
+                    <stop offset="100%" stop-color="#1E1B4B" />
+                </linearGradient>
+                <linearGradient id="waveGradFront" x1="100%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#4F46E5" />
+                    <stop offset="100%" stop-color="#1E1B4B" />
+                </linearGradient>
+            </defs>
+            {{-- layer belakang, lengkungan lebih landai --}}
+            <path fill="url(#waveGradBack)" opacity="0.55"
+                d="M0,220 C220,150 380,290 620,240 C860,190 1020,80 1220,140 C1340,175 1400,210 1440,220 L1440,500 L0,500 Z" />
+            {{-- layer depan, lengkungan berlawanan arah --}}
+            <path fill="url(#waveGradFront)"
+                d="M0,300 C240,340 340,180 560,210 C800,245 900,340 1140,300 C1280,278 1360,250 1440,260 L1440,500 L0,500 Z" />
+        </svg>
     </div>
+
+    <header class="auth-topbar">
+        <div class="auth-brand">
+            <div class="seal">
+                <img src="{{ asset('images/logoheader.png') }}" alt="Rupat Kemenko Pangan"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <span class="seal-fallback">RK</span>
+            </div>
+            <div class="divider"></div>
+            <div class="txt">
+                <h1>Rupat Kemenko Pangan</h1>
+                <div class="sub">Kementerian Koordinator Bidang Pangan</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="auth-main">
+        <div class="auth-card">
+            <div class="auth-card-head">
+                <h3>Masuk</h3>
+                <p>Silakan login untuk mengakses platform booking ruang rapat.</p>
+            </div>
+
+            @if (session('status'))
+                <div class="status-banner">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4" />
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                    <span>{{ session('status') }}</span>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
+
+                {{-- Username --}}
+                <div class="field">
+                    <label for="username">Username</label>
+                    <div class="field-input-wrap {{ $errors->has('username') ? 'has-error' : '' }}">
+                        <svg class="lead-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        <x-text-input id="username" name="username" type="text" :value="old('username')" required
+                            autofocus autocomplete="username" placeholder="Masukkan username" />
+                    </div>
+                    <x-input-error :messages="$errors->get('username')" class="mt-1.5" />
+                </div>
+
+                {{-- Password --}}
+                <div class="field">
+                    <label for="password">Kata Sandi</label>
+                    <div class="field-input-wrap {{ $errors->has('password') ? 'has-error' : '' }}">
+                        <svg class="lead-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        <x-text-input id="password" name="password" type="password" required
+                            autocomplete="current-password" placeholder="Masukkan kata sandi" />
+                        <button type="button" class="toggle-pw" onclick="togglePw()" aria-label="Tampilkan kata sandi">
+                            <svg id="pw-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                    <x-input-error :messages="$errors->get('password')" class="mt-1.5" />
+                </div>
+
+                <div class="field-meta-row">
+                    <label class="remember-check" for="remember_me">
+                        <input id="remember_me" type="checkbox" name="remember">
+                        Ingat saya
+                    </label>
+
+                    @if (Route::has('password.request'))
+                        <a class="forgot-link" href="{{ route('password.request') }}">Lupa kata sandi?</a>
+                    @endif
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Masuk ke Akun
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
+            </form>
+
+            <div class="auth-foot-note">
+                Butuh bantuan akses? Hubungi Biro MKDI.
+            </div>
+        </div>
+    </main>
+
+    <footer class="auth-page-footer">
+        Kementerian Koordinator Bidang Pangan &middot; Rupat &copy; {{ date('Y') }}
+    </footer>
+
+    <script>
+        function togglePw() {
+            const input = document.getElementById('password');
+            const eye = document.getElementById('pw-eye');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            eye.innerHTML = isHidden
+                ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.7 19.7 0 0 1 4.22-5.47M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a19.7 19.7 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><path d="M1 1l22 22"></path>'
+                : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle>';
+        }
+    </script>
 </x-guest-layout>

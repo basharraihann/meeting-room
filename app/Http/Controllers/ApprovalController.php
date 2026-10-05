@@ -4,18 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Room;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Notification;
 use App\Notifications\BookingStatusNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class ApprovalController extends Controller
 {
     public function index(Request $request)
     {
-        $tu = auth()->user();
-        $assignedRoomId = $tu->room_id;
+        $tu = $request->user();
+        $assignedRoomId = $tu?->room_id;
 
-        if (!$assignedRoomId) {
+        // Jika tidak ada room_id spesifik, cek apakah user memegang role Admin/Super Admin
+        $isAdmin = $tu && ($tu->hasRole('Admin') || $tu->hasRole('Super Admin') || $tu->hasRole('Uji Semua Role'));
+
+        // Jika bukan Admin DAN memang tidak punya room_id, tampilkan view noRoom
+        if (!$assignedRoomId && !$isAdmin) {
             return view('approvals.index', [
                 'clusters' => collect(),
                 'rooms' => collect(),
@@ -27,19 +32,23 @@ class ApprovalController extends Controller
             ]);
         }
 
-        $assignedRoom = Room::find($assignedRoomId);
+        // Ambil data ruangan yang dikelola (jika admin, ambil semua ruangan)
+        $rooms = $assignedRoomId ? Room::where('id', $assignedRoomId)->get() : Room::all();
+        $assignedRoom = $assignedRoomId ? Room::find($assignedRoomId) : null;
 
-        $pendingCounts = Booking::where('status', 'PENDING')
-            ->where('room_id', $assignedRoomId)
-            ->selectRaw('room_id, COUNT(*) as total')
-            ->groupBy('room_id')
-            ->pluck('total', 'room_id');
+        // Query pending booking
+        $pendingQuery = Booking::with(['room', 'pic'])->where('status', 'PENDING');
+        if ($assignedRoomId) {
+            $pendingQuery->where('room_id', $assignedRoomId);
+        }
+        $pending = $pendingQuery->orderBy('start_at')->get();
 
-        $pending = Booking::with(['room', 'pic'])
-            ->where('status', 'PENDING')
-            ->where('room_id', $assignedRoomId)
-            ->orderBy('start_at')
-            ->get();
+        // Hitung total pending per ruangan
+        $pendingCountsQuery = Booking::where('status', 'PENDING')->selectRaw('room_id, COUNT(*) as total');
+        if ($assignedRoomId) {
+            $pendingCountsQuery->where('room_id', $assignedRoomId);
+        }
+        $pendingCounts = $pendingCountsQuery->groupBy('room_id')->pluck('total', 'room_id');
 
         // CLUSTERING OVERLAP
         $clusters = collect();
@@ -61,7 +70,7 @@ class ApprovalController extends Controller
                 }
             } else {
                 $clusters->push([
-                    'room_id' => $assignedRoomId,
+                    'room_id' => $current[0]->room_id,
                     'room_name' => optional($current[0]->room)->name,
                     'start' => $current[0]->start_at,
                     'end' => $currentEnd,
@@ -74,7 +83,7 @@ class ApprovalController extends Controller
 
         if (!empty($current)) {
             $clusters->push([
-                'room_id' => $assignedRoomId,
+                'room_id' => $current[0]->room_id,
                 'room_name' => optional($current[0]->room)->name,
                 'start' => $current[0]->start_at,
                 'end' => $currentEnd,
@@ -84,15 +93,16 @@ class ApprovalController extends Controller
 
         $clusters = $clusters->sortBy('start')->values();
 
-        $riwayat = Booking::where('room_id', $assignedRoomId)
-            ->whereIn('status', ['APPROVED', 'REJECTED', 'CANCELLED'])
-            ->with(['pic', 'room'])
-            ->orderBy('updated_at', 'desc')
-            ->paginate(15);
+        // Query riwayat booking
+        $riwayatQuery = Booking::whereIn('status', ['APPROVED', 'REJECTED', 'CANCELLED'])->with(['pic', 'room']);
+        if ($assignedRoomId) {
+            $riwayatQuery->where('room_id', $assignedRoomId);
+        }
+        $riwayat = $riwayatQuery->orderBy('updated_at', 'desc')->paginate(15);
 
         return view('approvals.index', [
             'clusters' => $clusters,
-            'rooms' => collect([$assignedRoom]),
+            'rooms' => $rooms,
             'roomId' => $assignedRoomId,
             'pendingCounts' => $pendingCounts,
             'assignedRoom' => $assignedRoom,
@@ -101,11 +111,12 @@ class ApprovalController extends Controller
         ]);
     }
 
-    public function approve(Booking $booking)
+    public function approve(Request $request, Booking $booking)
     {
-        $tu = auth()->user();
+        $tu = $request->user();
+        $isAdmin = $tu && ($tu->hasRole('Admin') || $tu->hasRole('Super Admin') || $tu->hasRole('Uji Semua Role'));
 
-        if ($tu->room_id && $booking->room_id !== $tu->room_id) {
+        if ($tu?->room_id && $booking->room_id !== $tu->room_id && !$isAdmin) {
             abort(403, 'Anda tidak berwenang approve booking ruangan ini.');
         }
 
@@ -123,14 +134,16 @@ class ApprovalController extends Controller
 
         $booking->update(['status' => 'APPROVED', 'tu_note' => null]);
 
-        if (!$booking->relationLoaded('pic'))
+        if (!$booking->relationLoaded('pic')) {
             $booking->load('pic');
+        }
+
         if (!empty($booking->applicant_email)) {
             try {
                 Notification::route('mail', $booking->applicant_email)
                     ->notify(new BookingStatusNotification($booking));
             } catch (\Exception $e) {
-                \Log::error('Email gagal: ' . $e->getMessage());
+                Log::error('Email gagal: ' . $e->getMessage());
             }
         }
 
@@ -144,7 +157,7 @@ class ApprovalController extends Controller
                     Notification::route('mail', $c->applicant_email)
                         ->notify(new BookingStatusNotification($c));
                 } catch (\Exception $e) {
-                    \Log::error('Email gagal: ' . $e->getMessage());
+                    Log::error('Email gagal: ' . $e->getMessage());
                 }
             }
         }
@@ -154,9 +167,10 @@ class ApprovalController extends Controller
 
     public function reject(Request $request, Booking $booking)
     {
-        $tu = auth()->user();
+        $tu = $request->user();
+        $isAdmin = $tu && ($tu->hasRole('Admin') || $tu->hasRole('Super Admin') || $tu->hasRole('Uji Semua Role'));
 
-        if ($tu->room_id && $booking->room_id !== $tu->room_id) {
+        if ($tu?->room_id && $booking->room_id !== $tu->room_id && !$isAdmin) {
             abort(403, 'Anda tidak berwenang reject booking ruangan ini.');
         }
 
@@ -170,29 +184,28 @@ class ApprovalController extends Controller
 
         $booking->update(['status' => 'REJECTED', 'tu_note' => $request->tu_note]);
 
-        if (!$booking->relationLoaded('pic'))
+        if (!$booking->relationLoaded('pic')) {
             $booking->load('pic');
+        }
+
         if (!empty($booking->applicant_email)) {
             try {
                 Notification::route('mail', $booking->applicant_email)
                     ->notify(new BookingStatusNotification($booking));
             } catch (\Exception $e) {
-                \Log::error('Email gagal: ' . $e->getMessage());
+                Log::error('Email gagal: ' . $e->getMessage());
             }
         }
 
         return back()->with('status', 'Booking rejected.');
     }
 
-    /**
-     * Cancel approve — kembalikan status APPROVED → PENDING
-     * POST /approvals/{booking}/cancel-approve
-     */
     public function cancelApprove(Request $request, Booking $booking)
     {
-        $tu = auth()->user();
+        $tu = $request->user();
+        $isAdmin = $tu && ($tu->hasRole('Admin') || $tu->hasRole('Super Admin') || $tu->hasRole('Uji Semua Role'));
 
-        if ($tu->room_id && $booking->room_id !== $tu->room_id) {
+        if ($tu?->room_id && $booking->room_id !== $tu->room_id && !$isAdmin) {
             abort(403, 'Anda tidak berwenang membatalkan approval ruangan ini.');
         }
 
@@ -209,15 +222,16 @@ class ApprovalController extends Controller
             'tu_note' => $request->tu_note ?: 'Approval dibatalkan oleh TU.',
         ]);
 
-        // Notif ke pengaju bahwa booking dibatalkan
-        if (!$booking->relationLoaded('pic'))
+        if (!$booking->relationLoaded('pic')) {
             $booking->load('pic');
+        }
+
         if (!empty($booking->applicant_email)) {
             try {
                 Notification::route('mail', $booking->applicant_email)
                     ->notify(new BookingStatusNotification($booking));
             } catch (\Exception $e) {
-                \Log::error('Email gagal: ' . $e->getMessage());
+                Log::error('Email gagal: ' . $e->getMessage());
             }
         }
 

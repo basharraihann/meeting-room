@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use Illuminate\Http\Request;
+use App\Models\Room;
 use App\Models\User;
 use App\Notifications\BookingSubmittedNotification;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 
 class BookingController extends Controller
@@ -32,9 +35,7 @@ class BookingController extends Controller
         }
 
         $data = $request->validate([
-            // PATCH: room_id sekarang hanya lolos "exists" jika ruangan aktif DAN tidak sedang maintenance.
-            // Ini mencegah booking ke ruangan maintenance (mis. Ruang Rapat ABT) tembus dari jalur manapun
-            // (hidden input di modal, filter mobile, atau request manual di luar UI).
+            // Ruangan aktif & tidak dalam pemeliharaan
             'room_id' => [
                 'required',
                 Rule::exists('rooms', 'id')->where(function ($query) {
@@ -65,7 +66,7 @@ class BookingController extends Controller
                 ->withInput();
         }
 
-        // Cek bentrok langsung
+        // Cek bentrok langsung dengan booking APPROVED
         $conflict = Booking::where('room_id', $data['room_id'])
             ->where('status', 'APPROVED')
             ->where('start_at', '<', $data['end_at'])
@@ -93,9 +94,13 @@ class BookingController extends Controller
                 ->withInput();
         }
 
+        // Ambil data room untuk disimpan ke room_name
+        $room = Room::findOrFail($data['room_id']);
+
+        // Buat data booking
         $booking = Booking::create([
-            'room_id' => $data['room_id'],
-            'room_name' => \App\Models\Room::find($data['room_id'])?->name,
+            'room_id' => $room->id,
+            'room_name' => $room->name,
             'pic_user_id' => $request->user()->id,
             'applicant_email' => $data['applicant_email'],
             'unit_kerja' => $data['unit_kerja'],
@@ -106,15 +111,17 @@ class BookingController extends Controller
             'status' => 'PENDING',
         ]);
 
-        // Notif email ke TU yang assigned ke ruangan ini
-        $tuUsers = User::role('TU')->where('room_id', $booking->room_id)->get();
-        foreach ($tuUsers as $tu) {
-            if (!empty($tu->email)) {
-                try {
-                    $tu->notify(new BookingSubmittedNotification($booking));
-                } catch (\Exception $e) {
-                    \Log::error('Email gagal ke ' . $tu->email . ': ' . $e->getMessage());
-                }
+        // Kirim email notifikasi ke user TU yang memegang ruangan ini
+        $tuUsers = User::role('TU')
+            ->where('room_id', $booking->room_id)
+            ->whereNotNull('email')
+            ->get();
+
+        if ($tuUsers->isNotEmpty()) {
+            try {
+                Notification::send($tuUsers, new BookingSubmittedNotification($booking));
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim notifikasi email booking: ' . $e->getMessage());
             }
         }
 
@@ -124,7 +131,8 @@ class BookingController extends Controller
 
     public function cancel(Request $request, Booking $booking)
     {
-        if ($booking->pic_user_id !== auth()->id()) {
+        // Pengecekan autorisasi pengaju
+        if ($booking->pic_user_id !== $request->user()->id) {
             abort(403, 'Tidak boleh cancel booking orang lain.');
         }
 
@@ -140,7 +148,7 @@ class BookingController extends Controller
             'status' => 'CANCELLED',
             'cancel_reason' => $data['cancel_reason'],
             'canceled_at' => now(),
-            'canceled_by' => auth()->id(),
+            'canceled_by' => $request->user()->id,
         ]);
 
         return back()->with('status', 'Booking berhasil dibatalkan.');

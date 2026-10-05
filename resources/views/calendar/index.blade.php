@@ -1,45 +1,20 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Kalender Booking Ruang Rapat
-            </h2>
-
-            @if(auth()->user()?->hasRole('PIC'))
-                <div class="flex gap-2">
-                    <button type="button"
-                        class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 shadow"
-                        onclick="bukaModalAjukan()">
-                        + Ajukan Rapat
-                    </button>
-                </div>
-            @endif
-        </div>
-    </x-slot>
 
     {{-- NOTIFIKASI SUCCESS --}}
     @if(session('status'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-            class="fixed top-4 right-4 z-40">
-            <div class="bg-green-50 border border-green-200 rounded-2xl p-4 shadow-lg flex items-start justify-between">
+            class="fixed top-24 right-4 z-40">
+            <div class="bg-green-50 border border-green-200 rounded-2xl p-4 shadow-lg flex items-start justify-between gap-3">
                 <div class="flex items-start gap-3">
                     <svg class="w-5 h-5 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                     </svg>
                     <div>
                         <p class="font-semibold text-green-800">Berhasil!</p>
                         <p class="text-sm text-green-700 mt-1">{{ session('status') }}</p>
                     </div>
                 </div>
-                <button @click="show = false" class="text-green-400 hover:text-green-600">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </button>
+                <button @click="show = false" class="text-green-400 hover:text-green-600">✕</button>
             </div>
         </div>
     @endif
@@ -47,19 +22,41 @@
     @php
         $activeRoomId = request('room_id');
         $roomDotColors = [
-            1 => '#1a1a1a',
-            2 => '#a855f7',
-            3 => '#92400e',
-            4 => '#facc15',
-            5 => '#22d3ee',
-            6 => '#ef4444',
-            7 => '#ec4899',
-            8 => '#468432',
+            1 => '#1a1a1a', 2 => '#a855f7', 3 => '#92400e', 4 => '#facc15',
+            5 => '#22d3ee', 6 => '#ef4444', 7 => '#ec4899', 8 => '#468432',
         ];
+        $activeRooms = \App\Models\Room::where('active', true)->orderBy('id')->get();
     @endphp
 
+    {{-- ===== BANNER JUDUL ===== --}}
+    <div class="px-4 pt-6 sm:px-8">
+        <div class="relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur sm:gap-5 sm:p-6">
+            <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500 sm:h-16 sm:w-16">
+                <svg class="h-7 w-7 sm:h-8 sm:w-8" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
+            </span>
+            <div class="min-w-0 flex-1">
+                <h1 class="text-xl font-extrabold text-[#0f1e5a] sm:text-2xl">Kalender Booking Ruang Rapat</h1>
+                <p class="mt-1 text-sm text-slate-500">Lihat dan kelola jadwal pemesanan ruang rapat dengan mudah.</p>
+            </div>
+
+            {{-- Daun dekoratif --}}
+            <svg class="pointer-events-none absolute -bottom-2 right-2 hidden h-28 w-28 text-indigo-200/70 sm:block" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true">
+                <path d="M60 120C50 80 55 45 80 15c12 35 5 75-20 105z"/>
+                <path d="M58 120C35 100 25 70 35 40c25 15 33 50 23 80z" opacity=".7"/>
+                <path d="M62 120c20-15 38-20 55-12-12 18-35 24-55 12z" opacity=".6"/>
+            </svg>
+
+            @if(auth()->user()?->hasRole('PIC'))
+                <button type="button" onclick="bukaModalAjukan()"
+                    class="relative z-10 shrink-0 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 sm:px-5">
+                    + Ajukan Rapat
+                </button>
+            @endif
+        </div>
+    </div>
+
     {{-- ===== MOBILE ===== --}}
-    <div id="mobile-calendar-app" style="background:#f4f6fb;min-height:100vh;display:none;">
+    <div id="mobile-calendar-app" style="background:#f4f6fb;min-height:100vh;display:none;margin-top:16px;">
         <div style="background:white;padding:20px 16px 12px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                 <button onclick="mobileCal.prevMonth()"
@@ -71,13 +68,12 @@
                     style="width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">›</button>
             </div>
 
-            {{-- PATCH 1: Mobile filter pills — tampilkan label perbaikan --}}
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="mc-room-filters">
                 <button onclick="mobileCal.filterRoom('')" id="mc-pill-"
                     style="padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#4f46e5;color:white;font-family:inherit;">
                     Semua
                 </button>
-                @foreach(\App\Models\Room::where('active', true)->orderBy('id')->get() as $room)
+                @foreach($activeRooms as $room)
                     <button
                         onclick="{{ $room->maintenance ? 'return false' : "mobileCal.filterRoom('{$room->id}')" }}"
                         id="mc-pill-{{ $room->id }}"
@@ -100,8 +96,7 @@
 
             <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;">
                 @foreach(['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as $day)
-                    <div style="text-align:center;font-size:11px;font-weight:700;color:#94a3b8;padding:4px 0;">{{ $day }}
-                    </div>
+                    <div style="text-align:center;font-size:11px;font-weight:700;color:#94a3b8;padding:4px 0;">{{ $day }}</div>
                 @endforeach
             </div>
             <div id="mc-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px 0;"></div>
@@ -111,100 +106,54 @@
 
         <div style="padding:16px;">
             <div id="mc-date-label"
-                style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">
-            </div>
+                style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;"></div>
             <div id="mc-agenda" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
     </div>
 
     {{-- ===== DESKTOP ===== --}}
-    <div id="desktop-calendar" class="py-6" style="display:none;">
-        <div class="mx-auto sm:px-6 lg:px-8" style="max-width:90%">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <div id="desktop-calendar" class="px-4 pb-10 pt-6 sm:px-8" style="display:none;">
+        <div class="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm backdrop-blur">
 
-                @if(auth()->user()?->hasRole('PIC'))
-                    <aside class="lg:col-span-3">
-                        <div class="bg-white shadow-sm rounded-2xl p-4" x-data="{ openFilter: false }">
-                            <button type="button" class="w-full flex items-center justify-between"
-                                @click="openFilter = !openFilter">
-                                <div>
-                                    <div class="font-semibold text-gray-900">Filter Ruang</div>
-                                    <div class="text-sm text-gray-500 mt-0.5">Klik untuk melihat jadwal per ruang.</div>
-                                </div>
-                                <span class="lg:hidden text-gray-400 text-lg" x-text="openFilter ? '▲' : '▼'"></span>
-                            </button>
+            {{-- Tampilan: pilih ruang (tombol .room-filter tetap dipakai calendar.js) --}}
+            <div class="relative mb-5 inline-flex items-center gap-3 text-sm" x-data="{ open: false }" @click.outside="open = false">
+                <span class="text-slate-500">Tampilan:</span>
+                <button type="button" @click="open = !open" class="inline-flex items-center gap-2 font-bold text-[#0f1e5a]">
+                    <span id="active-room-label">Semua Ruang</span>
+                    <svg class="h-4 w-4 text-slate-400 transition" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
 
-                            <div class="mt-4 space-y-1 lg:block" :class="openFilter ? 'block' : 'hidden lg:block'"
-                                id="room-sidebar" data-active-room="{{ $activeRoomId }}">
-                                <button type="button"
-                                    class="room-filter w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50 flex items-center gap-2"
-                                    data-room-id="" data-room-name="Semua Ruang">
-                                    Semua Ruang
-                                </button>
-
-                                {{-- PATCH 2: Sidebar PIC — tampilkan label perbaikan --}}
-                                @foreach(\App\Models\Room::orderBy('id')->get() as $room)
-                                    <button type="button"
-                                        class="room-filter w-full text-left px-3 py-2 rounded-xl flex items-center gap-2
-                                               {{ $room->maintenance ? 'opacity-60 cursor-not-allowed' : 'hover:bg-gray-50' }}"
-                                        data-room-id="{{ $room->id }}"
-                                        data-room-name="{{ $room->name }}"
-                                        data-maintenance="{{ $room->maintenance ? '1' : '0' }}"
-                                        {{ $room->maintenance ? 'disabled title="Ruangan sedang dalam perbaikan"' : '' }}>
-                                        <span class="h-2 w-2 rounded-full flex-shrink-0"
-                                            style="background-color: {{ $roomDotColors[$room->id] ?? '#9ca3af' }}"></span>
-                                        <span class="flex-1">{{ $room->name }}</span>
-                                        @if($room->maintenance)
-                                            <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;white-space:nowrap;">
-                                                Kegiatan BPK
-                                            </span>
-                                        @endif
-                                    </button>
-                                @endforeach
-                            </div>
-                        </div>
-                    </aside>
-                @endif
-
-                <main class="@if(auth()->user()?->hasRole('PIC')) lg:col-span-9 @else lg:col-span-12 @endif">
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl p-4 sm:p-6">
-                        <div class="mb-3 flex items-center gap-3 flex-wrap">
-                            <div class="text-sm text-gray-600">
-                                Tampilan:
-                                <span id="active-room-label" class="font-semibold text-gray-900">Semua Ruang</span>
-                            </div>
-
-                            {{-- PATCH 3: Filter pill TU — tampilkan label perbaikan --}}
-                            @if(auth()->user()?->hasRole('TU'))
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <button type="button"
-                                        class="room-filter px-3 py-1 rounded-full text-xs font-semibold bg-indigo-600 text-white transition"
-                                        data-room-id="" data-room-name="Semua Ruang">
-                                        Semua
-                                    </button>
-                                    @foreach(\App\Models\Room::where('active', true)->orderBy('name')->get() as $room)
-                                        <button type="button"
-                                            class="room-filter px-3 py-1 rounded-full text-xs font-semibold transition
-                                                   {{ $room->maintenance ? 'bg-orange-50 text-orange-500 cursor-not-allowed opacity-70' : 'bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600' }}"
-                                            data-room-id="{{ $room->id }}"
-                                            data-room-name="{{ $room->name }}"
-                                            data-maintenance="{{ $room->maintenance ? '1' : '0' }}"
-                                            {{ $room->maintenance ? 'title="Ruangan sedang dalam perbaikan"' : '' }}>
-                                            {{ $room->name }}@if($room->maintenance) 🔧 perbaikan @endif
-                                        </button>
-                                    @endforeach
-                                </div>
+                <div id="room-sidebar" data-active-room="{{ $activeRoomId }}" x-show="open" x-cloak x-transition.opacity
+                    @click="open = false"
+                    class="absolute left-0 top-full z-30 mt-3 max-h-96 w-72 space-y-0.5 overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-xl">
+                    <button type="button"
+                        class="room-filter flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-indigo-50"
+                        data-room-id="" data-room-name="Semua Ruang">
+                        Semua Ruang
+                    </button>
+                    @foreach($activeRooms as $room)
+                        <button type="button"
+                            class="room-filter flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700
+                                   {{ $room->maintenance ? 'cursor-not-allowed opacity-60' : 'hover:bg-indigo-50' }}"
+                            data-room-id="{{ $room->id }}"
+                            data-room-name="{{ $room->name }}"
+                            data-maintenance="{{ $room->maintenance ? '1' : '0' }}"
+                            {{ $room->maintenance ? 'disabled title="Ruangan sedang dalam perbaikan"' : '' }}>
+                            <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background-color: {{ $roomDotColors[$room->id] ?? '#9ca3af' }}"></span>
+                            <span class="flex-1">{{ $room->name }}</span>
+                            @if($room->maintenance)
+                                <span class="whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-700">Kegiatan BPK</span>
                             @endif
-                        </div>
-                        <div id="calendar"></div>
-                    </div>
-                </main>
-
+                        </button>
+                    @endforeach
+                </div>
             </div>
+
+            <div id="calendar"></div>
         </div>
     </div>
 
-    {{-- checkLayout: di luar @if PIC supaya semua role dapat layout --}}
+    {{-- checkLayout --}}
     <script>
         function checkLayout() {
             const isMobile = window.innerWidth < 1024
@@ -215,23 +164,17 @@
         window.addEventListener('resize', checkLayout)
     </script>
 
-    {{-- GATE: konfirmasi sebelum membuka kalender Ruang Rapat ABT --}}
-    {{-- Berlaku untuk desktop (sidebar PIC, pill filter TU) maupun mobile (pill filter di #mc-room-filters).
-         Pakai listener di FASE CAPTURE pada `document`, karena fase capture selalu berjalan lebih dulu
-         daripada listener apa pun di elemen tombolnya sendiri (baik addEventListener calendar.js maupun
-         atribut onclick inline di tombol mobile) — jadi urutan pemasangan script tidak lagi jadi masalah. --}}
+    {{-- GATE: konfirmasi sebelum membuka kalender Ruang Rapat ABT (listener fase capture) --}}
     <script>
         (function () {
-            const ABT_ROOM_NAME = 'Ruang Rapat ABT' // sesuaikan jika nama ruang di DB berbeda
+            const ABT_ROOM_NAME = 'Ruang Rapat ABT'
             window.__abtGateBypass = false
 
             function isAbtButton(btn) {
                 if (!btn) return false
-                // Desktop: sidebar PIC & pill filter TU (punya data-room-name)
                 if (btn.classList.contains('room-filter')) {
                     return (btn.dataset.roomName || '').trim() === ABT_ROOM_NAME
                 }
-                // Mobile: pill filter (id="mc-pill-{id}", teks = nama ruang)
                 if (/^mc-pill-.+/.test(btn.id || '')) {
                     return (btn.textContent || '').trim().startsWith(ABT_ROOM_NAME)
                 }
@@ -242,13 +185,11 @@
                 const btn = e.target.closest('.room-filter, [id^="mc-pill-"]')
                 if (!btn || !isAbtButton(btn)) return
 
-                // Ini klik "lanjutan" setelah user menekan "Ya" pada modal konfirmasi
                 if (window.__abtGateBypass) {
                     window.__abtGateBypass = false
                     return
                 }
 
-                // Cegat sebelum handler asli (calendar.js / onclick inline mobile) sempat jalan
                 e.preventDefault()
                 e.stopPropagation()
                 e.stopImmediatePropagation()
@@ -257,12 +198,42 @@
                 if (modalEl && window.Alpine) {
                     window.Alpine.$data(modalEl).show(btn)
                 }
-            }, true) // true = capture phase
+            }, true)
         })()
     </script>
 
     {{-- Modal Ajukan Rapat (PIC only) --}}
     @if(auth()->user()?->hasRole('PIC'))
+        @php
+            $times = [];
+            for ($h = 7; $h <= 21; $h++) {
+                foreach ([0, 15, 30, 45] as $m) {
+                    if ($h === 21 && $m > 0) continue;
+                    $times[] = sprintf('%02d:%02d', $h, $m);
+                }
+            }
+            $userUsername = auth()->user()->username ?? '';
+            $showD = [
+                1 => str_contains($userUsername, 'deputi-1'),
+                2 => str_contains($userUsername, 'deputi-2'),
+                3 => str_contains($userUsername, 'deputi-3'),
+                4 => str_contains($userUsername, 'deputi-4'),
+            ];
+            $showBiro = in_array($userUsername, ['biro-mkdi', 'biro-hks', 'biro-sdmo', 'biro-kbmn', 'biro-uhm', 'inspektorat', 'Sahli']);
+            $showAll = !in_array(true, $showD, true) && !$showBiro;
+
+            $unitGroups = [];
+            foreach ($showD as $n => $show) {
+                if ($show) {
+                    $unitGroups["Deputi $n"] = array_merge(["Deputi $n", "Sesdep D$n"], array_map(fn($i) => "Asdep $i D$n", range(1, 5)));
+                }
+            }
+            if ($showBiro || $showAll) {
+                $unitGroups['Sekretariat & Lainnya'] = ['Biro MKDI', 'Biro UHM', 'Biro HKS', 'Biro SDMO', 'Biro KBMN', 'Inspektorat', 'Staff Ahli', 'Sesmenko', 'Wamenko'];
+            }
+            $fieldCls = 'w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition';
+        @endphp
+
         <script>
             window.activeRoomId = document.getElementById('room-sidebar')?.dataset.activeRoom || '';
             window.activeRoomName = (() => {
@@ -276,8 +247,6 @@
             document.addEventListener('click', (e) => {
                 const btn = e.target.closest('.room-filter');
                 if (!btn) return;
-                // Tombol maintenance sudah diberi atribut disabled (lihat sidebar PIC di bawah),
-                // tapi guard ini tetap dijaga sebagai lapisan kedua kalau disabled-nya kehapus.
                 if (btn.dataset.maintenance === '1') return;
                 window.activeRoomId = btn.dataset.roomId || '';
                 window.activeRoomName = btn.dataset.roomName || 'Semua Ruang';
@@ -298,75 +267,45 @@
             class="fixed inset-0 z-50 flex items-center justify-center">
             <div class="absolute inset-0 bg-black/50" x-on:click="close()"></div>
 
-            <div class="relative bg-white w-full max-w-lg mx-4 rounded-2xl shadow-xl overflow-hidden flex flex-col"
-                style="max-height:90vh;">
+            <div class="relative bg-white w-full max-w-lg mx-4 rounded-2xl shadow-xl overflow-hidden flex flex-col" style="max-height:90vh;">
                 <div class="px-6 py-5 border-b flex items-start justify-between bg-gray-50">
                     <div>
                         <h3 class="text-lg font-bold text-gray-900">Ajukan Rapat</h3>
                         <p class="text-sm text-gray-500 mt-0.5">Isi data rapat yang akan diajukan.</p>
                     </div>
                     <button class="text-gray-400 hover:text-gray-600 transition mt-0.5" type="button" x-on:click="close()">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
-                <form method="POST" action="{{ route('bookings.store') }}"
-                    class="px-6 py-4 space-y-4 overflow-y-auto flex-1">
+                <form method="POST" action="{{ route('bookings.store') }}" class="px-6 py-4 space-y-4 overflow-y-auto flex-1">
                     @csrf
 
                     @if ($errors->any())
                         <div class="bg-red-50 border border-red-200 rounded-xl p-4">
-                            <div class="flex gap-3">
-                                <svg class="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                <div>
-                                    <p class="text-sm font-semibold text-red-800">Terdapat kesalahan:</p>
-                                    <ul class="mt-1.5 text-sm text-red-700 list-disc list-inside space-y-0.5">
-                                        @foreach ($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
+                            <p class="text-sm font-semibold text-red-800">Terdapat kesalahan:</p>
+                            <ul class="mt-1.5 text-sm text-red-700 list-disc list-inside space-y-0.5">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endif
 
                     {{-- RUANGAN --}}
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Ruangan <span class="text-red-500">*</span>
-                        </label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ruangan <span class="text-red-500">*</span></label>
                         <template x-if="lockRoom">
                             <div>
                                 <input type="hidden" name="room_id" :value="roomId">
-                                <div
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-800 text-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
+                                <div class="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-800 text-sm flex items-center gap-2">
                                     <span x-text="roomName"></span>
                                 </div>
                             </div>
                         </template>
                         <template x-if="!lockRoom">
                             <div class="relative">
-                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-
-                                {{-- PATCH 4: Dropdown ruangan booking — disable option yang maintenance --}}
-                                <select name="room_id"
-                                    class="w-full border border-gray-200 rounded-xl pl-9 pr-10 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition"
-                                    style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
+                                <select name="room_id" class="{{ $fieldCls }}" style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
                                     <option value="" disabled selected>— Pilih ruangan rapat —</option>
                                     @foreach(\App\Models\Room::where('active', true)->orderBy('name')->get() as $room)
                                         <option value="{{ $room->id }}"
@@ -377,191 +316,64 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                             </div>
                         </template>
                     </div>
 
                     {{-- JUDUL --}}
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Judul Kegiatan <span class="text-red-500">*</span>
-                        </label>
-                        <input name="title" value="{{ old('title') }}" placeholder="Contoh: Rapat Koordinasi Tim..."
-                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition"
-                            required />
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Judul Kegiatan <span class="text-red-500">*</span></label>
+                        <input name="title" value="{{ old('title') }}" placeholder="Contoh: Rapat Koordinasi Tim..." class="{{ $fieldCls }}" required />
                     </div>
 
                     {{-- WAKTU --}}
                     <div class="grid grid-cols-3 gap-3 items-start">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                                Date <span class="text-red-500">*</span>
-                            </label>
-                            <input type="date" name="booking_date" x-model="bookingDate"
-                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition"
-                                required />
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="booking_date" x-model="bookingDate" class="{{ $fieldCls }}" required />
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                                Start Time <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <select name="start_time" x-model="startTime" @change="autoSetEndTime()"
-                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition"
-                                    style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
-                                    <option value="" disabled>Pilih</option>
-                                    @for($h = 7; $h <= 21; $h++)
-                                        <option value="{{ sprintf('%02d', $h) }}:00">{{ sprintf('%02d', $h) }}:00</option>
-                                        @if($h < 21)
-                                            <option value="{{ sprintf('%02d', $h) }}:15">{{ sprintf('%02d', $h) }}:15</option>
-                                            <option value="{{ sprintf('%02d', $h) }}:30">{{ sprintf('%02d', $h) }}:30</option>
-                                            <option value="{{ sprintf('%02d', $h) }}:45">{{ sprintf('%02d', $h) }}:45</option>
-                                        @endif
-                                    @endfor
-                                </select>
-                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Start Time <span class="text-red-500">*</span></label>
+                            <select name="start_time" x-model="startTime" @change="autoSetEndTime()" class="{{ $fieldCls }}" style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
+                                <option value="" disabled>Pilih</option>
+                                @foreach($times as $t)<option value="{{ $t }}">{{ $t }}</option>@endforeach
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                                End Time <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <select name="end_time" x-model="endTime"
-                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition"
-                                    style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
-                                    <option value="" disabled>Pilih</option>
-                                    @for($h = 7; $h <= 21; $h++)
-                                        <option value="{{ sprintf('%02d', $h) }}:00">{{ sprintf('%02d', $h) }}:00</option>
-                                        @if($h < 21)
-                                            <option value="{{ sprintf('%02d', $h) }}:15">{{ sprintf('%02d', $h) }}:15</option>
-                                            <option value="{{ sprintf('%02d', $h) }}:30">{{ sprintf('%02d', $h) }}:30</option>
-                                            <option value="{{ sprintf('%02d', $h) }}:45">{{ sprintf('%02d', $h) }}:45</option>
-                                        @endif
-                                    @endfor
-                                </select>
-                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">End Time <span class="text-red-500">*</span></label>
+                            <select name="end_time" x-model="endTime" class="{{ $fieldCls }}" style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
+                                <option value="" disabled>Pilih</option>
+                                @foreach($times as $t)<option value="{{ $t }}">{{ $t }}</option>@endforeach
+                            </select>
                         </div>
                     </div>
 
-                    {{-- EMAIL PENGAJU --}}
+                    {{-- EMAIL --}}
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Email Penerima Notifikasi <span class="text-red-500">*</span>
-                        </label>
-                        <input type="email" name="applicant_email" value="{{ old('applicant_email') }}"
-                            placeholder="email@domain.com"
-                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition"
-                            required />
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email Penerima Notifikasi <span class="text-red-500">*</span></label>
+                        <input type="email" name="applicant_email" value="{{ old('applicant_email') }}" placeholder="email@domain.com" class="{{ $fieldCls }}" required />
                         <p class="text-xs text-gray-400 mt-1">Email ini akan menerima notifikasi status booking.</p>
                     </div>
 
                     {{-- UNIT KERJA --}}
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Unit Kerja <span class="text-red-500">*</span>
-                        </label>
-                        <div class="relative">
-                            @php
-                                $userUsername = auth()->user()->username ?? '';
-                                $showD1 = str_contains($userUsername, 'deputi-1');
-                                $showD2 = str_contains($userUsername, 'deputi-2');
-                                $showD3 = str_contains($userUsername, 'deputi-3');
-                                $showD4 = str_contains($userUsername, 'deputi-4');
-                                $showBiro = in_array($userUsername, ['biro-mkdi', 'biro-hks', 'biro-sdmo', 'biro-kbmn', 'biro-uhm', 'inspektorat', 'Sahli']);
-                                $showAll = !$showD1 && !$showD2 && !$showD3 && !$showD4 && !$showBiro;
-                            @endphp
-                            <select name="unit_kerja"
-                                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition"
-                                style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
-                                <option value="" disabled selected>— Pilih unit kerja —</option>
-                                @if($showD1)
-                                    <optgroup label="Deputi 1">
-                                        <option value="Deputi 1" {{ old('unit_kerja') == 'Deputi 1' ? 'selected' : '' }}>Deputi 1</option>
-                                        <option value="Sesdep D1" {{ old('unit_kerja') == 'Sesdep D1' ? 'selected' : '' }}>Sesdep D1</option>
-                                        <option value="Asdep 1 D1" {{ old('unit_kerja') == 'Asdep 1 D1' ? 'selected' : '' }}>Asdep 1 D1</option>
-                                        <option value="Asdep 2 D1" {{ old('unit_kerja') == 'Asdep 2 D1' ? 'selected' : '' }}>Asdep 2 D1</option>
-                                        <option value="Asdep 3 D1" {{ old('unit_kerja') == 'Asdep 3 D1' ? 'selected' : '' }}>Asdep 3 D1</option>
-                                        <option value="Asdep 4 D1" {{ old('unit_kerja') == 'Asdep 4 D1' ? 'selected' : '' }}>Asdep 4 D1</option>
-                                        <option value="Asdep 5 D1" {{ old('unit_kerja') == 'Asdep 5 D1' ? 'selected' : '' }}>Asdep 5 D1</option>
-                                    </optgroup>
-                                @endif
-                                @if($showD2)
-                                    <optgroup label="Deputi 2">
-                                        <option value="Deputi 2" {{ old('unit_kerja') == 'Deputi 2' ? 'selected' : '' }}>Deputi 2</option>
-                                        <option value="Sesdep D2" {{ old('unit_kerja') == 'Sesdep D2' ? 'selected' : '' }}>Sesdep D2</option>
-                                        <option value="Asdep 1 D2" {{ old('unit_kerja') == 'Asdep 1 D2' ? 'selected' : '' }}>Asdep 1 D2</option>
-                                        <option value="Asdep 2 D2" {{ old('unit_kerja') == 'Asdep 2 D2' ? 'selected' : '' }}>Asdep 2 D2</option>
-                                        <option value="Asdep 3 D2" {{ old('unit_kerja') == 'Asdep 3 D2' ? 'selected' : '' }}>Asdep 3 D2</option>
-                                        <option value="Asdep 4 D2" {{ old('unit_kerja') == 'Asdep 4 D2' ? 'selected' : '' }}>Asdep 4 D2</option>
-                                        <option value="Asdep 5 D2" {{ old('unit_kerja') == 'Asdep 5 D2' ? 'selected' : '' }}>Asdep 5 D2</option>
-                                    </optgroup>
-                                @endif
-                                @if($showD3)
-                                    <optgroup label="Deputi 3">
-                                        <option value="Deputi 3" {{ old('unit_kerja') == 'Deputi 3' ? 'selected' : '' }}>Deputi 3</option>
-                                        <option value="Sesdep D3" {{ old('unit_kerja') == 'Sesdep D3' ? 'selected' : '' }}>Sesdep D3</option>
-                                        <option value="Asdep 1 D3" {{ old('unit_kerja') == 'Asdep 1 D3' ? 'selected' : '' }}>Asdep 1 D3</option>
-                                        <option value="Asdep 2 D3" {{ old('unit_kerja') == 'Asdep 2 D3' ? 'selected' : '' }}>Asdep 2 D3</option>
-                                        <option value="Asdep 3 D3" {{ old('unit_kerja') == 'Asdep 3 D3' ? 'selected' : '' }}>Asdep 3 D3</option>
-                                        <option value="Asdep 4 D3" {{ old('unit_kerja') == 'Asdep 4 D3' ? 'selected' : '' }}>Asdep 4 D3</option>
-                                        <option value="Asdep 5 D3" {{ old('unit_kerja') == 'Asdep 5 D3' ? 'selected' : '' }}>Asdep 5 D3</option>
-                                    </optgroup>
-                                @endif
-                                @if($showD4)
-                                    <optgroup label="Deputi 4">
-                                        <option value="Deputi 4" {{ old('unit_kerja') == 'Deputi 4' ? 'selected' : '' }}>Deputi 4</option>
-                                        <option value="Sesdep D4" {{ old('unit_kerja') == 'Sesdep D4' ? 'selected' : '' }}>Sesdep D4</option>
-                                        <option value="Asdep 1 D4" {{ old('unit_kerja') == 'Asdep 1 D4' ? 'selected' : '' }}>Asdep 1 D4</option>
-                                        <option value="Asdep 2 D4" {{ old('unit_kerja') == 'Asdep 2 D4' ? 'selected' : '' }}>Asdep 2 D4</option>
-                                        <option value="Asdep 3 D4" {{ old('unit_kerja') == 'Asdep 3 D4' ? 'selected' : '' }}>Asdep 3 D4</option>
-                                        <option value="Asdep 4 D4" {{ old('unit_kerja') == 'Asdep 4 D4' ? 'selected' : '' }}>Asdep 4 D4</option>
-                                        <option value="Asdep 5 D4" {{ old('unit_kerja') == 'Asdep 5 D4' ? 'selected' : '' }}>Asdep 5 D4</option>
-                                    </optgroup>
-                                @endif
-                                @if($showBiro || $showAll)
-                                    <optgroup label="Sekretariat & Lainnya">
-                                        <option value="Biro MKDI" {{ old('unit_kerja') == 'Biro MKDI' ? 'selected' : '' }}>Biro MKDI</option>
-                                        <option value="Biro UHM" {{ old('unit_kerja') == 'Biro UHM' ? 'selected' : '' }}>Biro UHM</option>
-                                        <option value="Biro HKS" {{ old('unit_kerja') == 'Biro HKS' ? 'selected' : '' }}>Biro HKS</option>
-                                        <option value="Biro SDMO" {{ old('unit_kerja') == 'Biro SDMO' ? 'selected' : '' }}>Biro SDMO</option>
-                                        <option value="Biro KBMN" {{ old('unit_kerja') == 'Biro KBMN' ? 'selected' : '' }}>Biro KBMN</option>
-                                        <option value="Inspektorat" {{ old('unit_kerja') == 'Inspektorat' ? 'selected' : '' }}>Inspektorat</option>
-                                        <option value="Staff Ahli" {{ old('unit_kerja') == 'Staff Ahli' ? 'selected' : '' }}>Staff Ahli</option>
-                                        <option value="Sesmenko" {{ old('unit_kerja') == 'Sesmenko' ? 'selected' : '' }}>Sesmenko</option>
-                                        <option value="Wamenko" {{ old('unit_kerja') == 'Wamenko' ? 'selected' : '' }}>Wamenko</option>
-                                    </optgroup>
-                                @endif
-                            </select>
-                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Unit Kerja <span class="text-red-500">*</span></label>
+                        <select name="unit_kerja" class="{{ $fieldCls }}" style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
+                            <option value="" disabled selected>— Pilih unit kerja —</option>
+                            @foreach($unitGroups as $groupLabel => $units)
+                                <optgroup label="{{ $groupLabel }}">
+                                    @foreach($units as $u)
+                                        <option value="{{ $u }}" {{ old('unit_kerja') == $u ? 'selected' : '' }}>{{ $u }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
                     </div>
 
-                    {{-- ACTIONS --}}
                     <div class="flex justify-end gap-2 pt-1">
-                        <button type="button"
-                            class="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition"
-                            x-on:click="close()">
-                            Batal
-                        </button>
-                        <button type="submit"
-                            class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white transition">
-                            Kirim
-                        </button>
+                        <button type="button" class="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition" x-on:click="close()">Batal</button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white transition">Kirim</button>
                     </div>
                 </form>
             </div>
@@ -593,9 +405,6 @@
                             activeMaintenance = !!window.activeRoomMaintenance
                         }
 
-                        // PATCH: jangan pernah kunci form ke ruangan yang sedang maintenance,
-                        // apapun sumber activeId-nya. Ini benteng terakhir di sisi client
-                        // sebelum request sampai ke server.
                         if (activeMaintenance) {
                             this.lockRoom = false
                             this.roomId = ''
@@ -634,14 +443,12 @@
     {{-- MOBILE CALENDAR JS --}}
     <script>
         const roomNames = {
-            @foreach(\App\Models\Room::where('active', true)->orderBy('id')->get() as $room)
+            @foreach($activeRooms as $room)
                 {{ $room->id }}: '{{ $room->name }}',
             @endforeach
         }
-        // PATCH: dipakai filterRoom() supaya ruangan maintenance tidak bisa jadi filter aktif
-        // sekalipun dipanggil langsung lewat console/devtools, bukan cuma lewat klik tombol.
         const roomMaintenance = {
-            @foreach(\App\Models\Room::where('active', true)->orderBy('id')->get() as $room)
+            @foreach($activeRooms as $room)
                 {{ $room->id }}: {{ $room->maintenance ? 'true' : 'false' }},
             @endforeach
         }
@@ -689,8 +496,6 @@
             }
 
             function filterRoom(roomId) {
-                // Guard: tolak filter ke ruangan yang sedang maintenance, apapun jalur pemanggilannya
-                // (klik tombol yang sudah disabled, atau panggilan langsung lewat console/devtools).
                 if (roomId && roomMaintenance[roomId]) {
                     return
                 }
@@ -875,163 +680,84 @@
     @vite(['resources/js/calendar.js'])
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        #calendar { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        #calendar {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+        select { -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important; }
 
-        select {
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            appearance: none !important;
-        }
+        .fc { --fc-border-color: #e3e9fb; --fc-today-bg-color: #e8edff; --fc-page-bg-color: transparent; }
 
-        .fc .fc-toolbar {
-            padding: 4px 0 16px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .fc .fc-toolbar-title {
-            font-size: 1.25rem !important;
-            font-weight: 700 !important;
-            color: #1e293b !important;
-            letter-spacing: -0.02em;
-        }
+        /* ---- Toolbar ---- */
+        .fc .fc-toolbar { margin-bottom: 1.25rem !important; gap: 12px; flex-wrap: wrap; }
+        .fc .fc-toolbar-title { font-size: 1.6rem !important; font-weight: 800 !important; color: #0f1e5a !important; letter-spacing: -0.02em; }
 
         .fc .fc-button {
-            background: #f1f5f9 !important;
-            border: none !important;
-            color: #475569 !important;
-            font-weight: 600 !important;
-            font-size: 0.8rem !important;
-            border-radius: 10px !important;
-            padding: 6px 14px !important;
-            box-shadow: none !important;
-            transition: background 0.15s, color 0.15s !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            background: #eef2ff !important; border: 0 !important; color: #334155 !important;
+            border-radius: 12px !important; font-weight: 600 !important; font-size: .875rem !important;
+            padding: .7rem 1.1rem !important; box-shadow: none !important; text-transform: none !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important; transition: background .15s, color .15s;
+        }
+        .fc .fc-button:hover { background: #e0e7ff !important; color: #1e293b !important; }
+        .fc .fc-button:disabled { opacity: 1 !important; }
+
+        .fc .fc-toolbar-chunk:first-child { display: flex; align-items: center; gap: 8px; }
+        .fc .fc-toolbar-chunk:first-child .fc-button-group { display: flex; gap: 8px; }
+        .fc .fc-toolbar-chunk:first-child .fc-button { margin: 0 !important; }
+        .fc .fc-prev-button, .fc .fc-next-button {
+            width: 46px; height: 46px; padding: 0 !important; display: inline-flex !important;
+            align-items: center; justify-content: center; background: #f1f5ff !important;
+        }
+        .fc .fc-today-button { color: #4f46e5 !important; background: #eef2ff !important; }
+        .fc .fc-today-button::before {
+            content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -4px;
+            background: currentColor;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='black' stroke-width='1.8' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='black' stroke-width='1.8' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
-        .fc .fc-button:hover {
-            background: #e2e8f0 !important;
-            color: #1e293b !important;
+        /* Segmented Bulan / Minggu / Hari */
+        .fc .fc-toolbar-chunk:last-child .fc-button-group { background: #eef2ff; border-radius: 14px; padding: 4px; gap: 2px; display: flex; }
+        .fc .fc-toolbar-chunk:last-child .fc-button {
+            background: transparent !important; color: #64748b !important; border-radius: 10px !important;
+            margin: 0 !important; padding: .6rem 1.25rem !important;
+        }
+        .fc .fc-toolbar-chunk:last-child .fc-button:hover { color: #1e293b !important; }
+        .fc .fc-toolbar-chunk:last-child .fc-button.fc-button-active,
+        .fc .fc-toolbar-chunk:last-child .fc-button:active {
+            background: #4f6af5 !important; color: #fff !important; box-shadow: 0 6px 14px -4px rgba(79, 106, 245, .5) !important;
         }
 
-        .fc .fc-button-primary:not(:disabled).fc-button-active,
-        .fc .fc-button-primary:not(:disabled):active {
-            background: #6366f1 !important;
-            color: #fff !important;
-        }
-
-        .fc .fc-today-button {
-            background: #6366f1 !important;
-            color: #fff !important;
-        }
-
-        .fc .fc-today-button:hover {
-            background: #4f46e5 !important;
-        }
-
-        .fc .fc-col-header-cell {
-            background: #f8fafc !important;
-            border-bottom: 2px solid #e2e8f0 !important;
-            padding: 10px 0 !important;
-        }
-
+        /* ---- Grid ---- */
+        .fc .fc-scrollgrid { border-radius: 18px !important; overflow: hidden !important; border: 1px solid #e3e9fb !important; }
+        .fc td, .fc th { border-color: #e3e9fb !important; }
+        .fc .fc-col-header-cell { background: #f1f5ff !important; padding: 14px 0 !important; border-bottom: 1px solid #e3e9fb !important; }
         .fc .fc-col-header-cell-cushion {
-            font-size: 0.75rem !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.06em !important;
-            color: #64748b !important;
-            text-decoration: none !important;
+            font-size: .8rem !important; font-weight: 600 !important; text-transform: uppercase !important;
+            letter-spacing: .05em !important; color: #64748b !important; text-decoration: none !important;
         }
+        .fc .fc-day-today .fc-col-header-cell-cushion { color: #4f46e5 !important; }
+        .fc .fc-day-today { background: #e8edff !important; }
+        .fc .fc-daygrid-day-frame { min-height: 118px; }
+        .fc .fc-daygrid-day-number { padding: 10px 14px !important; font-size: .9rem; font-weight: 600; color: #1e2a5a; text-decoration: none !important; }
+        .fc .fc-day-other .fc-daygrid-day-number { color: #cbd5e1; }
 
-        .fc .fc-day-today .fc-col-header-cell-cushion {
-            color: #6366f1 !important;
-        }
+        /* ---- Timegrid ---- */
+        .fc .fc-timegrid-slot { height: 48px !important; border-color: #e3e9fb !important; }
+        .fc .fc-timegrid-slot-label { font-size: .7rem !important; font-weight: 600 !important; color: #94a3b8 !important; }
+        .fc .fc-timegrid-now-indicator-line { border-color: #6366f1 !important; border-width: 2px !important; }
+        .fc .fc-timegrid-now-indicator-arrow { border-top-color: #6366f1 !important; border-bottom-color: #6366f1 !important; }
 
-        .fc .fc-timegrid-slot {
-            height: 48px !important;
-            border-color: #cbd5e1 !important;
-        }
-
-        .fc .fc-timegrid-slot-label {
-            font-size: 0.7rem !important;
-            font-weight: 600 !important;
-            color: #94a3b8 !important;
-        }
-
-        .fc .fc-day-today {
-            background: #f5f3ff !important;
-        }
-
-        .fc .fc-timegrid-col.fc-day-today {
-            background: #f5f3ff !important;
-        }
-
-        .fc-timegrid-event-harness .fc-event {
-            border-radius: 10px !important;
-            border: none !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-            overflow: hidden !important;
-        }
-
-        .fc-timegrid-event .fc-event-main {
-            padding: 6px 8px !important;
-        }
-
-        .fc-daygrid-event-harness {
-            overflow: visible !important;
-            position: relative !important;
-            z-index: 1;
-        }
-
-        .fc-daygrid-event-harness:hover {
-            z-index: 10;
-        }
-
-        .fc-daygrid-day-events {
-            overflow: visible !important;
-        }
-
-        .fc-daygrid-event {
-            white-space: normal !important;
-            overflow: visible !important;
-        }
-
-        .fc-event-main {
-            overflow: visible !important;
-        }
-
-        .fc .fc-scrollgrid {
-            border-radius: 16px !important;
-            overflow: hidden !important;
-            border-color: #94a3b8 !important;
-        }
-
-        .fc td,
-        .fc th {
-            border-color: #cbd5e1 !important;
-        }
-
-        .fc .fc-timegrid-now-indicator-line {
-            border-color: #6366f1 !important;
-            border-width: 2px !important;
-        }
-
-        .fc .fc-timegrid-now-indicator-arrow {
-            border-top-color: #6366f1 !important;
-            border-bottom-color: #6366f1 !important;
-        }
+        /* ---- Event ---- */
+        .fc-timegrid-event-harness .fc-event { border-radius: 10px !important; border: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, .08) !important; overflow: hidden !important; }
+        .fc-timegrid-event .fc-event-main { padding: 6px 8px !important; }
+        .fc-daygrid-event-harness { overflow: visible !important; position: relative !important; z-index: 1; }
+        .fc-daygrid-event-harness:hover { z-index: 10; }
+        .fc-daygrid-day-events { overflow: visible !important; }
+        .fc-daygrid-event { white-space: normal !important; overflow: visible !important; border-radius: 8px !important; }
+        .fc-event-main { overflow: visible !important; }
     </style>
 
     {{-- Modal Konfirmasi Ruang Rapat ABT --}}
-    {{-- Catatan: layout & warna modal ini pakai CSS khusus (bukan Tailwind utility) di bawah,
-         supaya tampilannya tetap konsisten & rapi walau class Tailwind belum ter-rebuild. --}}
-    <div x-data="abtGateModal()" x-show="open" x-cloak x-on:keydown.escape.window="cancel()"
-        class="abt-gate-overlay">
+    <div x-data="abtGateModal()" x-show="open" x-cloak x-on:keydown.escape.window="cancel()" class="abt-gate-overlay">
         <div class="abt-gate-backdrop" @click="cancel()"></div>
 
         <div class="abt-gate-card" x-show="open" x-transition:enter="abt-gate-enter"
@@ -1047,8 +773,7 @@
                 </div>
                 <button type="button" class="abt-gate-close" @click="cancel()" aria-label="Tutup">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
             </div>
@@ -1059,228 +784,48 @@
             </div>
 
             <div class="abt-gate-footer">
-                <button type="button" class="abt-gate-btn abt-gate-btn-secondary" @click="cancel()">
-                    Tidak
-                </button>
-                <button type="button" class="abt-gate-btn abt-gate-btn-primary" @click="confirm()">
-                    Ya, Lanjutkan
-                </button>
+                <button type="button" class="abt-gate-btn abt-gate-btn-secondary" @click="cancel()">Tidak</button>
+                <button type="button" class="abt-gate-btn abt-gate-btn-primary" @click="confirm()">Ya, Lanjutkan</button>
             </div>
         </div>
     </div>
 
     <style>
-        .abt-gate-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 60;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-            box-sizing: border-box;
-        }
-
-        .abt-gate-backdrop {
-            position: absolute;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(1.5px);
-        }
-
-        .abt-gate-card {
-            position: relative;
-            width: 100%;
-            max-width: 440px;
-            max-height: calc(100vh - 32px);
-            overflow-y: auto;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.04);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            box-sizing: border-box;
-        }
-
-        .abt-gate-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 20px 20px 16px;
-        }
-
-        .abt-gate-header-text {
-            flex: 1;
-            min-width: 0;
-            padding-top: 1px;
-        }
-
-        .abt-gate-eyebrow {
-            margin: 0 0 2px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: #6366f1;
-        }
-
-        .abt-gate-title {
-            margin: 0;
-            font-size: 17px;
-            font-weight: 800;
-            color: #0f172a;
-            line-height: 1.3;
-        }
-
-        .abt-gate-close {
-            flex-shrink: 0;
-            width: 30px;
-            height: 30px;
-            border-radius: 10px;
-            border: none;
-            background: transparent;
-            color: #94a3b8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-        }
-
-        .abt-gate-close:hover {
-            background: #f1f5f9;
-            color: #475569;
-        }
-
-        .abt-gate-close:focus-visible,
-        .abt-gate-btn:focus-visible {
-            outline: 2px solid #6366f1;
-            outline-offset: 2px;
-        }
-
-        .abt-gate-body {
-            padding: 0 20px 20px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #475569;
-        }
-
-        .abt-gate-body strong {
-            color: #0f172a;
-            font-weight: 700;
-        }
-
-        .abt-gate-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            padding: 16px 20px;
-            border-top: 1px solid #e2e8f0;
-            background: #f8fafc;
-            border-radius: 0 0 20px 20px;
-        }
-
-        .abt-gate-btn {
-            appearance: none;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 13.5px;
-            font-weight: 700;
-            padding: 10px 18px;
-            border-radius: 12px;
-            transition: background 0.15s, transform 0.05s;
-            white-space: nowrap;
-        }
-
-        .abt-gate-btn:active {
-            transform: scale(0.97);
-        }
-
-        .abt-gate-btn-secondary {
-            background: #e2e8f0;
-            color: #334155;
-        }
-
-        .abt-gate-btn-secondary:hover {
-            background: #cbd5e1;
-        }
-
-        .abt-gate-btn-primary {
-            background: #4f46e5;
-            color: #ffffff;
-            box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.4);
-        }
-
-        .abt-gate-btn-primary:hover {
-            background: #4338ca;
-        }
-
-        .abt-gate-enter {
-            transition: opacity 0.18s ease-out, transform 0.18s ease-out;
-        }
-
-        .abt-gate-enter-start {
-            opacity: 0;
-            transform: translateY(8px) scale(0.97);
-        }
-
-        .abt-gate-enter-end {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        .abt-gate-leave {
-            transition: opacity 0.12s ease-in, transform 0.12s ease-in;
-        }
-
-        .abt-gate-leave-start {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        .abt-gate-leave-end {
-            opacity: 0;
-            transform: translateY(8px) scale(0.97);
-        }
-
-        /* Mobile kecil: tombol full-width bertumpuk, padding lebih ringkas */
+        .abt-gate-overlay { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }
+        .abt-gate-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .55); backdrop-filter: blur(1.5px); }
+        .abt-gate-card { position: relative; width: 100%; max-width: 440px; max-height: calc(100vh - 32px); overflow-y: auto; background: #fff; border-radius: 20px; box-shadow: 0 20px 45px -12px rgba(15, 23, 42, .35), 0 0 0 1px rgba(15, 23, 42, .04); font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+        .abt-gate-header { display: flex; align-items: flex-start; gap: 12px; padding: 20px 20px 16px; }
+        .abt-gate-header-text { flex: 1; min-width: 0; padding-top: 1px; }
+        .abt-gate-eyebrow { margin: 0 0 2px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6366f1; }
+        .abt-gate-title { margin: 0; font-size: 17px; font-weight: 800; color: #0f172a; line-height: 1.3; }
+        .abt-gate-close { flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; border: none; background: transparent; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, color .15s; }
+        .abt-gate-close:hover { background: #f1f5f9; color: #475569; }
+        .abt-gate-close:focus-visible, .abt-gate-btn:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+        .abt-gate-body { padding: 0 20px 20px; font-size: 14px; line-height: 1.6; color: #475569; }
+        .abt-gate-body strong { color: #0f172a; font-weight: 700; }
+        .abt-gate-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc; border-radius: 0 0 20px 20px; }
+        .abt-gate-btn { appearance: none; border: none; cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 12px; transition: background .15s, transform .05s; white-space: nowrap; }
+        .abt-gate-btn:active { transform: scale(.97); }
+        .abt-gate-btn-secondary { background: #e2e8f0; color: #334155; }
+        .abt-gate-btn-secondary:hover { background: #cbd5e1; }
+        .abt-gate-btn-primary { background: #4f46e5; color: #fff; box-shadow: 0 4px 12px -2px rgba(79, 70, 229, .4); }
+        .abt-gate-btn-primary:hover { background: #4338ca; }
+        .abt-gate-enter { transition: opacity .18s ease-out, transform .18s ease-out; }
+        .abt-gate-enter-start { opacity: 0; transform: translateY(8px) scale(.97); }
+        .abt-gate-enter-end { opacity: 1; transform: translateY(0) scale(1); }
+        .abt-gate-leave { transition: opacity .12s ease-in, transform .12s ease-in; }
+        .abt-gate-leave-start { opacity: 1; transform: translateY(0) scale(1); }
+        .abt-gate-leave-end { opacity: 0; transform: translateY(8px) scale(.97); }
         @media (max-width: 420px) {
-            .abt-gate-card {
-                max-width: 100%;
-                border-radius: 18px;
-            }
-
-            .abt-gate-header {
-                padding: 18px 16px 14px;
-            }
-
-            .abt-gate-body {
-                padding: 0 16px 18px;
-                font-size: 13.5px;
-            }
-
-            .abt-gate-footer {
-                flex-direction: column-reverse;
-                padding: 14px 16px;
-                border-radius: 0 0 18px 18px;
-            }
-
-            .abt-gate-btn {
-                width: 100%;
-                text-align: center;
-                padding: 12px 18px;
-            }
+            .abt-gate-card { max-width: 100%; border-radius: 18px; }
+            .abt-gate-header { padding: 18px 16px 14px; }
+            .abt-gate-body { padding: 0 16px 18px; font-size: 13.5px; }
+            .abt-gate-footer { flex-direction: column-reverse; padding: 14px 16px; border-radius: 0 0 18px 18px; }
+            .abt-gate-btn { width: 100%; text-align: center; padding: 12px 18px; }
         }
-
         @media (prefers-reduced-motion: reduce) {
-            .abt-gate-enter, .abt-gate-leave {
-                transition: opacity 0.01s linear !important;
-            }
-            .abt-gate-enter-start, .abt-gate-enter-end,
-            .abt-gate-leave-start, .abt-gate-leave-end {
-                transform: none !important;
-            }
+            .abt-gate-enter, .abt-gate-leave { transition: opacity .01s linear !important; }
+            .abt-gate-enter-start, .abt-gate-enter-end, .abt-gate-leave-start, .abt-gate-leave-end { transform: none !important; }
         }
     </style>
 
@@ -1289,21 +834,15 @@
             return {
                 open: false,
                 _pendingBtn: null,
-                show(btn) {
-                    this._pendingBtn = btn
-                    this.open = true
-                },
-                cancel() {
-                    this.open = false
-                    this._pendingBtn = null
-                },
+                show(btn) { this._pendingBtn = btn; this.open = true },
+                cancel() { this.open = false; this._pendingBtn = null },
                 confirm() {
                     this.open = false
                     const btn = this._pendingBtn
                     this._pendingBtn = null
                     if (btn) {
                         window.__abtGateBypass = true
-                        btn.click() // trigger ulang klik asli -> kali ini diteruskan ke calendar.js
+                        btn.click()
                     }
                 }
             }
@@ -1311,8 +850,7 @@
     </script>
 
     {{-- Modal Detail Meeting --}}
-    <div x-data="meetingDetailModal()" x-show="open" x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center">
+    <div x-data="meetingDetailModal()" x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/50" @click="close()"></div>
         <div class="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-xl overflow-hidden">
             <div class="p-5 border-b flex items-start justify-between">
@@ -1324,10 +862,8 @@
             </div>
             <div class="p-5 space-y-4">
                 <div class="flex flex-wrap gap-2">
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold" :class="badgeClass(data.status)"
-                        x-text="data.status || '-'"></span>
-                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
-                        x-text="data.pic ? ('PIC: ' + data.pic) : 'PIC: -'"></span>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold" :class="badgeClass(data.status)" x-text="data.status || '-'"></span>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700" x-text="data.pic ? ('PIC: ' + data.pic) : 'PIC: -'"></span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="p-3 rounded-xl bg-gray-50">

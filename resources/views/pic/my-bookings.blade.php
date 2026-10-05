@@ -1,658 +1,241 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Riwayat Ajukan Rapat
-            </h2>
-            <a href="{{ route('calendar') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors">
-                ← Kembali ke Kalender
+    @php
+        $tabs = [
+            ''         => 'Semua',
+            'PENDING'  => 'Menunggu',
+            'APPROVED' => 'Disetujui',
+            'REJECTED' => 'Ditolak',
+            'CANCELED' => 'Dibatalkan',
+        ];
+
+        $roomColors = [1 => '#1a1a1a', 2 => '#a855f7', 3 => '#92400e', 4 => '#facc15', 5 => '#22d3ee', 6 => '#ef4444', 7 => '#ec4899', 8 => '#468432'];
+
+        $lastDate = null;
+        $todayStr = now()->format('Y-m-d');
+    @endphp
+
+    <div class="space-y-6 px-4 py-8 sm:px-8">
+
+        {{-- ===== Banner judul ===== --}}
+        <div class="relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur sm:gap-5 sm:p-6">
+            <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500 sm:h-16 sm:w-16">
+                <svg class="h-7 w-7 sm:h-8 sm:w-8" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8m0-5v5h5"/></svg>
+            </span>
+            <div class="min-w-0 flex-1">
+                <h1 class="text-xl font-extrabold text-[#0f1e5a] sm:text-2xl">Riwayat Pengajuan</h1>
+                <p class="mt-1 text-sm text-slate-500">Pantau status pengajuan rapat Anda, hubungi TU, atau batalkan booking.</p>
+            </div>
+
+            <svg class="pointer-events-none absolute -bottom-2 right-2 hidden h-28 w-28 text-indigo-200/70 sm:block" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true">
+                <path d="M60 120C50 80 55 45 80 15c12 35 5 75-20 105z"/>
+                <path d="M58 120C35 100 25 70 35 40c25 15 33 50 23 80z" opacity=".7"/>
+                <path d="M62 120c20-15 38-20 55-12-12 18-35 24-55 12z" opacity=".6"/>
+            </svg>
+
+            <a href="{{ route('calendar', ['ajukan' => 1]) }}"
+                class="relative z-10 shrink-0 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 sm:px-5">
+                + Ajukan Rapat
             </a>
         </div>
-    </x-slot>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-        .riwayat-wrap {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        .filter-bar {
-            background: #fff;
-            border-radius: 20px;
-            padding: 16px 20px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .tab-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .tab {
-            padding: 7px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            text-decoration: none;
-            transition: all 0.15s;
-            cursor: pointer;
-        }
-
-        .tab-active {
-            background: #6366f1;
-            color: #fff;
-        }
-
-        .tab-ghost {
-            background: #f1f5f9;
-            color: #475569;
-        }
-
-        .tab-ghost:hover {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-
-        .search-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .search-input {
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-family: inherit;
-            color: #1e293b;
-            outline: none;
-            width: 260px;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: #6366f1;
-        }
-
-        .btn-search {
-            padding: 8px 18px;
-            border-radius: 12px;
-            background: #6366f1;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            border: none;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .btn-search:hover {
-            background: #4f46e5;
-        }
-
-        .booking-list {
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-            overflow: hidden;
-        }
-
-        .booking-list-header {
-            padding: 14px 24px;
-            border-bottom: 1.5px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .booking-list-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .total-count {
-            font-size: 12px;
-            font-weight: 600;
-            color: #6366f1;
-            background: #eef2ff;
-            padding: 3px 10px;
-            border-radius: 99px;
-        }
-
-        .date-separator {
-            padding: 8px 24px;
-            background: #f8fafc;
-            border-bottom: 1px solid #f1f5f9;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .date-separator span {
-            font-size: 11px;
-            font-weight: 700;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .date-separator.today span {
-            color: #6366f1;
-        }
-
-        .booking-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 14px 24px;
-            border-bottom: 1px solid #f8fafc;
-            transition: background 0.1s;
-        }
-
-        .booking-row:last-child {
-            border-bottom: none;
-        }
-
-        .booking-row:hover {
-            background: #fafafa;
-        }
-
-        .booking-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            min-width: 0;
-        }
-
-        .room-bar {
-            width: 4px;
-            height: 44px;
-            border-radius: 4px;
-            flex-shrink: 0;
-        }
-
-        .room-bar-1 {
-            background: #94a3b8;
-        }
-
-        .room-bar-2 {
-            background: #14b8a6;
-        }
-
-        .room-bar-3 {
-            background: #8b5cf6;
-        }
-
-        .room-bar-4 {
-            background: #f59e0b;
-        }
-
-        .room-bar-5 {
-            background: #d946ef;
-        }
-
-        .room-bar-6 {
-            background: #f43f5e;
-        }
-
-        .room-bar-default {
-            background: #e2e8f0;
-        }
-
-        .booking-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.3;
-        }
-
-        .booking-meta {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 2px;
-        }
-
-        .booking-desc {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 2px;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .booking-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .badge {
-            padding: 4px 12px;
-            border-radius: 99px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            white-space: nowrap;
-        }
-
-        .badge-approved {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .badge-pending {
-            background: #fef9c3;
-            color: #a16207;
-        }
-
-        .badge-rejected {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .badge-canceled {
-            background: #f1f5f9;
-            color: #64748b;
-        }
-
-        .badge-done {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-
-        .badge-default {
-            background: #f1f5f9;
-            color: #475569;
-        }
-
-        .btn-cancel {
-            padding: 5px 14px;
-            border-radius: 99px;
-            font-size: 11px;
-            font-weight: 700;
-            background: #1e293b;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            transition: background 0.15s;
-            font-family: inherit;
-        }
-
-        .btn-cancel:hover {
-            background: #334155;
-        }
-
-        .empty-state {
-            padding: 60px 24px;
-            text-align: center;
-            color: #94a3b8;
-        }
-
-        .empty-icon {
-            font-size: 40px;
-            margin-bottom: 12px;
-        }
-
-        .empty-text {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .pagination-wrap {
-            padding: 16px 24px;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        /* cancel modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-box {
-            background: #fff;
-            width: 100%;
-            max-width: 480px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            margin: 16px;
-        }
-
-        .modal-header {
-            padding: 18px 24px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .modal-close {
-            background: #f1f5f9;
-            border: none;
-            border-radius: 8px;
-            padding: 4px 10px;
-            font-size: 16px;
-            cursor: pointer;
-            color: #64748b;
-            font-family: inherit;
-        }
-
-        .modal-close:hover {
-            background: #e2e8f0;
-        }
-
-        .modal-body {
-            padding: 20px 24px;
-        }
-
-        .modal-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        .modal-textarea {
-            width: 100%;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-family: inherit;
-            color: #1e293b;
-            outline: none;
-            resize: none;
-            transition: border-color 0.2s;
-            box-sizing: border-box;
-        }
-
-        .modal-textarea:focus {
-            border-color: #6366f1;
-        }
-
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .btn-modal-close {
-            padding: 9px 18px;
-            border-radius: 12px;
-            background: #f1f5f9;
-            color: #475569;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            border: none;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .btn-modal-close:hover {
-            background: #e2e8f0;
-        }
-
-        .btn-modal-confirm {
-            padding: 9px 18px;
-            border-radius: 12px;
-            background: #dc2626;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            border: none;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .btn-modal-confirm:hover {
-            background: #b91c1c;
-        }
-    </style>
-
-    <div class="py-6 riwayat-wrap">
-        <div class="mx-auto sm:px-6 lg:px-8 space-y-4" style="max-width:90%">
-
-            {{-- Filter Bar --}}
-            <div class="filter-bar" style="flex-direction:column;align-items:stretch;gap:10px;">
-                {{-- Row 1: Status tabs + Search --}}
-                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">
-                    <div class="tab-group">
-                        @php
-                            $tabs = [
-                                '' => 'Semua',
-                                'PENDING' => 'Pending',
-                                'APPROVED' => 'Approved',
-                                'REJECTED' => 'Rejected',
-                                'CANCELED' => 'Canceled',
-                            ];
-                        @endphp
-                        @foreach($tabs as $key => $label)
-                            <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q, 'unit_kerja' => $unitKerja])) }}"
-                                class="tab {{ ($status === $key || (empty($status) && $key === '')) ? 'tab-active' : 'tab-ghost' }}">
-                                {{ $label }}
-                            </a>
-                        @endforeach
-                    </div>
-
-                    <form method="GET" class="search-group">
-                        <input type="text" name="q" value="{{ $q }}" placeholder="Cari judul rapat..."
-                            class="search-input" />
-                        @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
-                        @if($unitKerja)<input type="hidden" name="unit_kerja" value="{{ $unitKerja }}">@endif
-                        <button type="submit" class="btn-search">Cari</button>
-                    </form>
+        {{-- ===== Filter ===== --}}
+        <div class="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap gap-2">
+                    @foreach($tabs as $key => $label)
+                        @php $active = ($status === $key || (empty($status) && $key === '')); @endphp
+                        <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q, 'unit_kerja' => $unitKerja])) }}"
+                            class="rounded-full px-4 py-2 text-sm font-semibold transition {{ $active ? 'bg-indigo-500 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            {{ $label }}
+                        </a>
+                    @endforeach
                 </div>
 
-                {{-- Row 2: Filter Unit Kerja --}}
-                @if($unitKerjaOptions->isNotEmpty())
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-                        <span
-                            style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-right:2px;">Unit
-                            Kerja:</span>
-                        <a href="{{ route('my_bookings.index', array_filter(['status' => $status, 'q' => $q])) }}"
-                            class="tab {{ !$unitKerja ? 'tab-active' : 'tab-ghost' }}"
-                            style="padding:4px 12px;font-size:12px;">
-                            Semua
-                        </a>
-                        @foreach($unitKerjaOptions as $uk)
-                            <a href="{{ route('my_bookings.index', array_filter(['status' => $status, 'q' => $q, 'unit_kerja' => $uk])) }}"
-                                class="tab {{ $unitKerja === $uk ? 'tab-active' : 'tab-ghost' }}"
-                                style="padding:4px 12px;font-size:12px;">
-                                {{ $uk }}
-                            </a>
-                        @endforeach
+                <form method="GET" class="flex items-center gap-2">
+                    <div class="relative">
+                        <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>
+                        <input type="text" name="q" value="{{ $q }}" placeholder="Cari judul rapat..."
+                            class="w-60 rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm placeholder-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 sm:w-64">
                     </div>
+                    @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
+                    @if($unitKerja)<input type="hidden" name="unit_kerja" value="{{ $unitKerja }}">@endif
+                    <button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700">Cari</button>
+                </form>
+            </div>
+
+            @if($unitKerjaOptions->isNotEmpty())
+                <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+                    <span class="mr-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">Unit Kerja</span>
+                    <a href="{{ route('my_bookings.index', array_filter(['status' => $status, 'q' => $q])) }}"
+                        class="rounded-full px-3.5 py-1.5 text-xs font-bold transition {{ !$unitKerja ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                        Semua
+                    </a>
+                    @foreach($unitKerjaOptions as $uk)
+                        <a href="{{ route('my_bookings.index', array_filter(['status' => $status, 'q' => $q, 'unit_kerja' => $uk])) }}"
+                            class="rounded-full px-3.5 py-1.5 text-xs font-bold transition {{ $unitKerja === $uk ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            {{ $uk }}
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        {{-- ===== Daftar rapat ===== --}}
+        <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-2 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
+                    </span>
+                    <h2 class="text-lg font-extrabold text-slate-900">Daftar Rapat</h2>
+                </div>
+                @if($bookings->total() > 0)
+                    <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">{{ $bookings->total() }} total</span>
                 @endif
             </div>
 
-            {{-- Booking List --}}
-            <div class="booking-list">
-                <div class="booking-list-header">
-                    <div class="booking-list-title">Daftar Rapat</div>
-                    @if($bookings->total() > 0)
-                        <span class="total-count">{{ $bookings->total() }} total</span>
-                    @endif
-                </div>
+            @forelse($bookings as $b)
+                @php
+                    $now = now();
+                    $bDateStr = \Carbon\Carbon::parse($b->start_at)->format('Y-m-d');
+                    $bDateLabel = \Carbon\Carbon::parse($b->start_at)->translatedFormat('l, d F Y');
+                    $isToday = $bDateStr === $todayStr;
 
-                @php $lastDate = null;
-                $todayStr = now()->format('Y-m-d'); @endphp
+                    $displayStatus = strtoupper($b->status);
+                    $isDone = ($b->status === 'APPROVED' && \Carbon\Carbon::parse($b->end_at)->lt($now));
+                    if ($isDone) $displayStatus = 'DONE';
 
-                @forelse($bookings as $b)
-                    @php
-                        $now = now();
-                        $bDateStr = \Carbon\Carbon::parse($b->start_at)->format('Y-m-d');
-                        $bDateLabel = \Carbon\Carbon::parse($b->start_at)->translatedFormat('l, d F Y');
-                        $isToday = $bDateStr === $todayStr;
+                    [$sLabel, $sCls] = match ($displayStatus) {
+                        'APPROVED'            => ['Disetujui', 'bg-emerald-50 text-emerald-700'],
+                        'PENDING'             => ['Menunggu', 'bg-amber-50 text-amber-700'],
+                        'REJECTED'            => ['Ditolak', 'bg-red-50 text-red-600'],
+                        'CANCELED', 'CANCELLED' => ['Dibatalkan', 'bg-slate-100 text-slate-500'],
+                        'DONE'                => ['Selesai', 'bg-sky-50 text-sky-700'],
+                        default               => [ucfirst(strtolower($displayStatus)), 'bg-slate-100 text-slate-600'],
+                    };
 
-                        $displayStatus = strtoupper($b->status);
-                        $isDone = ($b->status === 'APPROVED' && \Carbon\Carbon::parse($b->end_at)->lt($now));
-                        if ($isDone)
-                            $displayStatus = 'DONE';
+                    $c = $roomColors[$b->room_id ?? 0] ?? '#cbd5e1';
+                @endphp
 
-                        $badge = match ($displayStatus) {
-                            'APPROVED' => 'badge-approved',
-                            'PENDING' => 'badge-pending',
-                            'REJECTED' => 'badge-rejected',
-                            'CANCELED' => 'badge-canceled',
-                            'CANCELLED' => 'badge-canceled',
-                            'DONE' => 'badge-done',
-                            default => 'badge-default',
-                        };
+                {{-- Pemisah tanggal --}}
+                @if($bDateStr !== $lastDate)
+                    @php $lastDate = $bDateStr; @endphp
+                    <div class="mb-2 mt-5 flex items-center gap-3">
+                        <span class="text-xs font-extrabold uppercase tracking-wider {{ $isToday ? 'text-indigo-600' : 'text-slate-500' }}">
+                            {{ $bDateLabel }}@if($isToday) · Hari ini @endif
+                        </span>
+                        <span class="h-px flex-1 bg-slate-100"></span>
+                    </div>
+                @endif
 
-                        $roomBarClass = [
-                            1 => 'room-bar-1',
-                            2 => 'room-bar-2',
-                            3 => 'room-bar-3',
-                            4 => 'room-bar-4',
-                            5 => 'room-bar-5',
-                            6 => 'room-bar-6',
-                        ][$b->room_id ?? 0] ?? 'room-bar-default';
-                    @endphp
+                <div class="mb-2 flex flex-wrap items-center gap-3 rounded-xl border border-slate-100 px-4 py-3.5 transition hover:border-indigo-200 hover:bg-indigo-50/30 sm:flex-nowrap sm:gap-4 {{ in_array($displayStatus, ['CANCELED', 'CANCELLED', 'REJECTED']) ? 'opacity-70' : '' }}">
+                    <span class="h-11 w-1 shrink-0 rounded" style="background: {{ $c }}"></span>
 
-                    {{-- Date separator --}}
-                    @if($bDateStr !== $lastDate)
-                        @php $lastDate = $bDateStr; @endphp
-                        <div class="date-separator {{ $isToday ? 'today' : '' }}">
-                            <span>
-                                {{ $bDateLabel }}
-                                @if($isToday) &nbsp;· Hari ini @endif
-                            </span>
-                        </div>
-                    @endif
+                    <div class="min-w-0 flex-1">
+                        <div class="text-sm font-bold leading-snug text-slate-900">{{ $b->title }}</div>
+                        <div class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                            <span>{{ $b->room?->name ?? '-' }}</span>
 
-                    <div class="booking-row">
-                        <div class="booking-left">
-                            <div class="room-bar {{ $roomBarClass }}"></div>
-                            <div style="min-width:0">
-                                <div class="booking-title">{{ $b->title }}</div>
-                                <div class="booking-meta">
-                                    {{ $b->room?->name ?? '-' }}
-                                    @if($b->room?->tuUser?->phone && $b->status === 'PENDING')
-                                        @php
-                                            $tuPhone = preg_replace('/^0/', '62', $b->room->tuUser->phone);
-                                            $tuPhone = ltrim($tuPhone, '+');
-                                            $start = \Carbon\Carbon::parse($b->start_at)->translatedFormat('d F Y');
-                                            $jam = \Carbon\Carbon::parse($b->start_at)->format('H:i') . ' - ' . \Carbon\Carbon::parse($b->end_at)->format('H:i');
-                                            $waMsg = "Halo Bapak/Ibu {$b->room->tuUser->name},\n\n"
-                                                . "Saya PIC {$b->unit_kerja} ingin mengkonfirmasi pengajuan peminjaman ruang rapat:\n\n"
-                                                . "*{$b->title}*\n"
-                                                . "Ruangan: {$b->room->name}\n"
-                                                . "Tanggal: {$start}\n"
-                                                . "Waktu: {$jam}\n\n"
-                                                . "Mohon konfirmasinya apakah jadwal tersebut tersedia. Jika tersedia, mohon untuk melakukan approval di sistem.\n\nTerima kasih.";
-                                            $waUrl = 'https://wa.me/' . $tuPhone . '?text=' . rawurlencode($waMsg);
-                                        @endphp
-                                        &nbsp;·&nbsp;
-                                        <a href="{{ $waUrl }}" target="_blank"
-                                            style="color:#25d366;font-weight:600;text-decoration:none;font-size:11px;"
-                                            title="Chat TU {{ $b->room->tuUser->name }}">
-                                            💬 Chat TU
-                                        </a>
-                                    @endif
-                                    &nbsp;·&nbsp;
-                                    {{ \Carbon\Carbon::parse($b->start_at)->format('H:i') }}
-                                    –
-                                    {{ \Carbon\Carbon::parse($b->end_at)->format('H:i') }}
-                                    @if($b->unit_kerja)
-                                        &nbsp;·&nbsp;{{ $b->unit_kerja }}
-                                    @endif
-                                </div>
-                                @if($b->description)
-                                    <div class="booking-desc">{{ $b->description }}</div>
-                                @endif
-                            </div>
-                        </div>
+                            @if($b->room?->tuUser?->phone && $b->status === 'PENDING')
+                                @php
+                                    $tuPhone = preg_replace('/^0/', '62', $b->room->tuUser->phone);
+                                    $tuPhone = ltrim($tuPhone, '+');
+                                    $start = \Carbon\Carbon::parse($b->start_at)->translatedFormat('d F Y');
+                                    $jam = \Carbon\Carbon::parse($b->start_at)->format('H:i') . ' - ' . \Carbon\Carbon::parse($b->end_at)->format('H:i');
+                                    $waMsg = "Halo Bapak/Ibu {$b->room->tuUser->name},\n\n"
+                                        . "Saya PIC {$b->unit_kerja} ingin mengkonfirmasi pengajuan peminjaman ruang rapat:\n\n"
+                                        . "*{$b->title}*\n"
+                                        . "Ruangan: {$b->room->name}\n"
+                                        . "Tanggal: {$start}\n"
+                                        . "Waktu: {$jam}\n\n"
+                                        . "Mohon konfirmasinya apakah jadwal tersebut tersedia. Jika tersedia, mohon untuk melakukan approval di sistem.\n\nTerima kasih.";
+                                    $waUrl = 'https://wa.me/' . $tuPhone . '?text=' . rawurlencode($waMsg);
+                                @endphp
+                                <span class="text-slate-300">·</span>
+                                <a href="{{ $waUrl }}" target="_blank"
+                                    class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 hover:bg-emerald-100"
+                                    title="Chat TU {{ $b->room->tuUser->name }}">
+                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.6 7.6 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                    Chat TU
+                                </a>
+                            @endif
 
-                        <div class="booking-right">
-                            <span class="badge {{ $badge }}">{{ $displayStatus }}</span>
-                            @if(in_array($b->status, ['PENDING', 'APPROVED']) && !$isDone)
-                                <button type="button" class="btn-cancel" onclick="openCancelModal({{ $b->id }})">
-                                    Cancel
-                                </button>
+                            <span class="text-slate-300">·</span>
+                            <span class="font-semibold text-slate-600">{{ \Carbon\Carbon::parse($b->start_at)->format('H.i') }} – {{ \Carbon\Carbon::parse($b->end_at)->format('H.i') }}</span>
+
+                            @if($b->unit_kerja)
+                                <span class="text-slate-300">·</span>
+                                <span>{{ $b->unit_kerja }}</span>
                             @endif
                         </div>
+                        @if($b->description)
+                            <div class="mt-1 line-clamp-1 text-xs text-slate-400">{{ $b->description }}</div>
+                        @endif
                     </div>
-                @empty
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <div class="empty-text">Belum ada riwayat rapat.</div>
-                    </div>
-                @endforelse
 
-                @if($bookings->hasPages())
-                    <div class="pagination-wrap">
-                        {{ $bookings->links() }}
+                    <div class="flex shrink-0 items-center gap-2">
+                        <span class="rounded-full px-3 py-1 text-xs font-bold {{ $sCls }}">{{ $sLabel }}</span>
+                        @if(in_array($b->status, ['PENDING', 'APPROVED']) && !$isDone)
+                            <button type="button" onclick="openCancelModal({{ $b->id }})"
+                                class="rounded-full bg-slate-800 px-3.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-red-600">
+                                Cancel
+                            </button>
+                        @endif
                     </div>
-                @endif
-            </div>
+                </div>
+            @empty
+                <div class="flex flex-col items-center py-14 text-center">
+                    <span class="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50 text-indigo-400">
+                        <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </span>
+                    <div class="mt-4 text-base font-bold text-slate-800">Belum ada riwayat rapat</div>
+                    <p class="mt-1 text-sm text-slate-500">Pengajuan yang Anda buat akan muncul di sini.</p>
+                </div>
+            @endforelse
 
+            @if($bookings->hasPages())
+                <div class="mt-5 border-t border-slate-100 pt-4">
+                    {{ $bookings->links() }}
+                </div>
+            @endif
         </div>
     </div>
 
-    {{-- Cancel Modal --}}
-    <div id="cancelModal" class="modal-overlay" style="display:none;">
-        <div class="modal-box">
-            <div class="modal-header">
-                <div class="modal-title">Batalkan Booking</div>
-                <button type="button" class="modal-close" onclick="closeCancelModal()">✕</button>
+    {{-- ===== Modal batalkan booking ===== --}}
+    <div id="cancelModal" class="fixed inset-0 z-50 items-center justify-center bg-slate-900/50 p-4" style="display:none;">
+        <div class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                <h3 class="text-base font-extrabold text-slate-900">Batalkan Booking</h3>
+                <button type="button" onclick="closeCancelModal()"
+                    class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-sm text-slate-500 hover:bg-slate-200">✕</button>
             </div>
             <form id="cancelForm" method="POST">
                 @csrf
-                <div class="modal-body">
-                    <label class="modal-label">Alasan Pembatalan</label>
-                    <textarea name="cancel_reason" rows="4" required class="modal-textarea"
-                        placeholder="Masukkan alasan pembatalan..."></textarea>
+                <div class="px-6 py-5">
+                    <label class="mb-1.5 block text-xs font-bold text-slate-600">Alasan Pembatalan</label>
+                    <textarea name="cancel_reason" rows="4" required placeholder="Masukkan alasan pembatalan..."
+                        class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"></textarea>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-modal-close" onclick="closeCancelModal()">Tutup</button>
-                    <button type="submit" class="btn-modal-confirm">Konfirmasi Batal</button>
+                <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
+                    <button type="button" onclick="closeCancelModal()"
+                        class="rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-300">Tutup</button>
+                    <button type="submit"
+                        class="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-600/25 transition hover:bg-red-700">Konfirmasi Batal</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        const cancelUrlTemplate = @json(route('bookings.cancel', ['booking' => '__ID__']));
+
         function openCancelModal(bookingId) {
-            document.getElementById('cancelForm').action = `/bookings/${bookingId}/cancel`;
+            document.getElementById('cancelForm').action = cancelUrlTemplate.replace('__ID__', bookingId);
             document.getElementById('cancelModal').style.display = 'flex';
         }
         function closeCancelModal() {
             document.getElementById('cancelModal').style.display = 'none';
         }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCancelModal(); });
     </script>
 </x-app-layout>

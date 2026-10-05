@@ -11,12 +11,13 @@ class RoomSeeder extends Seeder
     {
         $names = [
             'Ruang Rapat Utama',
-            'Ruang Rapat KDKMP',
+            'Ruang Rapat D1',
             'Ruang Rapat Setmenko',
             'Ruang Rapat D2',
             'Ruang Rapat D3',
             'Ruang Rapat D4',
             'Ruang Dharma Wanita',
+            'Ruang Rapat ABT'
         ];
 
         foreach ($names as $name) {

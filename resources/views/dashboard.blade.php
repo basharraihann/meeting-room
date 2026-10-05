@@ -17,8 +17,7 @@
         ->reject(fn($b) => Carbon::parse($b->start_at)->isSameDay($now))
         ->groupBy(fn($b) => Carbon::parse($b->start_at)->toDateString());
 
-    $rooms = \App\Models\Room::where('active', true)->orderBy('id')->get();
-
+    $rooms = \App\Models\Room::where('active', true)->ordered()->get();
     // Status tiap kegiatan
     $statusOf = function ($b) use ($now) {
         $s = Carbon::parse($b->start_at);
@@ -37,8 +36,9 @@
     $nextBooking = \App\Models\Booking::with('room')->where('status', 'APPROVED')
         ->where('start_at', '>', $now)->orderBy('start_at')->first();
 
-    $roomColors = [1 => '#1a1a1a', 2 => '#a855f7', 3 => '#92400e', 4 => '#facc15', 5 => '#22d3ee', 6 => '#ef4444', 7 => '#ec4899', 8 => '#468432'];
-
+    $roomColors = \App\Models\Room::pluck('color', 'id')
+        ->filter()   // buang null/kosong supaya fallback '#6366f1' dipakai
+        ->all();
     $isPic = auth()->user()->hasRole('PIC');
 
     // ===== WhatsApp TU (nomor diambil dari Room::tuUser -> users.phone) =====
@@ -210,7 +210,7 @@
         'rooms' => $rooms->map(fn($r) => [
             'id' => $r->id,
             'name' => $r->name,
-            'color' => $roomColors[$r->id] ?? '#6366f1',
+            'color' => $r->color ?: '#6366f1',
             'maint' => (bool) $r->maintenance,
         ])->values(),
         'today' => $now->toDateString(),
@@ -333,13 +333,13 @@
                 {{-- Pengajuan saya (khusus PIC) --}}
                 @if($isPic)
                     <div id="pengajuan-saya" class="rounded-2xl border border-slate-200 bg-white p-5" x-data="{
-                                        items: @js($myItems),
-                                        f: 'all',
-                                        get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
-                                        get shown() { return this.filtered.slice(0, 5) },
-                                        toggle(k) { this.f = (this.f === k ? 'all' : k) },
-                                        get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
-                                    }">
+                                                                    items: @js($myItems),
+                                                                    f: 'all',
+                                                                    get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
+                                                                    get shown() { return this.filtered.slice(0, 5) },
+                                                                    toggle(k) { this.f = (this.f === k ? 'all' : k) },
+                                                                    get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
+                                                                }">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <h2 class="text-base font-bold text-slate-900">Pengajuan Saya</h2>

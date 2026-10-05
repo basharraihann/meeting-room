@@ -2,28 +2,31 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Room;
+use Illuminate\Database\Seeder;
 
 class RoomSeeder extends Seeder
 {
     public function run(): void
     {
-        $names = [
-            'Ruang Rapat Utama',
-            'Ruang Rapat D1',
-            'Ruang Rapat Setmenko',
-            'Ruang Rapat D2',
-            'Ruang Rapat D3',
-            'Ruang Rapat D4',
-            'Ruang Dharma Wanita',
-            'Ruang Rapat ABT'
+        // nama ruangan => warna (hex). Warna dicocokkan lewat NAMA, bukan id.
+        $rooms = [
+            'Ruang Rapat Utama' => '#1a1a1a',
+            'Ruang Rapat Setmenko' => '#a855f7',
+            'Ruang Rapat D1' => '#92400e',
+            'Ruang Rapat D2' => '#facc15',
+            'Ruang Rapat D3' => '#22d3ee',
+            'Ruang Rapat D4' => '#ef4444',
+            'Ruang Dharma Wanita' => '#ec4899',
+            'Ruang Rapat ABT' => '#468432',
         ];
 
-        foreach ($names as $name) {
+        $order = 0;
+
+        foreach ($rooms as $name => $color) {
             Room::updateOrCreate(
                 ['name' => $name],
-                ['name' => $name]
+                ['color' => $color, 'sort_order' => ++$order]
             );
         }
     }

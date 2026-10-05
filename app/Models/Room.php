@@ -8,9 +8,11 @@ class Room extends Model
 {
     protected $fillable = [
         'name',
+        'color',
         'active',
         'maintenance',
         'maintenance_note',
+        'sort_order',
     ];
 
     protected $casts = [
@@ -28,5 +30,10 @@ class Room extends Model
     {
         return $this->hasOne(\App\Models\User::class, 'room_id')
             ->whereHas('roles', fn($q) => $q->where('name', 'TU'));
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order')->orderBy('id');
     }
 }

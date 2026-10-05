@@ -431,9 +431,6 @@
                         Ingat saya
                     </label>
 
-                    @if (Route::has('password.request'))
-                        <a class="forgot-link" href="{{ route('password.request') }}">Lupa kata sandi?</a>
-                    @endif
                 </div>
 
                 <button type="submit" class="btn-submit">

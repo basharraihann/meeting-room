@@ -17,31 +17,18 @@ document.addEventListener('DOMContentLoaded', function () {
   const isPIC = userRole === 'PIC'
   const isTU = userRole === 'TU' || userRole === 'ADMIN'
 
-  const roomDotColor = {
-    1: '#1a1a1a',
-    2: '#a855f7',
-    3: '#92400e',
-    4: '#facc15',
-    5: '#22d3ee',
-    6: '#ef4444',
-    7: '#ec4899',
-    8: '#468432',
-  }
+  // Warna ruangan diambil dari DB (rooms.color), bukan di-hardcode.
+  // Prioritas: room_color dari API -> window.roomColors (di-set di blade) -> abu-abu.
+  const getRoomColor = (p) =>
+    p.room_color || (window.roomColors || {})[p.room_id] || '#9ca3af'
+
+  const esc = (s) =>
+    String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
   let selectedRoomId = new URLSearchParams(window.location.search).get('room_id') || ''
 
   const sidebar = document.getElementById('room-sidebar')
   const activeRoomLabel = document.getElementById('active-room-label')
-
-  const setActiveSidebar = () => {
-    if (!sidebar) return
-    sidebar.querySelectorAll('.room-filter').forEach((btn) => {
-      const id = btn.dataset.roomId || ''
-      btn.classList.toggle('bg-indigo-50', id === String(selectedRoomId))
-      btn.classList.toggle('text-indigo-700', id === String(selectedRoomId))
-      btn.classList.toggle('font-semibold', id === String(selectedRoomId))
-    })
-  }
 
   const setLabel = (name) => {
     if (activeRoomLabel) activeRoomLabel.textContent = name || 'Semua Ruang'
@@ -163,8 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     eventContent(arg) {
       const p = arg.event.extendedProps || {}
-      const roomId = p.room_id
-      const dot = roomDotColor[roomId] || '#9ca3af'
+      const dot = getRoomColor(p)
       const status = p.status || 'PENDING'
 
       const fmtTime = (d) => {
@@ -178,8 +164,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const start = fmtTime(arg.event.start)
       const end = fmtTime(arg.event.end)
       const range = start && end ? `${start} – ${end}` : (arg.timeText || '')
-      const title = arg.event.title
-      const unitKerja = p.unit_kerja ?? p.pic ?? '-'
+      const title = esc(arg.event.title)
+      const unitKerja = esc(p.unit_kerja ?? p.pic ?? '-')
 
       // Mobile dayGridMonth: dot + judul kepotong
       if (isMobile && arg.view.type === 'dayGridMonth') {
@@ -221,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   <div class="text-[11px] font-semibold text-gray-700 whitespace-nowrap">${range}</div>
                   <div class="text-[12px] font-semibold leading-tight whitespace-nowrap overflow-hidden text-ellipsis">${title}</div>
                   <div class="flex items-center gap-1 mt-0.5">
-                    <span class="text-[10px] px-1.5 py-0.5 rounded ${statusBadge}">${status}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded ${statusBadge}">${esc(status)}</span>
                   </div>
                 </div>
               </div>
@@ -233,7 +219,10 @@ document.addEventListener('DOMContentLoaded', function () {
       return {
         html: `
           <div class="px-2 py-1 rounded-lg bg-white/95 border border-gray-200 shadow-sm">
-            <span class="text-[11px] font-semibold">${title}</span>
+            <div class="flex items-start gap-2">
+              ${dotSpan(dot)}
+              <span class="text-[11px] font-semibold">${title}</span>
+            </div>
           </div>
         `
       }
@@ -282,59 +271,27 @@ document.addEventListener('DOMContentLoaded', function () {
   const calendar = new Calendar(el, calendarConfig)
   calendar.render()
 
-  // PIC: sidebar filter
-  if (isPIC) {
-    setActiveSidebar()
+  // Filter ruangan di sidebar (semua role).
+  // Tampilan tombol aktif (.is-active) sudah ditangani script di blade,
+  // jadi di sini cukup update data, label, URL, dan refetch event.
+  if (sidebar) {
+    const initBtn = sidebar.querySelector(`.room-filter[data-room-id="${selectedRoomId}"]`)
+    setLabel(initBtn?.dataset.roomName || 'Semua Ruang')
 
-    if (sidebar) {
-      const initBtn = sidebar.querySelector(`.room-filter[data-room-id="${selectedRoomId}"]`)
-      setLabel(initBtn?.dataset.roomName || 'Semua Ruang')
+    sidebar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.room-filter')
+      if (!btn) return
+      if (btn.disabled || btn.dataset.maintenance === '1') return
 
-      sidebar.addEventListener('click', (e) => {
-        const btn = e.target.closest('.room-filter')
-        if (!btn) return
+      selectedRoomId = btn.dataset.roomId || ''
+      setLabel(btn.dataset.roomName || 'Semua Ruang')
 
-        selectedRoomId = btn.dataset.roomId || ''
-        const roomName = btn.dataset.roomName || 'Semua Ruang'
+      const url = new URL(window.location.href)
+      if (selectedRoomId) url.searchParams.set('room_id', selectedRoomId)
+      else url.searchParams.delete('room_id')
 
-        setLabel(roomName)
-        setActiveSidebar()
-
-        const url = new URL(window.location.href)
-        if (selectedRoomId) url.searchParams.set('room_id', selectedRoomId)
-        else url.searchParams.delete('room_id')
-
-        window.history.replaceState({}, '', url.toString())
-        calendar.refetchEvents()
-      })
-    }
-  }
-
-  // TU: pill filter
-  if (isTU) {
-    const tuRoomFilters = document.querySelectorAll('.room-filter')
-
-    const setActivePill = () => {
-      tuRoomFilters.forEach((btn) => {
-        const id = btn.dataset.roomId || ''
-        const isActive = id === String(selectedRoomId)
-        btn.classList.toggle('bg-indigo-600', isActive)
-        btn.classList.toggle('text-white', isActive)
-        btn.classList.toggle('bg-gray-100', !isActive)
-        btn.classList.toggle('text-gray-600', !isActive)
-      })
-    }
-
-    setActivePill()
-
-    tuRoomFilters.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        selectedRoomId = btn.dataset.roomId || ''
-        const roomName = btn.dataset.roomName || 'Semua Ruang'
-        setLabel(roomName)
-        setActivePill()
-        calendar.refetchEvents()
-      })
+      window.history.replaceState({}, '', url.toString())
+      calendar.refetchEvents()
     })
   }
 })

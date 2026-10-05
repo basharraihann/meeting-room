@@ -333,13 +333,13 @@
                 {{-- Pengajuan saya (khusus PIC) --}}
                 @if($isPic)
                     <div id="pengajuan-saya" class="rounded-2xl border border-slate-200 bg-white p-5" x-data="{
-                                                                    items: @js($myItems),
-                                                                    f: 'all',
-                                                                    get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
-                                                                    get shown() { return this.filtered.slice(0, 5) },
-                                                                    toggle(k) { this.f = (this.f === k ? 'all' : k) },
-                                                                    get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
-                                                                }">
+                                                                                items: @js($myItems),
+                                                                                f: 'all',
+                                                                                get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
+                                                                                get shown() { return this.filtered.slice(0, 5) },
+                                                                                toggle(k) { this.f = (this.f === k ? 'all' : k) },
+                                                                                get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
+                                                                            }">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <h2 class="text-base font-bold text-slate-900">Pengajuan Saya</h2>
@@ -670,128 +670,197 @@
                         </div>
 
                         {{-- Kegiatan pada tanggal terpilih --}}
-                        <div class="mt-3 border-t border-slate-100 pt-3">
-                            <div class="mb-2 flex items-baseline justify-between">
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500"
-                                    x-text="dayLabel"></span>
-                                <span class="text-[11px] text-slate-400" x-text="dayItems.length + ' kegiatan'"></span>
+                        <div class="mt-3 border-t border-slate-200 pt-3">
+                            <div class="mb-2.5 flex items-center justify-between gap-2">
+                                <span
+                                    class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                                    <svg class="h-3.5 w-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" aria-hidden="true">
+                                        <path
+                                            d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+                                    </svg>
+                                    <span x-text="dayLabel"></span>
+                                </span>
+                                <span
+                                    class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
+                                    x-text="dayItems.length + ' kegiatan'"></span>
                             </div>
 
-                            <div class="max-h-72 space-y-1 overflow-y-auto">
+                            <div class="max-h-72 space-y-2 overflow-y-auto pr-0.5">
                                 <template x-for="i in dayItems" :key="i.id">
                                     <button type="button" @click="d = i.detail"
-                                        class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-slate-50">
-                                        <span class="h-9 w-1 shrink-0 rounded-full"
-                                            :style="'background:' + i.color"></span>
+                                        class="group flex w-full items-stretch gap-3 rounded-xl border border-slate-200 bg-white p-2.5 text-left shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50/40 hover:shadow">
+                                        <span class="w-1 shrink-0 rounded-full" :style="'background:' + i.color"></span>
+
                                         <span class="min-w-0 flex-1">
-                                            <span class="block truncate text-sm font-semibold text-slate-900"
+                                            <span class="block truncate text-sm font-bold text-slate-900"
                                                 x-text="i.title"></span>
-                                            <span class="block truncate text-xs text-slate-500"
-                                                x-text="i.time + ' · ' + i.room"></span>
-                                            <span class="block truncate text-xs font-medium text-indigo-600"
-                                                x-text="i.unit"></span>
+
+                                            <span class="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
+                                                <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <circle cx="12" cy="12" r="9" />
+                                                    <path d="M12 7v5l3 2" />
+                                                </svg>
+                                                <span class="font-semibold tabular-nums" x-text="i.time"></span>
+                                            </span>
+
+                                            <span class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
+                                                <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" />
+                                                    <circle cx="12" cy="10" r="2.5" />
+                                                </svg>
+                                                <span class="truncate" x-text="i.room"></span>
+                                            </span>
+
+                                            <span x-show="i.unit && i.unit !== '-'"
+                                                class="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
+                                                <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                                                    <path d="M10 6h4M10 10h4M10 14h4M10 18h4" />
+                                                </svg>
+                                                <span class="truncate" x-text="i.unit"></span>
+                                            </span>
                                         </span>
+
+                                        <svg class="h-4 w-4 shrink-0 self-center text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M9 6l6 6-6 6" />
+                                        </svg>
                                     </button>
                                 </template>
-                                <p x-show="dayItems.length === 0" x-cloak
-                                    class="py-4 text-center text-xs text-slate-400">Tidak ada kegiatan pada tanggal ini.
-                                </p>
+
+                                {{-- Kosong --}}
+                                <div x-show="dayItems.length === 0" x-cloak
+                                    class="flex flex-col items-center py-6 text-center">
+                                    <span
+                                        class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                            aria-hidden="true">
+                                            <path
+                                                d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+                                            <path d="M9 16l2 2 4-4" />
+                                        </svg>
+                                    </span>
+                                    <p class="mt-2 text-xs font-semibold text-slate-600">Tidak ada kegiatan</p>
+                                    <p class="text-[11px] text-slate-400">Belum ada rapat disetujui pada tanggal ini.
+                                    </p>
+                                </div>
                             </div>
 
                             <a href="{{ route('calendar') }}"
-                                class="mt-2 block text-center text-xs font-semibold text-indigo-600 hover:text-indigo-800">Buka
-                                kalender lengkap →</a>
+                                class="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 py-2 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-800">
+                                Buka kalender lengkap
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M5 12h14M13 6l6 6-6 6" />
+                                </svg>
+                            </a>
+                        </div>
+
+                        {{-- ===== Modal detail kegiatan ===== --}}
+                        <div x-show="d" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div class="absolute inset-0 bg-slate-900/50" @click="d = null"></div>
+                            <div class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
+                                x-show="d" x-transition>
+                                <template x-if="d">
+                                    <div>
+                                        <div
+                                            class="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
+                                            <div class="min-w-0">
+                                                <h3 class="text-base font-bold leading-snug text-slate-900"
+                                                    x-text="d.title"></h3>
+                                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                                    <span
+                                                        class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                                        <span class="h-2 w-2 rounded-full"
+                                                            :style="'background:' + d.color"></span><span
+                                                            x-text="d.room"></span>
+                                                    </span>
+                                                    <span class="rounded-full px-3 py-1 text-xs font-semibold"
+                                                        :class="d.statusCls" x-text="d.status"></span>
+                                                </div>
+                                            </div>
+                                            <button @click="d = null"
+                                                class="text-slate-400 hover:text-slate-600">✕</button>
+                                        </div>
+                                        <div class="space-y-3 p-5">
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="rounded-xl bg-slate-50 p-3">
+                                                    <div class="text-xs text-slate-500">Tanggal</div>
+                                                    <div class="text-sm font-semibold text-slate-900" x-text="d.date">
+                                                    </div>
+                                                </div>
+                                                <div class="rounded-xl bg-slate-50 p-3">
+                                                    <div class="text-xs text-slate-500">Waktu</div>
+                                                    <div class="text-sm font-semibold text-slate-900" x-text="d.time">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="rounded-xl bg-slate-50 p-3">
+                                                <div class="text-xs text-slate-500">Pengusul</div>
+                                                <div class="text-sm font-semibold text-slate-900" x-text="d.unit"></div>
+                                            </div>
+                                            <div class="rounded-xl bg-slate-50 p-3" x-show="d.desc">
+                                                <div class="text-xs text-slate-500">Deskripsi</div>
+                                                <div class="mt-1 whitespace-pre-wrap text-sm text-slate-800"
+                                                    x-text="d.desc"></div>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end border-t border-slate-100 p-4">
+                                            <button @click="d = null"
+                                                class="rounded-xl bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">Tutup</button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        {{-- ===== Modal detail kegiatan ===== --}}
-        <div x-show="d" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-slate-900/50" @click="d = null"></div>
-            <div class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl" x-show="d"
-                x-transition>
-                <template x-if="d">
-                    <div>
-                        <div class="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
-                            <div class="min-w-0">
-                                <h3 class="text-base font-bold leading-snug text-slate-900" x-text="d.title"></h3>
-                                <div class="mt-2 flex flex-wrap items-center gap-2">
-                                    <span
-                                        class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                        <span class="h-2 w-2 rounded-full" :style="'background:' + d.color"></span><span
-                                            x-text="d.room"></span>
-                                    </span>
-                                    <span class="rounded-full px-3 py-1 text-xs font-semibold" :class="d.statusCls"
-                                        x-text="d.status"></span>
-                                </div>
-                            </div>
-                            <button @click="d = null" class="text-slate-400 hover:text-slate-600">✕</button>
-                        </div>
-                        <div class="space-y-3 p-5">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="rounded-xl bg-slate-50 p-3">
-                                    <div class="text-xs text-slate-500">Tanggal</div>
-                                    <div class="text-sm font-semibold text-slate-900" x-text="d.date"></div>
-                                </div>
-                                <div class="rounded-xl bg-slate-50 p-3">
-                                    <div class="text-xs text-slate-500">Waktu</div>
-                                    <div class="text-sm font-semibold text-slate-900" x-text="d.time"></div>
-                                </div>
-                            </div>
-                            <div class="rounded-xl bg-slate-50 p-3">
-                                <div class="text-xs text-slate-500">Pengusul</div>
-                                <div class="text-sm font-semibold text-slate-900" x-text="d.unit"></div>
-                            </div>
-                            <div class="rounded-xl bg-slate-50 p-3" x-show="d.desc">
-                                <div class="text-xs text-slate-500">Deskripsi</div>
-                                <div class="mt-1 whitespace-pre-wrap text-sm text-slate-800" x-text="d.desc"></div>
-                            </div>
-                        </div>
-                        <div class="flex justify-end border-t border-slate-100 p-4">
-                            <button @click="d = null"
-                                class="rounded-xl bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">Tutup</button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </div>
+                    <script>
+                        (function () {
+                            const rows = document.querySelectorAll('.schedule-row');
+                            if (!rows.length) return;
+                            const inputs = [document.getElementById('global-search'), document.getElementById('local-search')].filter(Boolean);
+                            const empty = document.getElementById('no-result');
+                            const tabs = document.querySelectorAll('.status-tab');
+                            let status = 'all', q = '';
 
-    <script>
-        (function () {
-            const rows = document.querySelectorAll('.schedule-row');
-            if (!rows.length) return;
-            const inputs = [document.getElementById('global-search'), document.getElementById('local-search')].filter(Boolean);
-            const empty = document.getElementById('no-result');
-            const tabs = document.querySelectorAll('.status-tab');
-            let status = 'all', q = '';
+                            function apply() {
+                                rows.forEach(r => {
+                                    const ok = (status === 'all' || r.dataset.status === status) && (!q || r.dataset.search.includes(q));
+                                    r.classList.toggle('hidden', !ok);
+                                });
+                                const shown = [...rows].filter(r => !r.classList.contains('hidden')).length;
+                                empty.classList.toggle('hidden', shown > 0);
+                            }
 
-            function apply() {
-                rows.forEach(r => {
-                    const ok = (status === 'all' || r.dataset.status === status) && (!q || r.dataset.search.includes(q));
-                    r.classList.toggle('hidden', !ok);
-                });
-                const shown = [...rows].filter(r => !r.classList.contains('hidden')).length;
-                empty.classList.toggle('hidden', shown > 0);
-            }
+                            inputs.forEach(inp => inp.addEventListener('input', () => {
+                                q = inp.value.trim().toLowerCase();
+                                inputs.forEach(o => { if (o !== inp) o.value = inp.value; });
+                                apply();
+                            }));
 
-            inputs.forEach(inp => inp.addEventListener('input', () => {
-                q = inp.value.trim().toLowerCase();
-                inputs.forEach(o => { if (o !== inp) o.value = inp.value; });
-                apply();
-            }));
-
-            tabs.forEach(t => t.addEventListener('click', () => {
-                status = t.dataset.filter;
-                tabs.forEach(o => {
-                    const on = o === t;
-                    o.classList.remove(...o.dataset.on.split(' '), ...o.dataset.off.split(' '));
-                    o.classList.add(...(on ? o.dataset.on : o.dataset.off).split(' '));
-                });
-                apply();
-            }));
-        })();
-    </script>
+                            tabs.forEach(t => t.addEventListener('click', () => {
+                                status = t.dataset.filter;
+                                tabs.forEach(o => {
+                                    const on = o === t;
+                                    o.classList.remove(...o.dataset.on.split(' '), ...o.dataset.off.split(' '));
+                                    o.classList.add(...(on ? o.dataset.on : o.dataset.off).split(' '));
+                                });
+                                apply();
+                            }));
+                        })();
+                    </script>
 </x-app-layout>

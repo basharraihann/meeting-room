@@ -39,6 +39,7 @@ class BookingApiController extends Controller
                     'description' => $b->description,
                     'room_name' => $b->room?->name,
                     'room_id' => $b->room_id,
+                    'room_color' => $b->room?->color, // ✅ warna ruangan dari DB (RoomSeeder)
                 ],
             ];
         });

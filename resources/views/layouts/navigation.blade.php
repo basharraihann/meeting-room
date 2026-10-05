@@ -87,15 +87,15 @@
     </button>
 
     {{-- Top Section: Logo --}}
-    <div class="sidebar-logo-section flex h-20 shrink-0 items-center border-b border-slate-100 justify-between px-5"
-        :class="sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'">
+    <div class="sidebar-logo-section flex h-20 shrink-0 items-center border-b border-slate-100 justify-between px-4"
+        :class="sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4'">
         
         <a href="{{ $homeUrl }}" class="flex items-center gap-3 overflow-hidden">
             {{-- When expanded --}}
-            <img x-show="!sidebarCollapsed" src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenko Pangan" class="sidebar-expanded-only h-10 w-auto max-w-[190px] object-contain">
+            <img x-show="!sidebarCollapsed" src="{{ asset('images/logoheader.png') }}" alt="Logo Kemenko Pangan" class="sidebar-expanded-only h-9 w-auto max-w-[155px] object-contain">
             
             {{-- When collapsed --}}
-            <img x-show="sidebarCollapsed" x-cloak src="{{ asset('images/logo.png') }}" alt="Logo" class="sidebar-collapsed-only h-9 w-9 object-contain" title="Kemenko Pangan">
+            <img x-show="sidebarCollapsed" x-cloak src="{{ asset('images/logo.png') }}" alt="Logo" class="sidebar-collapsed-only h-8 w-8 object-contain" title="Kemenko Pangan">
         </a>
 
         {{-- Mobile close button --}}
@@ -105,14 +105,14 @@
     </div>
 
     {{-- Middle Section: Navigation Links --}}
-    <nav class="sidebar-nav flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-1.5 px-3"
-         :class="sidebarCollapsed ? 'px-2 flex flex-col items-center' : 'px-3'">
+    <nav class="sidebar-nav flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-1 px-2.5"
+         :class="sidebarCollapsed ? 'px-2 flex flex-col items-center' : 'px-2.5'">
         @foreach($links as $l)
             <a href="{{ $l['url'] }}"
                 :class="sidebarCollapsed
-                    ? 'h-12 w-12 justify-center {{ $l['active'] ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}'
-                    : 'w-full px-4 py-3 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}'"
-                class="nav-item-link group relative flex items-center rounded-2xl text-sm transition-colors w-full px-4 py-3 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}"
+                    ? 'h-11 w-11 justify-center {{ $l['active'] ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}'
+                    : 'w-full px-3 py-2.5 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}'"
+                class="nav-item-link group relative flex items-center rounded-xl text-sm transition-colors w-full px-3 py-2.5 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}"
                 :title="sidebarCollapsed ? '{{ $l['name'] }}' : ''">
 
                 <svg class="h-5 w-5 shrink-0 {{ $l['active'] ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700' }}"
@@ -120,7 +120,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $l['icon'] }}" />
                 </svg>
 
-                <span x-show="!sidebarCollapsed" class="sidebar-expanded-only ml-3.5 truncate whitespace-nowrap">
+                <span x-show="!sidebarCollapsed" class="sidebar-expanded-only ml-3 truncate whitespace-nowrap">
                     {{ $l['name'] }}
                 </span>
 
@@ -139,26 +139,26 @@
     {{-- Bottom Section: User Info Card & Actions --}}
     <div class="shrink-0 border-t border-slate-100">
         {{-- Expanded Bottom View --}}
-        <div x-show="!sidebarCollapsed" class="sidebar-expanded-only p-3 pt-3">
+        <div x-show="!sidebarCollapsed" class="sidebar-expanded-only p-2.5 pt-2.5">
             {{-- User Info Box --}}
-            <div class="flex items-center gap-3 px-2 py-2">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">
+            <div class="flex items-center gap-2.5 px-1.5 py-1.5">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
                     {{ $initials }}
                 </div>
                 <div class="min-w-0 flex-1">
-                    <div class="truncate text-sm font-bold text-slate-900 leading-tight">{{ $user->name }}</div>
-                    <div class="truncate text-xs text-slate-400 leading-tight mt-0.5">{{ $user->email }}</div>
+                    <div class="truncate text-xs font-bold text-slate-900 leading-tight">{{ $user->name }}</div>
+                    <div class="truncate text-[11px] text-slate-400 leading-tight mt-0.5">{{ $user->email }}</div>
                 </div>
-                <span class="shrink-0 rounded px-2 py-0.5 text-[11px] font-semibold {{ $roleBadgeClass }}">
+                <span class="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $roleBadgeClass }}">
                     {{ $primaryRole }}
                 </span>
             </div>
 
             {{-- Actions --}}
-            <div class="mt-2 space-y-1">
+            <div class="mt-1 space-y-0.5">
                 <a href="{{ route('profile.edit') }}"
-                    class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors hover:bg-slate-50 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600' }}">
-                    <svg class="h-5 w-5 shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    class="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600' }}">
+                    <svg class="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <span>Profil</span>
@@ -167,8 +167,8 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                        class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600">
-                        <svg class="h-5 w-5 shrink-0 text-slate-500 hover:text-red-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        class="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600">
+                        <svg class="h-4 w-4 shrink-0 text-slate-500 hover:text-red-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                         <span>Keluar</span>
@@ -178,18 +178,18 @@
         </div>
 
         {{-- Collapsed Bottom View --}}
-        <div x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only flex flex-col items-center gap-3 py-4">
+        <div x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only flex flex-col items-center gap-2.5 py-3">
             {{-- User Initial Avatar --}}
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600 cursor-default"
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600 cursor-default"
                 title="{{ $user->name }} ({{ $primaryRole }})">
                 {{ $initials }}
             </div>
 
             {{-- Profil Icon --}}
             <a href="{{ route('profile.edit') }}"
-                class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600' : '' }}"
+                class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600' : '' }}"
                 title="Profil">
-                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
             </a>
@@ -198,9 +198,9 @@
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-red-50 hover:text-red-600"
+                    class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-red-50 hover:text-red-600"
                     title="Keluar">
-                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                 </button>

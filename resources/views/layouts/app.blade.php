@@ -18,7 +18,7 @@
         // Synchronous — sets sidebar width BEFORE any paint, zero flash
         (function() {
             var c = localStorage.getItem('sidebar_collapsed') === 'true';
-            var w = (c && window.innerWidth >= 1024) ? '5rem' : '18rem';
+            var w = (c && window.innerWidth >= 1024) ? '4.5rem' : '15rem';
             document.documentElement.style.setProperty('--sw', w);
             if (c) document.documentElement.classList.add('sidebar-collapsed');
         })();
@@ -26,14 +26,21 @@
     <style>
         [x-cloak] { display: none !important; }
 
+        /* Mobile sidebar width: constrained and narrowed */
+        aside.sidebar-container {
+            width: 15rem !important;
+            max-width: 80vw !important;
+        }
+
         /* Sidebar width driven by --sw custom property (set inline, instant) */
         @media (min-width: 1024px) {
             aside.sidebar-container {
-                width: var(--sw, 18rem) !important;
+                width: var(--sw, 15rem) !important;
+                max-width: none !important;
                 transition: none !important;
             }
             .main-content-wrapper {
-                padding-left: var(--sw, 18rem) !important;
+                padding-left: var(--sw, 15rem) !important;
                 transition: none !important;
             }
 
@@ -48,14 +55,14 @@
             /* --- Collapsed: logo section --- */
             html.sidebar-collapsed .sidebar-logo-section {
                 justify-content: center !important;
-                padding-left: 0.5rem !important;
-                padding-right: 0.5rem !important;
+                padding-left: 0.25rem !important;
+                padding-right: 0.25rem !important;
             }
 
             /* --- Collapsed: nav section --- */
             html.sidebar-collapsed .sidebar-nav {
-                padding-left: 0.5rem !important;
-                padding-right: 0.5rem !important;
+                padding-left: 0.25rem !important;
+                padding-right: 0.25rem !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
@@ -63,8 +70,8 @@
 
             /* --- Collapsed: nav item links --- */
             html.sidebar-collapsed .nav-item-link {
-                width: 3rem !important;
-                height: 3rem !important;
+                width: 2.75rem !important;
+                height: 2.75rem !important;
                 padding: 0 !important;
                 justify-content: center !important;
             }
@@ -87,7 +94,7 @@
         toggleSidebar() {
             this.sidebarCollapsed = !this.sidebarCollapsed;
             localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed);
-            var w = this.sidebarCollapsed ? '5rem' : '18rem';
+            var w = this.sidebarCollapsed ? '4.5rem' : '15rem';
             document.documentElement.style.setProperty('--sw', w);
             if (this.sidebarCollapsed) {
                 document.documentElement.classList.add('sidebar-collapsed');

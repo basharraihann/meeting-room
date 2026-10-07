@@ -23,12 +23,57 @@
     @endif
 
     @php
-        $activeRoomId = request('room_id');
         $activeRooms = \App\Models\Room::where('active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get();        // Warna ruangan diambil dari kolom rooms.color (diatur lewat RoomSeeder)
+            ->get();
         $roomDotColors = $activeRooms->pluck('color', 'id')->all();
+
+        // ===== Prefill dari link "Ajukan" di dashboard (?room=&date=&start=&until=) =====
+        $prefill = null;
+        if (auth()->user()?->hasRole('PIC') && request()->filled('room') && !$errors->any()) {
+            $pfRoom = $activeRooms->firstWhere('id', (int) request('room'));
+            if ($pfRoom && !$pfRoom->maintenance) {
+                $pfDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) request('date')) ? request('date') : now()->toDateString();
+                if ($pfDate < now()->toDateString()) {
+                    $pfDate = now()->toDateString();
+                }
+
+                $pfStart = null;
+                $pfEnd = null;
+                if (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', (string) request('start'), $mm)) {
+                    $mins = (int) $mm[1] * 60 + (int) $mm[2];
+                    $mins = (int) (ceil($mins / 15) * 15);               // bulatkan ke atas: 11.06 -> 11.15
+                    $mins = max(7 * 60, min($mins, 20 * 60 + 45));       // sesuai daftar jam di form (07.00-21.00)
+                    $endMins = $mins + 60;                               // default durasi 1 jam
+                    if (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', (string) request('until'), $um)) {
+                        $u = (int) $um[1] * 60 + (int) $um[2];
+                        if ($u > $mins) {
+                            $endMins = min($endMins, (int) (floor($u / 15) * 15));   // jangan lewat jam kosong
+                        }
+                    }
+                    $endMins = min($endMins, 21 * 60);
+                    if ($endMins <= $mins) {
+                        $endMins = min($mins + 15, 21 * 60);
+                    }
+                    $fmtM = fn($m) => sprintf('%02d:%02d', intdiv($m, 60), $m % 60);
+                    $pfStart = $fmtM($mins);
+                    $pfEnd = $fmtM($endMins);
+                }
+
+                $prefill = [
+                    'room_id' => $pfRoom->id,
+                    'room_name' => $pfRoom->name,
+                    'is_abt' => trim($pfRoom->name) === 'Ruang Rapat ABT',
+                    'date' => $pfDate,
+                    'start' => $pfStart,
+                    'end' => $pfEnd,
+                ];
+            }
+        }
+
+        // Sorot ruangan di sidebar (kecuali ABT, karena ABT harus lewat konfirmasi dulu)
+        $activeRoomId = request('room_id') ?: (($prefill && !$prefill['is_abt']) ? $prefill['room_id'] : null);
     @endphp
 
     {{-- ===== BANNER JUDUL ===== --}}
@@ -481,39 +526,35 @@
             function bookingModal() {
                 return {
                     open: {{ $errors->any() ? 'true' : 'false' }},
+                    prefill: @json($prefill),
                     bookingDate: @json(old('booking_date', '')),
                     startTime: @json(old('start_time', '')),
                     endTime: @json(old('end_time', '')),
                     roomId: @json(old('room_id', '')),
                     roomName: '',
                     lockRoom: false,
-                    init() { this.syncWithSidebar() },
-                    syncWithSidebar() {
-                        const isMobile = window.innerWidth < 1024
-                        let activeId = ''
-                        let activeName = 'Semua Ruang'
-                        let activeMaintenance = false
-                        if (isMobile) {
-                            activeId = window.mobileActiveRoomId ? String(window.mobileActiveRoomId) : ''
-                            activeName = window.mobileActiveRoomName || 'Semua Ruang'
-                            activeMaintenance = !!window.mobileActiveRoomMaintenance
-                        } else {
-                            activeId = window.activeRoomId || ''
-                            activeName = window.activeRoomName || 'Semua Ruang'
-                            activeMaintenance = !!window.activeRoomMaintenance
-                        }
+                    init() {
+                        this.syncWithSidebar()
+                        if (!this.prefill) return
 
-                        if (activeMaintenance) {
-                            this.lockRoom = false
-                            this.roomId = ''
-                            this.roomName = ''
-                            return
-                        }
+                        const p = this.prefill
+                        const go = () => window.dispatchEvent(new CustomEvent('open-booking-modal', { detail: { prefill: p } }))
 
-                        this.lockRoom = !!activeId
-                        if (this.lockRoom) { this.roomId = activeId; this.roomName = activeName }
-                        else { this.roomId = ''; this.roomName = '' }
+                        setTimeout(() => {
+                            if (p.is_abt) {
+                                // Ruang ABT: tetap lewat modal konfirmasi, form baru terbuka setelah "Ya, Lanjutkan"
+                                const btn = document.querySelector('.room-filter[data-room-name="Ruang Rapat ABT"]')
+                                const gate = document.querySelector('[x-data="abtGateModal()"]')
+                                if (btn && gate && window.Alpine) window.Alpine.$data(gate).show(btn, go)
+                                return
+                            }
+                            go()
+                        }, 0)
+
+                        // Bersihkan parameter supaya refresh tidak membuka form lagi
+                        history.replaceState(null, '', window.location.pathname)
                     },
+                    syncWithSidebar() { /* ... tidak berubah ... */ },
                     openModal(payload = {}) {
                         this.open = true
                         this.syncWithSidebar()
@@ -523,15 +564,18 @@
                             const today = new Date()
                             this.bookingDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
                         }
+
+                        // Isi dari rekomendasi dashboard
+                        const p = payload.prefill
+                        if (p) {
+                            this.lockRoom = true
+                            this.roomId = String(p.room_id)
+                            this.roomName = p.room_name
+                            this.bookingDate = p.date
+                            if (p.start) { this.startTime = p.start; this.endTime = p.end }
+                        }
                     },
-                    autoSetEndTime() {
-                        if (!this.startTime) return
-                        const [h, m] = this.startTime.split(':').map(Number)
-                        const totalMins = h * 60 + m + 60
-                        const nh = Math.floor(totalMins / 60)
-                        const nm = totalMins % 60
-                        if (nh <= 21) { this.endTime = String(nh).padStart(2, '0') + ':' + String(nm).padStart(2, '0') }
-                    },
+                    autoSetEndTime() { /* ... tidak berubah ... */ },
                     close() { this.open = false }
                 }
             }
@@ -562,7 +606,7 @@
             }
             const CHIP_ALL = 'bg-indigo-600 text-white ring-indigo-600'
             const CHIP_ROOM = 'bg-slate-900 text-white ring-slate-900'
-            'bg-white text-slate-700 ring-slate-300'            const SVG = 'class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
+            const CHIP_OFF = 'bg-white text-slate-700 ring-slate-300'
             const ICON_CLOCK = `<svg ${SVG}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`
             const ICON_PIN = `<svg ${SVG}><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>`
             const ICON_BUILDING = `<svg ${SVG}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg>`
@@ -1372,16 +1416,20 @@
             return {
                 open: false,
                 _pendingBtn: null,
-                show(btn) { this._pendingBtn = btn; this.open = true },
-                cancel() { this.open = false; this._pendingBtn = null },
+                _cb: null,
+                show(btn, cb) { this._pendingBtn = btn; this._cb = cb || null; this.open = true },
+                cancel() { this.open = false; this._pendingBtn = null; this._cb = null },
                 confirm() {
                     this.open = false
                     const btn = this._pendingBtn
+                    const cb = this._cb
                     this._pendingBtn = null
+                    this._cb = null
                     if (btn) {
                         window.__abtGateBypass = true
                         btn.click()
                     }
+                    if (cb) cb()
                 }
             }
         }

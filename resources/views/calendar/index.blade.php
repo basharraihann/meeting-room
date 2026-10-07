@@ -359,7 +359,23 @@
             if ($showBiro || $showAll) {
                 $unitGroups['Sekretariat & Lainnya'] = ['Biro MKDI', 'Biro UHM', 'Biro HKS', 'Biro SDMO', 'Biro KBMN', 'Inspektorat', 'Staff Ahli', 'Sesmenko', 'Wamenko'];
             }
-            $fieldCls = 'w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition';
+
+            // Ikon (gaya Lucide, sama dengan halaman lain)
+            $ic = [
+                'calendar' => '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M12 14v4"/><path d="M10 16h4"/>',
+                'x' => '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+                'building' => '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/>',
+                'clock' => '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+                'circle-alert' => '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+                'chevron' => '<path d="m6 9 6 6 6-6"/>',
+                'lock' => '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+            ];
+            $svg = fn(string $name, string $cls = 'h-4 w-4', string $sw = '1.75') =>
+                '<svg class="' . $cls . '" fill="none" stroke="currentColor" stroke-width="' . $sw . '" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">' . $ic[$name] . '</svg>';
+
+            $fieldCls = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10';
+            $labelCls = 'mb-1.5 block text-xs font-bold text-slate-600';
+            $noArrow = '-webkit-appearance:none;-moz-appearance:none;appearance:none;';
         @endphp
 
         <script>
@@ -392,140 +408,179 @@
 
         <div x-data="bookingModal()" x-init="init()" x-show="open" x-cloak
             x-on:open-booking-modal.window="openModal($event.detail || {})" x-on:keydown.escape.window="close()"
-            class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/50" x-on:click="close()"></div>
+            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" x-on:click="close()"></div>
 
-            <div class="relative bg-white w-full max-w-lg mx-4 rounded-2xl shadow-xl overflow-hidden flex flex-col"
-                style="max-height:90vh;">
-                <div class="px-6 py-5 border-b flex items-start justify-between bg-gray-50">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900">Ajukan Rapat</h3>
-                        <p class="text-sm text-gray-500 mt-0.5">Isi data rapat yang akan diajukan.</p>
+            <div x-show="open" x-transition
+                class="relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white text-left shadow-2xl"
+                style="max-height:90vh;" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
+
+                {{-- Header --}}
+                <div class="flex items-start justify-between gap-3 border-b border-slate-100 px-5 pb-4 pt-5">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <span
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
+                            {!! $svg('calendar', 'h-5 w-5') !!}
+                        </span>
+                        <div class="min-w-0">
+                            <h3 id="bookingModalTitle" class="text-base font-extrabold text-slate-900">Ajukan rapat</h3>
+                            <p class="mt-0.5 text-xs text-slate-500">Pengajuan akan ditinjau oleh TU ruangan terkait.</p>
+                        </div>
                     </div>
-                    <button class="text-gray-400 hover:text-gray-600 transition mt-0.5" type="button" x-on:click="close()">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                    <button type="button" x-on:click="close()" aria-label="Tutup"
+                        class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+                        {!! $svg('x', 'h-5 w-5', '2') !!}
                     </button>
                 </div>
 
-                <form method="POST" action="{{ route('bookings.store') }}"
-                    class="px-6 py-4 space-y-4 overflow-y-auto flex-1">
+                <form method="POST" action="{{ route('bookings.store') }}" class="flex min-h-0 flex-1 flex-col">
                     @csrf
 
-                    @if ($errors->any())
-                        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
-                            <p class="text-sm font-semibold text-red-800">Terdapat kesalahan:</p>
-                            <ul class="mt-1.5 text-sm text-red-700 list-disc list-inside space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                    <div class="flex-1 space-y-5 overflow-y-auto px-5 py-5">
 
-                    {{-- RUANGAN --}}
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ruangan <span
-                                class="text-red-500">*</span></label>
-                        <template x-if="lockRoom">
-                            <div>
-                                <input type="hidden" name="room_id" :value="roomId">
-                                <div
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-800 text-sm flex items-center gap-2">
-                                    <span x-text="roomName"></span>
+                        @if ($errors->any())
+                            <div
+                                class="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] text-rose-800">
+                                <span class="mt-0.5 shrink-0 text-rose-600">{!! $svg('circle-alert', 'h-4 w-4', '2') !!}</span>
+                                <div>
+                                    <p class="font-bold">Periksa kembali isian Anda</p>
+                                    <ul class="mt-1 list-inside list-disc space-y-0.5 font-medium text-rose-700">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
                                 </div>
                             </div>
-                        </template>
-                        <template x-if="!lockRoom">
+                        @endif
+
+                        {{-- RUANGAN --}}
+                        <div>
+                            <label class="{{ $labelCls }}">Ruangan <span class="text-rose-500">*</span></label>
+                            <template x-if="lockRoom">
+                                <div>
+                                    <input type="hidden" name="room_id" :value="roomId">
+                                    <div
+                                        class="flex w-full items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-100/70 px-3.5 py-2.5 text-sm font-semibold text-slate-800">
+                                        <span class="text-indigo-500">{!! $svg('building', 'h-4 w-4', '2') !!}</span>
+                                        <span class="min-w-0 flex-1 truncate" x-text="roomName"></span>
+                                        <span class="text-slate-400" title="Ruangan dipilih dari rekomendasi">{!! $svg('lock', 'h-3.5 w-3.5', '2') !!}</span>
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="!lockRoom">
+                                <div class="relative">
+                                    <select name="room_id" class="{{ $fieldCls }} pr-9" style="{{ $noArrow }}" required>
+                                        <option value="" disabled selected>Pilih ruangan rapat</option>
+                                        @foreach(\App\Models\Room::where('active', true)->orderBy('sort_order')->orderBy('id')->get() as $room)
+                                            <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }} {{ $room->maintenance ? 'disabled' : '' }}>
+                                                {{ $room->name }}{{ $room->maintenance ? ' — Sedang perbaikan' : '' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                        {!! $svg('chevron', 'h-4 w-4', '2') !!}
+                                    </span>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- JUDUL --}}
+                        <div>
+                            <label class="{{ $labelCls }}">Judul kegiatan <span class="text-rose-500">*</span></label>
+                            <input name="title" value="{{ old('title') }}" placeholder="Contoh: Rapat Koordinasi Tim"
+                                class="{{ $fieldCls }}" required />
+                        </div>
+
+                        {{-- WAKTU --}}
+                        <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                            <div class="mb-3 flex items-center justify-between gap-2">
+                                <span class="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                                    <span class="text-indigo-500">{!! $svg('clock', 'h-4 w-4', '2') !!}</span>
+                                    Jadwal
+                                </span>
+                                <span x-show="duration" x-cloak
+                                    class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-bold text-indigo-700 ring-1 ring-inset ring-indigo-600/20"
+                                    x-text="'Durasi ' + duration"></span>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <div>
+                                    <label class="{{ $labelCls }}">Tanggal <span class="text-rose-500">*</span></label>
+                                    <input type="date" name="booking_date" x-model="bookingDate"
+                                        class="{{ $fieldCls }} bg-white" required />
+                                </div>
+                                <div>
+                                    <label class="{{ $labelCls }}">Jam mulai <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <select name="start_time" x-model="startTime" @change="autoSetEndTime()"
+                                            class="{{ $fieldCls }} bg-white pr-8 tabular-nums" style="{{ $noArrow }}" required>
+                                            <option value="" disabled>Pilih</option>
+                                            @foreach($times as $t)
+                                                <option value="{{ $t }}">{{ $t }}</option>
+                                            @endforeach
+                                        </select>
+                                        <span class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                                            {!! $svg('chevron', 'h-4 w-4', '2') !!}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="{{ $labelCls }}">Jam selesai <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <select name="end_time" x-model="endTime"
+                                            :class="timeInvalid ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-500/10' : ''"
+                                            class="{{ $fieldCls }} bg-white pr-8 tabular-nums" style="{{ $noArrow }}" required>
+                                            <option value="" disabled>Pilih</option>
+                                            @foreach($times as $t)
+                                                <option value="{{ $t }}">{{ $t }}</option>
+                                            @endforeach
+                                        </select>
+                                        <span class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                                            {!! $svg('chevron', 'h-4 w-4', '2') !!}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p x-show="timeInvalid" x-cloak class="mt-2.5 text-xs font-semibold text-rose-600">Jam selesai harus
+                                setelah jam mulai.</p>
+                        </div>
+
+                        {{-- UNIT KERJA --}}
+                        <div>
+                            <label class="{{ $labelCls }}">Unit kerja <span class="text-rose-500">*</span></label>
                             <div class="relative">
-                                <select name="room_id" class="{{ $fieldCls }}"
-                                    style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
-                                    <option value="" disabled selected>— Pilih ruangan rapat —</option>
-                                    @foreach(\App\Models\Room::where('active', true)->orderBy('sort_order')->orderBy('id')->get() as $room)
-                                        <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }} {{ $room->maintenance ? 'disabled' : '' }}
-                                            style="{{ $room->maintenance ? 'color:#94a3b8;' : '' }}">
-                                            {{ $room->name }}{{ $room->maintenance ? ' — 🔧 ' : '' }}
-                                        </option>
+                                <select name="unit_kerja" class="{{ $fieldCls }} pr-9" style="{{ $noArrow }}" required>
+                                    <option value="" disabled selected>Pilih unit kerja</option>
+                                    @foreach($unitGroups as $groupLabel => $units)
+                                        <optgroup label="{{ $groupLabel }}">
+                                            @foreach($units as $u)
+                                                <option value="{{ $u }}" {{ old('unit_kerja') == $u ? 'selected' : '' }}>{{ $u }}</option>
+                                            @endforeach
+                                        </optgroup>
                                     @endforeach
                                 </select>
-                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    {!! $svg('chevron', 'h-4 w-4', '2') !!}
+                                </span>
                             </div>
-                        </template>
-                    </div>
-
-                    {{-- JUDUL --}}
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Judul Kegiatan <span
-                                class="text-red-500">*</span></label>
-                        <input name="title" value="{{ old('title') }}" placeholder="Contoh: Rapat Koordinasi Tim..."
-                            class="{{ $fieldCls }}" required />
-                    </div>
-
-                    {{-- WAKTU --}}
-                    <div class="grid grid-cols-3 gap-3 items-start">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Date <span
-                                    class="text-red-500">*</span></label>
-                            <input type="date" name="booking_date" x-model="bookingDate" class="{{ $fieldCls }}" required />
                         </div>
+
+                        {{-- EMAIL --}}
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Start Time <span
-                                    class="text-red-500">*</span></label>
-                            <select name="start_time" x-model="startTime" @change="autoSetEndTime()" class="{{ $fieldCls }}"
-                                style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
-                                <option value="" disabled>Pilih</option>
-                                @foreach($times as $t)
-                                <option value="{{ $t }}">{{ $t }}</option>@endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">End Time <span
-                                    class="text-red-500">*</span></label>
-                            <select name="end_time" x-model="endTime" class="{{ $fieldCls }}"
-                                style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
-                                <option value="" disabled>Pilih</option>
-                                @foreach($times as $t)
-                                <option value="{{ $t }}">{{ $t }}</option>@endforeach
-                            </select>
+                            <label class="{{ $labelCls }}">Email penerima notifikasi <span
+                                    class="text-rose-500">*</span></label>
+                            <input type="email" name="applicant_email" value="{{ old('applicant_email') }}"
+                                placeholder="email@domain.com" class="{{ $fieldCls }}" required />
+                            <p class="mt-1.5 text-xs text-slate-400">Status persetujuan akan dikirim ke email ini.</p>
                         </div>
                     </div>
 
-                    {{-- EMAIL --}}
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email Penerima Notifikasi <span
-                                class="text-red-500">*</span></label>
-                        <input type="email" name="applicant_email" value="{{ old('applicant_email') }}"
-                            placeholder="email@domain.com" class="{{ $fieldCls }}" required />
-                        <p class="text-xs text-gray-400 mt-1">Email ini akan menerima notifikasi status booking.</p>
-                    </div>
-
-                    {{-- UNIT KERJA --}}
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Unit Kerja <span
-                                class="text-red-500">*</span></label>
-                        <select name="unit_kerja" class="{{ $fieldCls }}"
-                            style="-webkit-appearance:none;-moz-appearance:none;appearance:none;" required>
-                            <option value="" disabled selected>— Pilih unit kerja —</option>
-                            @foreach($unitGroups as $groupLabel => $units)
-                                <optgroup label="{{ $groupLabel }}">
-                                    @foreach($units as $u)
-                                        <option value="{{ $u }}" {{ old('unit_kerja') == $u ? 'selected' : '' }}>{{ $u }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-1">
-                        <button type="button"
-                            class="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition"
-                            x-on:click="close()">Batal</button>
-                        <button type="submit"
-                            class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white transition">Kirim</button>
+                    {{-- Footer --}}
+                    <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3.5">
+                        <button type="button" x-on:click="close()"
+                            class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50">Batal</button>
+                        <button type="submit" :disabled="timeInvalid"
+                            class="rounded-lg bg-indigo-600 px-5 py-2 text-[13px] font-semibold text-white shadow-sm shadow-indigo-600/25 transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600">Kirim
+                            pengajuan</button>
                     </div>
                 </form>
             </div>
@@ -542,6 +597,21 @@
                     roomId: @json(old('room_id', '')),
                     roomName: '',
                     lockRoom: false,
+
+                    // Durasi rapat (untuk badge di bagian Jadwal)
+                    get minutes() {
+                        if (!this.startTime || !this.endTime) return null
+                        const [a, b] = this.startTime.split(':').map(Number)
+                        const [c, d] = this.endTime.split(':').map(Number)
+                        return (c * 60 + d) - (a * 60 + b)
+                    },
+                    get timeInvalid() { return this.minutes !== null && this.minutes <= 0 },
+                    get duration() {
+                        const m = this.minutes
+                        if (m === null || m <= 0) return ''
+                        return (m >= 60 ? Math.floor(m / 60) + ' jam ' : '') + (m % 60 ? (m % 60) + ' menit' : '')
+                    },
+
                     init() {
                         this.syncWithSidebar()
                         if (!this.prefill) return

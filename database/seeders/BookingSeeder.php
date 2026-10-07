@@ -19,8 +19,11 @@ use Illuminate\Database\Seeder;
  *    pola berbeda supaya "Rekomendasi Ruangan" bervariasi (lihat $patterns).
  *  - 7 hari lalu s/d 14 hari ke depan (kecuali hari ini, dan weekend):
  *    agenda acak dengan status campuran APPROVED / PENDING / REJECTED / CANCELED.
+ *  - PENDING BENTROK: beberapa slot waktu (hari kerja ke depan) diisi 2-3 pengajuan
+ *    PENDING pada ruangan & jam yang sama, untuk menguji halaman Approval Inbox.
  *
- * Agenda APPROVED/PENDING tidak bentrok dalam satu ruangan.
+ * Agenda APPROVED tidak bentrok dalam satu ruangan. Satu-satunya bentrok yang
+ * disengaja adalah antar-PENDING pada slot yang sama (lihat seedPendingConflicts).
  */
 class BookingSeeder extends Seeder
 {
@@ -29,6 +32,9 @@ class BookingSeeder extends Seeder
 
     /** Hapus booking yang mulai hari ini sebelum mengisi pola hari ini. */
     private const CLEAR_TODAY = true;
+
+    /** Jumlah slot waktu yang diisi pengajuan PENDING bentrok. */
+    private const CONFLICT_SLOTS = 4;
 
     private const JAM_BUKA = 8;     // 08.00
     private const JAM_TUTUP = 17;   // 17.00
@@ -93,6 +99,7 @@ class BookingSeeder extends Seeder
 
         $this->seedToday($rooms, $pics);
         $this->seedOtherDays($rooms, $pics);
+        $this->seedPendingConflicts($rooms, $pics);
 
         $this->command?->info('BookingSeeder selesai: ' . Booking::count() . ' agenda di database.');
     }
@@ -212,18 +219,109 @@ class BookingSeeder extends Seeder
         }
     }
 
-    /** Buat satu booking dan catat jamnya supaya tidak bentrok. */
-    private function make($room, $pics, string $status, Carbon $start, Carbon $end): void
+    /**
+     * Pengajuan PENDING yang BENTROK: beberapa PIC berbeda meminta ruangan dan
+     * jam yang persis sama. Slot dipilih di hari kerja ke depan pada waktu yang
+     * masih kosong (tidak menabrak APPROVED), lalu diisi 2-3 pengajuan sekaligus.
+     *
+     * Hasilnya muncul sebagai satu kelompok "Bentrok" di Approval Inbox.
+     */
+    private function seedPendingConflicts($rooms, $pics): void
     {
-        $pic = $pics->random();
+        $today = now()->startOfDay();
+
+        // Hari kerja 1-14 hari ke depan, diacak
+        $days = collect(range(1, 14))
+            ->map(fn($o) => $today->copy()->addDays($o))
+            ->reject(fn(Carbon $d) => $d->isWeekend())
+            ->shuffle()
+            ->values();
+
+        if ($days->isEmpty()) {
+            return;
+        }
+
+        $roomPool = $rooms->shuffle()->values();
+        $sizes = [2, 3, 2, 2];          // jumlah pengajuan per slot bentrok
+        $durs = [60, 90, 120];
+        $made = 0;
+
+        for ($i = 0; $i < self::CONFLICT_SLOTS; $i++) {
+            $room = $roomPool[$i % $roomPool->count()];
+            $day = $days[$i % $days->count()];
+            $dur = $durs[array_rand($durs)];
+
+            $slot = $this->findSlot($room->id, $day, $dur);
+            if (!$slot) {
+                continue;
+            }
+
+            [$start, $end] = $slot;
+            $size = $sizes[$i % count($sizes)];
+
+            // Pemohon, judul, dan unit kerja dibuat berbeda-beda per pengajuan
+            $applicants = $pics->shuffle()->values();
+            $titles = collect($this->titles)->shuffle()->values();
+            $units = collect($this->units)->shuffle()->values();
+
+            for ($k = 0; $k < $size; $k++) {
+                $this->make(
+                    $room,
+                    $pics,
+                    'PENDING',
+                    $start,
+                    $end,
+                    pic: $applicants[$k % $applicants->count()],
+                    register: $k === 0, // slot cukup dicatat sekali
+                    meta: [
+                        'title' => $titles[$k % $titles->count()],
+                        'unit_kerja' => $units[$k % $units->count()],
+                        // Waktu diajukan dibuat berbeda agar urutan masuk terlihat
+                        'created_at' => now()->subMinutes(random_int(10, 60 * 36)),
+                    ],
+                );
+            }
+
+            $made++;
+            $this->command?->line(sprintf(
+                '  Bentrok: %-26s %s %s-%s (%d pengajuan)',
+                $room->name,
+                $start->format('d M'),
+                $start->format('H.i'),
+                $end->format('H.i'),
+                $size
+            ));
+        }
+
+        $this->command?->info("  {$made} slot PENDING bentrok dibuat.");
+    }
+
+    /**
+     * Buat satu booking dan catat jamnya supaya tidak bentrok.
+     *
+     * @param  User|null  $pic       Pemohon tertentu (default: acak dari $pics)
+     * @param  bool       $register  Catat jam sebagai terpakai (false untuk bentrok yang disengaja)
+     * @param  array      $meta      Override kolom (title, unit_kerja, created_at, ...)
+     */
+    private function make(
+        $room,
+        $pics,
+        string $status,
+        Carbon $start,
+        Carbon $end,
+        ?User $pic = null,
+        bool $register = true,
+        array $meta = [],
+    ): void {
+        $pic ??= $pics->random();
 
         // APPROVED/PENDING memakai ruangan; REJECTED/CANCELED tidak
-        if (in_array($status, ['APPROVED', 'PENDING'], true)) {
+        if ($register && in_array($status, ['APPROVED', 'PENDING'], true)) {
             $this->busy[$room->id][$start->toDateString()][] = [$start->copy(), $end->copy()];
         }
 
-        Booking::unguarded(function () use ($room, $pic, $status, $start, $end) {
-            Booking::create([
+        Booking::unguarded(function () use ($room, $pic, $status, $start, $end, $meta) {
+            Booking::create(array_merge([
                 'room_id' => $room->id,
                 'pic_user_id' => $pic->id,
                 'title' => $this->titles[array_rand($this->titles)],
@@ -235,7 +333,7 @@ class BookingSeeder extends Seeder
                 'tu_note' => $status === 'REJECTED'
                     ? 'Ruangan dipakai untuk kegiatan pimpinan, mohon pilih jadwal lain.'
                     : null,
-            ]);
+            ], $meta));
         });
     }
 

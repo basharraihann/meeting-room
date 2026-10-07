@@ -81,9 +81,18 @@
         <div
             class="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                    stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 2v4" />
+                    <path d="M16 2v4" />
+                    <rect width="18" height="18" x="3" y="4" rx="2.5" />
+                    <path d="M3 10h18" />
+                    <path d="M8 14h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M16 14h.01" />
+                    <path d="M8 18h.01" />
+                    <path d="M12 18h.01" />
+                    <path d="M16 18h.01" />
                 </svg>
             </span>
             <div class="min-w-0 flex-1">

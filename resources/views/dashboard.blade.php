@@ -227,9 +227,12 @@
                 class="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
                 <span
                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                        stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                        <rect width="7" height="9" x="3" y="3" rx="1.5" />
+                        <rect width="7" height="5" x="14" y="3" rx="1.5" />
+                        <rect width="7" height="9" x="14" y="12" rx="1.5" />
+                        <rect width="7" height="5" x="3" y="16" rx="1.5" />
                     </svg>
                 </span>
                 <div class="min-w-0 flex-1">
@@ -355,16 +358,16 @@
                                 minimal {{ $minDurasi }} menit saat ini.</p>
                         @else
                             <div x-data="{
-                                        sel: @js($recommendations->first()['room']->id),
-                                        names: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['room']->name])),
-                                        untils: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['until']->format('H:i')])),
-                                        base: @js(route('calendar')),
-                                        get url() {
-                                            return this.base + '?room=' + encodeURIComponent(this.sel)
-                                                + '&date={{ $now->toDateString() }}&start={{ $now->format('H:i') }}'
-                                                + '&until=' + encodeURIComponent(this.untils[this.sel]);
-                                        }
-                                    }">
+                                            sel: @js($recommendations->first()['room']->id),
+                                            names: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['room']->name])),
+                                            untils: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['until']->format('H:i')])),
+                                            base: @js(route('calendar')),
+                                            get url() {
+                                                return this.base + '?room=' + encodeURIComponent(this.sel)
+                                                    + '&date={{ $now->toDateString() }}&start={{ $now->format('H:i') }}'
+                                                    + '&until=' + encodeURIComponent(this.untils[this.sel]);
+                                            }
+                                        }">
                                 <div class="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Pilih ruangan">
                                     @foreach($recommendations as $rec)
                                         @php
@@ -418,13 +421,13 @@
                     {{-- 2. Pengajuan saya (khusus PIC) --}}
                     @if($isPic)
                         <div id="pengajuan-saya" class="rounded-2xl border border-slate-200 bg-white p-5" x-data="{
-                                items: @js($myItems),
-                                f: 'all',
-                                get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
-                                get shown() { return this.filtered.slice(0, 5) },
-                                toggle(k) { this.f = (this.f === k ? 'all' : k) },
-                                get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
-                            }">
+                                    items: @js($myItems),
+                                    f: 'all',
+                                    get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
+                                    get shown() { return this.filtered.slice(0, 5) },
+                                    toggle(k) { this.f = (this.f === k ? 'all' : k) },
+                                    get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
+                                }">
                             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <h2 class="text-base font-bold text-slate-900">Pengajuan Saya</h2>

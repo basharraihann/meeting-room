@@ -19,15 +19,15 @@ class AgendaController extends Controller
         if ($mode === 'week') {
             $start = $base->copy()->startOfWeek();
             $end = $base->copy()->endOfWeek();
-            $title = "Minggu ini (" . $start->format('d M') . " - " . $end->format('d M Y') . ")";
+            $title = "Minggu ini (" . $start->translatedFormat('d M') . " - " . $end->translatedFormat('d M Y') . ")";
         } elseif ($mode === 'month') {
             $start = $base->copy()->startOfMonth();
             $end = $base->copy()->endOfMonth();
-            $title = "Bulan ini (" . $base->format('F Y') . ")";
+            $title = "Bulan ini (" . $base->translatedFormat('F Y') . ")";
         } else {
             $start = $base->copy()->startOfDay();
             $end = $base->copy()->endOfDay();
-            $title = "Hari ini (" . $base->format('d M Y') . ")";
+            $title = "Hari ini (" . $base->translatedFormat('d M Y') . ")";
         }
 
         $bookings = Booking::with('room')
@@ -47,24 +47,7 @@ class AgendaController extends Controller
             ->sort()
             ->values();
 
-        // Summary buat copas
-        $summaryLines = [];
-        $summaryLines[] = "Agenda Rapat - " . $title;
-        $summaryLines[] = "PIC: " . Auth::user()->name;
-        $summaryLines[] = "--------------------------------";
-
-        if ($bookings->isEmpty()) {
-            $summaryLines[] = "Tidak ada rapat.";
-        } else {
-            foreach ($bookings as $b) {
-                $d = Carbon::parse($b->start_at)->format('d M');
-                $time = Carbon::parse($b->start_at)->format('H:i') . "-" . Carbon::parse($b->end_at)->format('H:i');
-                $room = $b->room?->name ?? '-';
-                $summaryLines[] = "{$d} {$time} | {$b->title} | {$room} | {$b->status}";
-            }
-        }
-
-        $summaryText = implode("\n", $summaryLines);
+        $summaryText = $this->buildSummary($bookings, $title, $mode);
 
         return view('agenda.index', [
             'bookings' => $bookings,
@@ -75,5 +58,58 @@ class AgendaController extends Controller
             'unitKerja' => $unitKerja,
             'unitKerjaOptions' => $unitKerjaOptions,
         ]);
+    }
+
+    /**
+     * Ringkasan teks untuk di-copy-paste (WhatsApp friendly), dikelompokkan per unit kerja.
+     */
+    private function buildSummary($bookings, string $title, string $mode): string
+    {
+        $statusLabel = [
+            'APPROVED' => 'Disetujui',
+            'PENDING' => 'Menunggu',
+        ];
+
+        $lines = [];
+        $lines[] = "*Agenda Rapat - {$title}*";
+        $lines[] = "PIC: " . Auth::user()->name;
+
+        if ($bookings->isEmpty()) {
+            $lines[] = "";
+            $lines[] = "Tidak ada rapat.";
+            return implode("\n", $lines);
+        }
+
+        $noUnit = 'Tanpa unit kerja';
+
+        $byUnit = $bookings
+            ->groupBy(fn($b) => filled($b->unit_kerja) ? trim($b->unit_kerja) : $noUnit)
+            ->sortKeys(SORT_NATURAL | SORT_FLAG_CASE);
+
+        // "Tanpa unit kerja" di paling bawah
+        if ($byUnit->has($noUnit)) {
+            $none = $byUnit->pull($noUnit);
+            $byUnit->put($noUnit, $none);
+        }
+
+        foreach ($byUnit as $unit => $items) {
+            $lines[] = "";
+            $lines[] = "*{$unit}* ({$items->count()} rapat)";
+
+            foreach ($items as $b) {
+                $s = Carbon::parse($b->start_at);
+                $e = Carbon::parse($b->end_at);
+
+                // Mode hari: tanggal tidak perlu diulang
+                $prefix = $mode === 'day' ? '' : $s->translatedFormat('D, d M') . ' ';
+                $time = $s->format('H.i') . '-' . $e->format('H.i');
+                $room = $b->room?->name ?? '-';
+                $status = $statusLabel[$b->status] ?? $b->status;
+
+                $lines[] = "• {$prefix}{$time} | {$b->title} | {$room} | {$status}";
+            }
+        }
+
+        return implode("\n", $lines);
     }
 }

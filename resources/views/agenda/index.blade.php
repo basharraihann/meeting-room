@@ -9,10 +9,6 @@
         $today = now()->toDateString();
         $nowTs = now();
 
-        $grouped = $isRange
-            ? $bookings->groupBy(fn($b) => Carbon::parse($b->start_at)->toDateString())
-            : collect([$d->toDateString() => $bookings]);
-
         // Warna ruangan dari kolom rooms.color (sama seperti dashboard & kalender)
         $roomColors = \App\Models\Room::pluck('color', 'id')->filter()->all();
 
@@ -50,6 +46,22 @@
         $approved = $bookings->where('status', 'APPROVED')->count();
         $pending = $bookings->where('status', 'PENDING')->count();
 
+        // ===== KELOMPOK PER UNIT KERJA =====
+        $noUnitKey = '__none';
+        $byUnit = $bookings
+            ->sortBy(fn($b) => Carbon::parse($b->start_at)->timestamp)
+            ->groupBy(fn($b) => filled($b->unit_kerja) ? trim($b->unit_kerja) : $noUnitKey)
+            ->sortKeys(SORT_NATURAL | SORT_FLAG_CASE);
+
+        // "Tanpa unit kerja" selalu di paling bawah
+        if ($byUnit->has($noUnitKey)) {
+            $none = $byUnit->pull($noUnitKey);
+            $byUnit->put($noUnitKey, $none);
+        }
+        $unitCount = $byUnit->count();
+        $unitName = fn($key) => $key === $noUnitKey ? 'Tanpa unit kerja' : $key;
+        $unitAnchor = fn($key, $i) => 'unit-' . $i . '-' . Str::slug($unitName($key));
+
         // Ikon gedung untuk unit kerja (SVG inline, warna mengikuti teks)
         $iconBuilding = '<svg class="%s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg>';
         $building = fn(string $cls) => sprintf($iconBuilding, $cls);
@@ -78,8 +90,8 @@
             </span>
             <div class="min-w-0 flex-1">
                 <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Agenda Saya</h1>
-                <p class="mt-0.5 text-xs text-slate-500">Jadwal rapat yang Anda ajukan. Salin ringkasannya untuk
-                    dibagikan.</p>
+                <p class="mt-0.5 text-xs text-slate-500">Jadwal rapat yang diajukan, dikelompokkan per unit kerja.
+                    Salin ringkasannya untuk dibagikan.</p>
             </div>
 
             <div class="relative z-10 flex shrink-0 items-center gap-2">
@@ -180,6 +192,8 @@
                             <span class="text-indigo-500">{!! $building('h-3.5 w-3.5 shrink-0') !!}</span>
                             <span class="truncate font-semibold text-slate-700">{{ $unitKerja }}</span>
                         </p>
+                    @elseif($bookings->isNotEmpty())
+                        <p class="mt-1.5 text-xs text-slate-500">{{ $unitCount }} unit kerja memiliki agenda</p>
                     @endif
                 </div>
 
@@ -231,111 +245,179 @@
                     </div>
                 </div>
             @else
-                {{-- Header kolom --}}
-                <div
-                    class="hidden gap-4 border-y border-slate-100 bg-slate-50/70 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400 sm:grid {{ $cols }}">
-                    <span>Waktu</span>
-                    <span>Rapat</span>
-                    <span>Ruangan</span>
-                    <span class="text-right">Status</span>
-                </div>
+                {{-- ===== NAVIGASI CEPAT ANTAR UNIT ===== --}}
+                @if($unitCount > 1)
+                    <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 px-4 py-3 sm:px-5">
+                        <span class="mr-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Lompat ke</span>
+                        @foreach($byUnit as $key => $items)
+                            <a href="#{{ $unitAnchor($key, $loop->index) }}"
+                                class="inline-flex max-w-[220px] items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                                <span class="truncate">{{ $unitName($key) }}</span>
+                                <span
+                                    class="rounded-full bg-slate-100 px-1.5 text-[11px] font-bold tabular-nums text-slate-500">{{ $items->count() }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
 
-                @foreach($grouped as $day => $items)
-                    @php $isToday = $day === $today; @endphp
+                {{-- ===== DAFTAR PER UNIT ===== --}}
+                <div class="space-y-4 border-t border-slate-100 bg-slate-50/50 p-3 sm:p-5">
+                    @foreach($byUnit as $key => $unitItems)
+                        @php
+                            $uApproved = $unitItems->where('status', 'APPROVED')->count();
+                            $uPending = $unitItems->where('status', 'PENDING')->count();
+                            $uLive = $unitItems->filter(fn($x) => in_array($x->status, ['APPROVED', 'PENDING'], true)
+                                && $nowTs->between(Carbon::parse($x->start_at), Carbon::parse($x->end_at)))->count();
+                            $isNone = $key === $noUnitKey;
 
-                    @if($isRange)
-                        <div
-                            class="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-2 sm:px-5 {{ !$loop->first ? 'border-t' : '' }}">
-                            <span class="text-xs font-bold {{ $isToday ? 'text-indigo-700' : 'text-slate-700' }}">
-                                {{ Carbon::parse($day)->translatedFormat('l, d F Y') }}
-                            </span>
-                            @if($isToday)
-                                <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">Hari
-                                    ini</span>
-                            @endif
-                            <span class="ml-auto text-xs text-slate-400">{{ $items->count() }} rapat</span>
-                        </div>
-                    @endif
+                            // Di dalam unit: kelompokkan per tanggal (hanya ditampilkan pada mode minggu/bulan)
+                            $byDay = $isRange
+                                ? $unitItems->groupBy(fn($x) => Carbon::parse($x->start_at)->toDateString())
+                                : collect(['_' => $unitItems]);
+                        @endphp
 
-                    <div class="divide-y divide-slate-100">
-                        @foreach($items as $b)
-                            @php
-                                $c = $roomColors[$b->room_id ?? 0] ?? '#6366f1';
-                                $start = Carbon::parse($b->start_at);
-                                $end = Carbon::parse($b->end_at);
-                                $isActive = in_array($b->status, ['APPROVED', 'PENDING'], true);
-                                $live = $isActive && $nowTs->between($start, $end);
-                                $done = $b->status === 'APPROVED' && $end->lessThan($nowTs);
+                        <details open id="{{ $unitAnchor($key, $loop->index) }}"
+                            class="group/unit scroll-mt-24 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <summary
+                                class="flex cursor-pointer list-none flex-wrap items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 to-white px-4 py-3 transition hover:from-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 sm:px-5 [&::-webkit-details-marker]:hidden">
+                                <span
+                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $isNone ? 'bg-slate-100 text-slate-400' : 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/25' }}">
+                                    {!! $building('h-[18px] w-[18px]') !!}
+                                </span>
 
-                                [$sLabel, $sCls, $sDot] = $statusMap[$b->status] ?? [Str::title(strtolower($b->status)), 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
-                                if ($done) {
-                                    [$sLabel, $sCls, $sDot] = ['Selesai', 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
-                                }
-                                if ($live) {
-                                    [$sLabel, $sCls, $sDot] = ['Berlangsung', 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', 'bg-emerald-500 animate-pulse'];
-                                }
-                                $dim = $done || !$isActive;
-                                $durMin = (int) $start->diffInMinutes($end);
-                            @endphp
-
-                            <div
-                                class="group relative grid gap-x-4 gap-y-2 px-4 py-3.5 transition hover:bg-slate-50/70 sm:items-center sm:px-5 {{ $cols }} {{ $live ? 'bg-emerald-50/40' : '' }}">
-                                <span class="absolute inset-y-0 left-0 w-[3px]" style="background: {{ $c }}"
-                                    aria-hidden="true"></span>
-
-                                {{-- Waktu --}}
-                                <div class="order-1 sm:order-none {{ $dim ? 'opacity-60' : '' }}">
-                                    <div class="text-sm font-extrabold tabular-nums leading-tight text-slate-900">
-                                        {{ $start->format('H.i') }}
-                                        <span class="font-semibold text-slate-400">–</span>
-                                        {{ $end->format('H.i') }}
-                                    </div>
-                                    <div class="mt-0.5 text-xs text-slate-400">
-                                        @if($isRange){{ $start->translatedFormat('D, j M') }} · @endif{{ $fmtDur($durMin) }}
-                                    </div>
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="truncate text-sm font-extrabold leading-tight text-slate-900">
+                                        {{ $unitName($key) }}</h3>
+                                    <p class="mt-0.5 text-xs text-slate-500">{{ $unitItems->count() }} rapat</p>
                                 </div>
 
-                                {{-- Rapat --}}
-                                <div class="order-3 col-span-2 min-w-0 sm:order-none sm:col-span-1 {{ $dim ? 'opacity-60' : '' }}">
-                                    <div class="truncate text-sm font-semibold text-slate-900">{{ $b->title }}</div>
-                                    @if($b->unit_kerja || $b->description)
-                                        <div class="mt-1 flex min-w-0 items-center gap-2 text-xs text-slate-500">
-                                            @if($b->unit_kerja)
-                                                <span
-                                                    class="inline-flex min-w-0 max-w-[65%] shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
-                                                    {!! $building('h-3 w-3 shrink-0') !!}
-                                                    <span class="truncate">{{ $b->unit_kerja }}</span>
-                                                </span>
-                                            @endif
-                                            @if($b->description)
-                                                <span class="truncate">{{ Str::limit($b->description, 70) }}</span>
-                                            @endif
-                                        </div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    @if($uLive)
+                                        <span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                            <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>{{ $uLive }}
+                                            berlangsung
+                                        </span>
+                                    @endif
+                                    @if($uApproved)
+                                        <span
+                                            class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">{{ $uApproved }}
+                                            disetujui</span>
+                                    @endif
+                                    @if($uPending)
+                                        <span
+                                            class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">{{ $uPending }}
+                                            menunggu</span>
                                     @endif
                                 </div>
 
-                                {{-- Ruangan --}}
-                                <div
-                                    class="order-4 col-span-2 flex items-center gap-2 text-xs font-medium text-slate-600 sm:order-none sm:col-span-1 {{ $dim ? 'opacity-60' : '' }}">
-                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white"
-                                        style="background: {{ $c }}; box-shadow: 0 0 0 1px {{ $c }}55;"></span>
-                                    <span class="truncate">{{ $b->room?->name ?? '-' }}</span>
-                                </div>
+                                <svg class="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open/unit:rotate-180"
+                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                    aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
 
-                                {{-- Status --}}
-                                <div class="order-2 justify-self-end sm:order-none">
-                                    <span
-                                        class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $sCls }}">
-                                        <span class="h-1.5 w-1.5 rounded-full {{ $sDot }}"></span>{{ $sLabel }}
-                                    </span>
-                                </div>
+                            {{-- Header kolom --}}
+                            <div
+                                class="hidden gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400 sm:grid {{ $cols }}">
+                                <span>Waktu</span>
+                                <span>Rapat</span>
+                                <span>Ruangan</span>
+                                <span class="text-right">Status</span>
                             </div>
-                        @endforeach
-                    </div>
-                @endforeach
+
+                            @foreach($byDay as $day => $items)
+                                @if($isRange)
+                                    @php $isToday = $day === $today; @endphp
+                                    <div
+                                        class="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-1.5 sm:px-5 {{ !$loop->first ? 'border-t' : '' }}">
+                                        <span class="text-xs font-bold {{ $isToday ? 'text-indigo-700' : 'text-slate-600' }}">
+                                            {{ Carbon::parse($day)->translatedFormat('l, d F Y') }}
+                                        </span>
+                                        @if($isToday)
+                                            <span
+                                                class="rounded bg-indigo-100 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">Hari
+                                                ini</span>
+                                        @endif
+                                        <span class="ml-auto text-[11px] text-slate-400">{{ $items->count() }} rapat</span>
+                                    </div>
+                                @endif
+
+                                <div class="divide-y divide-slate-100">
+                                    @foreach($items as $b)
+                                        @php
+                                            $c = $roomColors[$b->room_id ?? 0] ?? '#6366f1';
+                                            $start = Carbon::parse($b->start_at);
+                                            $end = Carbon::parse($b->end_at);
+                                            $isActive = in_array($b->status, ['APPROVED', 'PENDING'], true);
+                                            $live = $isActive && $nowTs->between($start, $end);
+                                            $done = $b->status === 'APPROVED' && $end->lessThan($nowTs);
+
+                                            [$sLabel, $sCls, $sDot] = $statusMap[$b->status] ?? [Str::title(strtolower($b->status)), 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
+                                            if ($done) {
+                                                [$sLabel, $sCls, $sDot] = ['Selesai', 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
+                                            }
+                                            if ($live) {
+                                                [$sLabel, $sCls, $sDot] = ['Berlangsung', 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', 'bg-emerald-500 animate-pulse'];
+                                            }
+                                            $dim = $done || !$isActive;
+                                            $durMin = (int) $start->diffInMinutes($end);
+                                        @endphp
+
+                                        <div
+                                            class="group relative grid gap-x-4 gap-y-2 px-4 py-3.5 transition hover:bg-slate-50/70 sm:items-center sm:px-5 {{ $cols }} {{ $live ? 'bg-emerald-50/40' : '' }}">
+                                            <span class="absolute inset-y-0 left-0 w-[3px]" style="background: {{ $c }}"
+                                                aria-hidden="true"></span>
+
+                                            {{-- Waktu --}}
+                                            <div class="order-1 sm:order-none {{ $dim ? 'opacity-60' : '' }}">
+                                                <div class="text-sm font-extrabold tabular-nums leading-tight text-slate-900">
+                                                    {{ $start->format('H.i') }}
+                                                    <span class="font-semibold text-slate-400">–</span>
+                                                    {{ $end->format('H.i') }}
+                                                </div>
+                                                <div class="mt-0.5 text-xs text-slate-400">
+                                                    @if($isRange){{ $start->translatedFormat('D, j M') }} · @endif{{ $fmtDur($durMin) }}
+                                                </div>
+                                            </div>
+
+                                            {{-- Rapat --}}
+                                            <div
+                                                class="order-3 col-span-2 min-w-0 sm:order-none sm:col-span-1 {{ $dim ? 'opacity-60' : '' }}">
+                                                <div class="truncate text-sm font-semibold text-slate-900">{{ $b->title }}</div>
+                                                @if($b->description)
+                                                    <div class="mt-0.5 truncate text-xs text-slate-500">
+                                                        {{ Str::limit($b->description, 90) }}</div>
+                                                @endif
+                                            </div>
+
+                                            {{-- Ruangan --}}
+                                            <div
+                                                class="order-4 col-span-2 flex items-center gap-2 text-xs font-medium text-slate-600 sm:order-none sm:col-span-1 {{ $dim ? 'opacity-60' : '' }}">
+                                                <span class="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white"
+                                                    style="background: {{ $c }}; box-shadow: 0 0 0 1px {{ $c }}55;"></span>
+                                                <span class="truncate">{{ $b->room?->name ?? '-' }}</span>
+                                            </div>
+
+                                            {{-- Status --}}
+                                            <div class="order-2 justify-self-end sm:order-none">
+                                                <span
+                                                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $sCls }}">
+                                                    <span class="h-1.5 w-1.5 rounded-full {{ $sDot }}"></span>{{ $sLabel }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </details>
+                    @endforeach
+                </div>
 
                 <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/40 px-4 py-3 sm:px-5">
-                    <span class="text-xs text-slate-400">{{ $total }} rapat ditampilkan</span>
+                    <span class="text-xs text-slate-400">{{ $total }} rapat dari {{ $unitCount }} unit kerja
+                        ditampilkan</span>
                     <a href="{{ route('my_bookings.index') }}"
                         class="text-[13px] font-semibold text-indigo-600 hover:text-indigo-800">Semua pengajuan →</a>
                 </div>

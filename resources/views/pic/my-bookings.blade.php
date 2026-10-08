@@ -17,8 +17,20 @@
         $todayStr = now()->toDateString();
         $now = now();
 
-        // Kelompokkan per tanggal (urutan dari controller tetap dipertahankan)
-        $grouped = $bookings->getCollection()->groupBy(fn($b) => Carbon::parse($b->start_at)->toDateString());
+        // ===== KELOMPOK PER UNIT KERJA (urutan dari controller tetap dipertahankan di dalam unit) =====
+        $noUnitKey = '__none';
+        $byUnit = $bookings->getCollection()
+            ->groupBy(fn($b) => filled($b->unit_kerja) ? trim($b->unit_kerja) : $noUnitKey)
+            ->sortKeys(SORT_NATURAL | SORT_FLAG_CASE);
+
+        // "Tanpa unit kerja" selalu di paling bawah
+        if ($byUnit->has($noUnitKey)) {
+            $none = $byUnit->pull($noUnitKey);
+            $byUnit->put($noUnitKey, $none);
+        }
+        $unitCount = $byUnit->count();
+        $unitName = fn($key) => $key === $noUnitKey ? 'Tanpa unit kerja' : $key;
+        $unitAnchor = fn($key, $i) => 'unit-' . $i . '-' . Str::slug($unitName($key));
 
         // [label, kelas badge, kelas titik]
         $statusMap = [
@@ -37,7 +49,7 @@
 
         $hasFilter = filled($q) || filled($status) || filled($unitKerja);
 
-        // Mobile: waktu + status di baris atas. Desktop: 4 kolom.
+        // Mobile: waktu + status di baris atas. Desktop: 5 kolom.
         $cols = 'grid-cols-[1fr_auto] xl:grid-cols-[104px_minmax(0,1fr)_160px_112px_300px]';
 
         // Logo WhatsApp (SVG inline, warna mengikuti teks)
@@ -60,11 +72,9 @@
             </span>
             <div class="min-w-0 flex-1">
                 <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Riwayat Pengajuan</h1>
-                <p class="mt-0.5 text-xs text-slate-500">Pantau status pengajuan rapat Anda, hubungi TU, atau batalkan
-                    booking.</p>
+                <p class="mt-0.5 text-xs text-slate-500">Pantau status pengajuan rapat per unit kerja, hubungi TU, atau
+                    batalkan booking.</p>
             </div>
-
-
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
@@ -152,6 +162,8 @@
                                 <span class="text-indigo-500">{!! $building('h-3.5 w-3.5 shrink-0') !!}</span>
                                 <span class="truncate font-semibold text-slate-700">{{ $unitKerja }}</span>
                             </span>
+                        @elseif($unitCount > 0)
+                            <span>{{ $unitCount }} unit kerja di halaman ini</span>
                         @endif
                         <span id="resultInfo" class="hidden font-semibold text-indigo-600"></span>
                     </div>
@@ -165,7 +177,7 @@
                 </div>
             </div>
 
-            @if($grouped->isEmpty())
+            @if($byUnit->isEmpty())
                 {{-- ===== KOSONG ===== --}}
                 <div class="border-t border-slate-100 px-4 py-14 text-center">
                     <span
@@ -196,187 +208,256 @@
                     </div>
                 </div>
             @else
-                {{-- Header kolom --}}
-                <div
-                    class="hidden gap-4 border-y border-slate-100 bg-slate-50/70 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400 xl:grid {{ $cols }}">
-                    <span>Waktu</span>
-                    <span>Rapat</span>
-                    <span>Ruangan</span>
-                    <span>Status</span>
-                    <span class="text-right">Aksi</span>
-                </div>
+                {{-- ===== NAVIGASI CEPAT ANTAR UNIT ===== --}}
+                @if($unitCount > 1)
+                    <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 px-4 py-3 sm:px-5">
+                        <span class="mr-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Lompat ke</span>
+                        @foreach($byUnit as $key => $items)
+                            <a href="#{{ $unitAnchor($key, $loop->index) }}"
+                                class="inline-flex max-w-[220px] items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                                <span class="truncate">{{ $unitName($key) }}</span>
+                                <span
+                                    class="rounded-full bg-slate-100 px-1.5 text-[11px] font-bold tabular-nums text-slate-500">{{ $items->count() }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
 
-                @foreach($grouped as $dateStr => $items)
-                    @php
-                        $isToday = $dateStr === $todayStr;
-                        $dateLabel = Carbon::parse($dateStr)->translatedFormat('l, d F Y');
-                    @endphp
+                {{-- ===== DAFTAR PER UNIT ===== --}}
+                <div class="space-y-4 border-t border-slate-100 bg-slate-50/50 p-3 sm:p-5">
+                    @foreach($byUnit as $key => $unitItems)
+                        @php
+                            $uApproved = $unitItems->where('status', 'APPROVED')->count();
+                            $uPending = $unitItems->where('status', 'PENDING')->count();
+                            $uLive = $unitItems->filter(fn($x) => in_array($x->status, ['APPROVED', 'PENDING'], true)
+                                && $now->between(Carbon::parse($x->start_at), Carbon::parse($x->end_at)))->count();
+                            $isNone = $key === $noUnitKey;
 
-                    <section data-group class="{{ !$loop->first ? 'border-t border-slate-100' : '' }}">
-                        <div class="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-2 sm:px-5">
-                            <span class="text-xs font-bold {{ $isToday ? 'text-indigo-700' : 'text-slate-700' }}">
-                                {{ $dateLabel }}
-                            </span>
-                            @if($isToday)
-                                <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">Hari
-                                    ini</span>
-                            @endif
-                            <span class="ml-auto text-xs text-slate-400">{{ $items->count() }} rapat</span>
-                        </div>
+                            // Di dalam unit: kelompokkan per tanggal (urutan controller dipertahankan)
+                            $byDay = $unitItems->groupBy(fn($x) => Carbon::parse($x->start_at)->toDateString());
+                        @endphp
 
-                        <div class="divide-y divide-slate-100">
-                            @foreach($items as $b)
+                        <details open data-unit id="{{ $unitAnchor($key, $loop->index) }}"
+                            class="group/unit scroll-mt-24 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <summary
+                                class="flex cursor-pointer list-none flex-wrap items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 to-white px-4 py-3 transition hover:from-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 sm:px-5 [&::-webkit-details-marker]:hidden">
+                                <span
+                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $isNone ? 'bg-slate-100 text-slate-400' : 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/25' }}">
+                                    {!! $building('h-[18px] w-[18px]') !!}
+                                </span>
+
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="truncate text-sm font-extrabold leading-tight text-slate-900">
+                                        {{ $unitName($key) }}</h3>
+                                    <p class="mt-0.5 text-xs text-slate-500">{{ $unitItems->count() }} rapat</p>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    @if($uLive)
+                                        <span
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                            <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>{{ $uLive }}
+                                            berlangsung
+                                        </span>
+                                    @endif
+                                    @if($uApproved)
+                                        <span
+                                            class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">{{ $uApproved }}
+                                            disetujui</span>
+                                    @endif
+                                    @if($uPending)
+                                        <span
+                                            class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">{{ $uPending }}
+                                            menunggu</span>
+                                    @endif
+                                </div>
+
+                                <svg class="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open/unit:rotate-180"
+                                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                                    aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+
+                            {{-- Header kolom --}}
+                            <div
+                                class="hidden gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400 xl:grid {{ $cols }}">
+                                <span>Waktu</span>
+                                <span>Rapat</span>
+                                <span>Ruangan</span>
+                                <span>Status</span>
+                                <span class="text-right">Aksi</span>
+                            </div>
+
+                            @foreach($byDay as $dateStr => $items)
                                 @php
-                                    $c = $roomColors[$b->room_id ?? 0] ?? '#6366f1';
-                                    $start = Carbon::parse($b->start_at);
-                                    $end = Carbon::parse($b->end_at);
-                                    $startTime = $start->format('H.i');
-                                    $endTime = $end->format('H.i');
-                                    $durMin = (int) $start->diffInMinutes($end);
-
-                                    $isActive = in_array($b->status, ['APPROVED', 'PENDING'], true);
-                                    $live = $isActive && $now->between($start, $end);
-                                    $isDone = $b->status === 'APPROVED' && $end->lessThan($now);
-
-                                    [$sLabel, $sCls, $sDot] = $statusMap[strtoupper($b->status)] ?? [Str::title(strtolower($b->status)), 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
-                                    if ($isDone) {
-                                        [$sLabel, $sCls, $sDot] = ['Selesai', 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
-                                    }
-                                    if ($live) {
-                                        [$sLabel, $sCls, $sDot] = ['Berlangsung', 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', 'bg-emerald-500 animate-pulse'];
-                                    }
-                                    $dim = $isDone || !$isActive;
-                                    $canCancel = in_array($b->status, ['PENDING', 'APPROVED'], true) && !$isDone;
-
-                                    // Teks yang bisa dicari
-                                    $searchText = implode(' ', array_filter([
-                                        $b->title,
-                                        $b->room?->name,
-                                        $b->unit_kerja,
-                                        $b->description,
-                                        $sLabel,
-                                        $dateLabel,
-                                        "$startTime $endTime",
-                                    ]));
+                                    $isToday = $dateStr === $todayStr;
+                                    $dateLabel = Carbon::parse($dateStr)->translatedFormat('l, d F Y');
                                 @endphp
 
-                                <article data-row data-search="{{ $searchText }}"
-                                    class="group relative grid gap-x-4 gap-y-2 px-4 py-3.5 transition hover:bg-slate-50/70 xl:items-center sm:px-5 {{ $cols }} {{ $live ? 'bg-emerald-50/40' : '' }}">
-                                    <span class="absolute inset-y-0 left-0 w-[3px]" style="background: {{ $c }}"
-                                        aria-hidden="true"></span>
-
-                                    {{-- Waktu --}}
-                                    <div class="order-1 xl:order-none {{ $dim ? 'opacity-70' : '' }}">
-                                        <div class="text-sm font-extrabold tabular-nums leading-tight text-slate-900">
-                                            {{ $startTime }}
-                                            <span class="font-semibold text-slate-400">–</span>
-                                            {{ $endTime }}
-                                        </div>
-                                        <div class="mt-0.5 text-xs text-slate-400">{{ $fmtDur($durMin) }}</div>
-                                    </div>
-
-                                    {{-- Rapat --}}
+                                <section data-group class="{{ !$loop->first ? 'border-t border-slate-100' : '' }}">
                                     <div
-                                        class="order-3 col-span-2 min-w-0 xl:order-none xl:col-span-1 {{ $dim ? 'opacity-70' : '' }}">
-                                        <div class="js-title truncate text-sm font-semibold text-slate-900"
-                                            data-title="{{ $b->title }}" title="{{ $b->title }}">{{ $b->title }}</div>
-
-                                        @php
-                                            $waUrl = null;
-                                            if ($b->room?->tuUser?->phone && $b->status === 'PENDING') {
-                                                $tuPhone = ltrim(preg_replace('/^0/', '62', $b->room->tuUser->phone), '+');
-                                                $startDate = $start->translatedFormat('d F Y');
-                                                $jam = $start->format('H:i') . ' - ' . $end->format('H:i');
-                                                $waMsg = "Halo Bapak/Ibu {$b->room->tuUser->name},\n\n"
-                                                    . "Saya PIC {$b->unit_kerja} ingin mengkonfirmasi pengajuan peminjaman ruang rapat:\n\n"
-                                                    . "*{$b->title}*\n"
-                                                    . "Ruangan: {$b->room->name}\n"
-                                                    . "Tanggal: {$startDate}\n"
-                                                    . "Waktu: {$jam}\n\n"
-                                                    . "Mohon konfirmasinya apakah jadwal tersebut tersedia. Jika tersedia, mohon untuk melakukan approval di sistem.\n\nTerima kasih.";
-                                                $waUrl = 'https://wa.me/' . $tuPhone . '?text=' . rawurlencode($waMsg);
-                                            }
-                                        @endphp
-
-                                        @if($b->unit_kerja || $b->description)
-                                            <div class="mt-1 flex min-w-0 items-center gap-2 text-xs text-slate-500">
-                                                @if($b->unit_kerja)
-                                                    <span
-                                                        class="inline-flex min-w-0 max-w-[65%] shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
-                                                        {!! $building('h-3 w-3 shrink-0') !!}
-                                                        <span class="truncate">{{ $b->unit_kerja }}</span>
-                                                    </span>
-                                                @endif
-
-                                                @if($b->description)
-                                                    <span class="truncate"
-                                                        title="{{ $b->description }}">{{ Str::limit($b->description, 70) }}</span>
-                                                @endif
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                    {{-- Ruangan --}}
-                                    <div
-                                        class="order-4 col-span-2 flex items-center gap-2 text-xs font-medium text-slate-600 xl:order-none xl:col-span-1 {{ $dim ? 'opacity-70' : '' }}">
-                                        <span class="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white"
-                                            style="background: {{ $c }}; box-shadow: 0 0 0 1px {{ $c }}55;"></span>
-                                        <span class="truncate">{{ $b->room?->name ?? '-' }}</span>
-                                    </div>
-
-                                    {{-- Status --}}
-                                    <div class="order-2 justify-self-end xl:order-none xl:justify-self-start">
-                                        <span
-                                            class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $sCls }}">
-                                            <span class="h-1.5 w-1.5 rounded-full {{ $sDot }}"></span>{{ $sLabel }}
+                                        class="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-1.5 sm:px-5">
+                                        <span class="text-xs font-bold {{ $isToday ? 'text-indigo-700' : 'text-slate-600' }}">
+                                            {{ $dateLabel }}
                                         </span>
+                                        @if($isToday)
+                                            <span
+                                                class="rounded bg-indigo-100 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">Hari
+                                                ini</span>
+                                        @endif
+                                        <span class="ml-auto text-[11px] text-slate-400">{{ $items->count() }} rapat</span>
                                     </div>
 
-                                    {{-- Aksi --}}
-                                    @if($waUrl || $canCancel)
-                                        <div
-                                            class="order-5 col-span-2 flex flex-wrap items-center justify-end gap-2 xl:order-none xl:col-span-1 xl:flex-nowrap">
-                                            @if($waUrl)
-                                                <a href="{{ $waUrl }}" target="_blank" rel="noopener"
-                                                    title="Chat TU {{ $b->room->tuUser->name }} via WhatsApp"
-                                                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40">
-                                                    {!! $wa('h-4 w-4 shrink-0 text-[#25D366]') !!}
-                                                    Chat TU
-                                                </a>
-                                            @endif
+                                    <div class="divide-y divide-slate-100">
+                                        @foreach($items as $b)
+                                            @php
+                                                $c = $roomColors[$b->room_id ?? 0] ?? '#6366f1';
+                                                $start = Carbon::parse($b->start_at);
+                                                $end = Carbon::parse($b->end_at);
+                                                $startTime = $start->format('H.i');
+                                                $endTime = $end->format('H.i');
+                                                $durMin = (int) $start->diffInMinutes($end);
 
-                                            @if($canCancel)
-                                                <button type="button" data-id="{{ $b->id }}" data-title="{{ $b->title }}"
-                                                    onclick="openCancelModal(this)"
-                                                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-600 hover:bg-rose-600 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40">
-                                                    <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2"
-                                                        stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"
-                                                        aria-hidden="true">
-                                                        <circle cx="12" cy="12" r="9" />
-                                                        <path d="M15 9l-6 6M9 9l6 6" />
-                                                    </svg>
-                                                    Batalkan
-                                                </button>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </article>
+                                                $isActive = in_array($b->status, ['APPROVED', 'PENDING'], true);
+                                                $live = $isActive && $now->between($start, $end);
+                                                $isDone = $b->status === 'APPROVED' && $end->lessThan($now);
+
+                                                [$sLabel, $sCls, $sDot] = $statusMap[strtoupper($b->status)] ?? [Str::title(strtolower($b->status)), 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
+                                                if ($isDone) {
+                                                    [$sLabel, $sCls, $sDot] = ['Selesai', 'bg-slate-100 text-slate-500 ring-slate-400/20', 'bg-slate-400'];
+                                                }
+                                                if ($live) {
+                                                    [$sLabel, $sCls, $sDot] = ['Berlangsung', 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', 'bg-emerald-500 animate-pulse'];
+                                                }
+                                                $dim = $isDone || !$isActive;
+                                                $canCancel = in_array($b->status, ['PENDING', 'APPROVED'], true) && !$isDone;
+
+                                                // Teks yang bisa dicari
+                                                $searchText = implode(' ', array_filter([
+                                                    $b->title,
+                                                    $b->room?->name,
+                                                    $b->unit_kerja,
+                                                    $b->description,
+                                                    $sLabel,
+                                                    $dateLabel,
+                                                    "$startTime $endTime",
+                                                ]));
+
+                                                // Link WhatsApp ke TU (hanya untuk pengajuan yang masih menunggu)
+                                                $waUrl = null;
+                                                if ($b->room?->tuUser?->phone && $b->status === 'PENDING') {
+                                                    $tuPhone = ltrim(preg_replace('/^0/', '62', $b->room->tuUser->phone), '+');
+                                                    $startDate = $start->translatedFormat('d F Y');
+                                                    $jam = $start->format('H:i') . ' - ' . $end->format('H:i');
+                                                    $waMsg = "Halo Bapak/Ibu {$b->room->tuUser->name},\n\n"
+                                                        . "Saya PIC {$b->unit_kerja} ingin mengkonfirmasi pengajuan peminjaman ruang rapat:\n\n"
+                                                        . "*{$b->title}*\n"
+                                                        . "Ruangan: {$b->room->name}\n"
+                                                        . "Tanggal: {$startDate}\n"
+                                                        . "Waktu: {$jam}\n\n"
+                                                        . "Mohon konfirmasinya apakah jadwal tersebut tersedia. Jika tersedia, mohon untuk melakukan approval di sistem.\n\nTerima kasih.";
+                                                    $waUrl = 'https://wa.me/' . $tuPhone . '?text=' . rawurlencode($waMsg);
+                                                }
+                                            @endphp
+
+                                            <article data-row data-search="{{ $searchText }}"
+                                                class="group relative grid gap-x-4 gap-y-2 px-4 py-3.5 transition hover:bg-slate-50/70 xl:items-center sm:px-5 {{ $cols }} {{ $live ? 'bg-emerald-50/40' : '' }}">
+                                                <span class="absolute inset-y-0 left-0 w-[3px]"
+                                                    style="background: {{ $c }}" aria-hidden="true"></span>
+
+                                                {{-- Waktu --}}
+                                                <div class="order-1 xl:order-none {{ $dim ? 'opacity-70' : '' }}">
+                                                    <div
+                                                        class="text-sm font-extrabold tabular-nums leading-tight text-slate-900">
+                                                        {{ $startTime }}
+                                                        <span class="font-semibold text-slate-400">–</span>
+                                                        {{ $endTime }}
+                                                    </div>
+                                                    <div class="mt-0.5 text-xs text-slate-400">{{ $fmtDur($durMin) }}</div>
+                                                </div>
+
+                                                {{-- Rapat --}}
+                                                <div
+                                                    class="order-3 col-span-2 min-w-0 xl:order-none xl:col-span-1 {{ $dim ? 'opacity-70' : '' }}">
+                                                    <div class="js-title truncate text-sm font-semibold text-slate-900"
+                                                        data-title="{{ $b->title }}" title="{{ $b->title }}">{{ $b->title }}
+                                                    </div>
+                                                    @if($b->description)
+                                                        <div class="mt-0.5 truncate text-xs text-slate-500"
+                                                            title="{{ $b->description }}">
+                                                            {{ Str::limit($b->description, 90) }}</div>
+                                                    @endif
+                                                </div>
+
+                                                {{-- Ruangan --}}
+                                                <div
+                                                    class="order-4 col-span-2 flex items-center gap-2 text-xs font-medium text-slate-600 xl:order-none xl:col-span-1 {{ $dim ? 'opacity-70' : '' }}">
+                                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white"
+                                                        style="background: {{ $c }}; box-shadow: 0 0 0 1px {{ $c }}55;"></span>
+                                                    <span class="truncate">{{ $b->room?->name ?? '-' }}</span>
+                                                </div>
+
+                                                {{-- Status --}}
+                                                <div class="order-2 justify-self-end xl:order-none xl:justify-self-start">
+                                                    <span
+                                                        class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $sCls }}">
+                                                        <span class="h-1.5 w-1.5 rounded-full {{ $sDot }}"></span>{{ $sLabel }}
+                                                    </span>
+                                                </div>
+
+                                                {{-- Aksi --}}
+                                                @if($waUrl || $canCancel)
+                                                    <div
+                                                        class="order-5 col-span-2 flex flex-wrap items-center justify-end gap-2 xl:order-none xl:col-span-1 xl:flex-nowrap">
+                                                        @if($waUrl)
+                                                            <a href="{{ $waUrl }}" target="_blank" rel="noopener"
+                                                                title="Chat TU {{ $b->room->tuUser->name }} via WhatsApp"
+                                                                class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40">
+                                                                {!! $wa('h-4 w-4 shrink-0 text-[#25D366]') !!}
+                                                                Chat TU
+                                                            </a>
+                                                        @endif
+
+                                                        @if($canCancel)
+                                                            <button type="button" data-id="{{ $b->id }}"
+                                                                data-title="{{ $b->title }}" onclick="openCancelModal(this)"
+                                                                class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:border-rose-600 hover:bg-rose-600 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40">
+                                                                <svg class="h-3.5 w-3.5 shrink-0" fill="none"
+                                                                    stroke="currentColor" stroke-width="2.2"
+                                                                    stroke-linecap="round" stroke-linejoin="round"
+                                                                    viewBox="0 0 24 24" aria-hidden="true">
+                                                                    <circle cx="12" cy="12" r="9" />
+                                                                    <path d="M15 9l-6 6M9 9l6 6" />
+                                                                </svg>
+                                                                Batalkan
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </article>
+                                        @endforeach
+                                    </div>
+                                </section>
                             @endforeach
-                        </div>
-                    </section>
-                @endforeach
+                        </details>
+                    @endforeach
 
-                {{-- Kosong hasil live search (di halaman ini) --}}
-                <div id="noMatch" class="hidden flex-col items-center border-t border-slate-100 px-4 py-12 text-center">
-                    <span class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"
-                            aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
-                        </svg>
-                    </span>
-                    <div class="mt-3 text-sm font-bold text-slate-800">Tidak ditemukan di halaman ini</div>
-                    <p class="mt-1 max-w-xs text-xs text-slate-500">Tekan Enter untuk mencari di seluruh riwayat.</p>
+                    {{-- Kosong hasil live search (di halaman ini) --}}
+                    <div id="noMatch"
+                        class="hidden flex-col items-center rounded-xl border border-dashed border-slate-200 bg-white px-4 py-12 text-center">
+                        <span
+                            class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.6"
+                                viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+                            </svg>
+                        </span>
+                        <div class="mt-3 text-sm font-bold text-slate-800">Tidak ditemukan di halaman ini</div>
+                        <p class="mt-1 max-w-xs text-xs text-slate-500">Tekan Enter untuk mencari di seluruh riwayat.
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Footer --}}
@@ -468,6 +549,7 @@
             const noMatch = document.getElementById('noMatch');
             const rows = [...document.querySelectorAll('[data-row]')];
             const groups = [...document.querySelectorAll('[data-group]')];
+            const units = [...document.querySelectorAll('[data-unit]')];
 
             const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -506,6 +588,7 @@
             function apply() {
                 const raw = input.value.trim();
                 const terms = norm(raw).split(/\s+/).filter(Boolean);
+                const searching = terms.length > 0;
                 let shown = 0;
 
                 index.forEach(item => {
@@ -515,12 +598,19 @@
                     if (item.titleEl) highlight(item.titleEl, ok ? terms : []);
                 });
 
+                // Sub-kelompok tanggal: sembunyikan bila semua barisnya tersaring
                 groups.forEach(g => {
                     const any = [...g.querySelectorAll('[data-row]')].some(r => r.style.display !== 'none');
                     g.style.display = any ? '' : 'none';
                 });
 
-                const searching = terms.length > 0;
+                // Kartu unit: sembunyikan bila kosong, buka otomatis saat sedang mencari
+                units.forEach(u => {
+                    const any = [...u.querySelectorAll('[data-row]')].some(r => r.style.display !== 'none');
+                    u.style.display = any ? '' : 'none';
+                    if (any && searching) u.open = true;
+                });
+
                 clearBtn.classList.toggle('hidden', !raw);
                 hint.classList.toggle('sm:block', !raw);
                 info.classList.toggle('hidden', !searching);

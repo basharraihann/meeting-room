@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Rupat Kemenko Pangan') }}</title>
@@ -124,12 +124,14 @@
         @include('layouts.navigation')
     </aside>
 
-    <div class="main-content-wrapper min-h-screen">
+    {{-- pb-24: beri ruang untuk menu bawah di HP --}}
+    <div class="main-content-wrapper min-h-screen pb-24 lg:pb-0">
 
         {{-- Topbar --}}
         <header
             class="sticky top-0 z-30 flex h-20 items-center gap-4 border-b border-slate-100 bg-white/80 px-4 backdrop-blur sm:px-8">
-            <button @click="sidebarMobile = true" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden">
+            {{-- Hamburger disembunyikan (diganti menu bawah). Ganti "hidden" jadi "lg:hidden" untuk memunculkan lagi --}}
+            <button @click="sidebarMobile = true" class="hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
@@ -189,6 +191,9 @@
             {{ $slot }}
         </main>
     </div>
+
+    {{-- Menu bawah (HP) --}}
+    @include('layouts.bottom-nav')
 
     @stack('scripts')
 </body>

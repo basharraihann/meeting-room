@@ -92,68 +92,149 @@
         default => 'bg-slate-100 text-slate-700',
     };
     $homeUrl = $user->hasRole('PIC') ? route('dashboard') : ($user->hasRole('Admin') ? route('admin.users.index') : route('calendar'));
+
+    $profileActive = request()->routeIs('profile.*');
+
+    // Label menyempit + memudar saat sidebar dalam mode ikon (diatur <style> di bawah)
+    $labelBase = 'sb-label min-w-0 overflow-hidden whitespace-nowrap';
 @endphp
 
-<div class="relative flex h-full flex-col justify-between overflow-visible select-none bg-white">
+{{-- ===== Gaya mandiri sidebar (tidak perlu CSS tambahan di layout) ===== --}}
+<style>
+    .sb-label {
+        transition: max-width .2s ease-out, opacity .2s ease-out;
+    }
 
-    {{-- Toggle Collapse/Expand Button (Floating capsule on right border) --}}
-    <button type="button" @click="toggleSidebar()"
-        class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-50 h-14 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:text-slate-600 hover:shadow focus:outline-none"
-        :title="sidebarCollapsed ? 'Perlebar Sidebar' : 'Tutup Sidebar'">
-        <svg x-show="!sidebarCollapsed" class="sidebar-expanded-only h-3.5 w-3.5" fill="none" stroke="currentColor"
-            stroke-width="2.5" viewBox="0 0 24 24">
+    .sb-chevron {
+        transition: transform .3s ease-out;
+    }
+
+    /* Mode ikon hanya berlaku di desktop; di mobile (drawer) selalu tampil lengkap */
+    @media (min-width: 1024px) {
+        html.sb-collapsed .sb-label {
+            max-width: 0 !important;
+            opacity: 0;
+        }
+
+        html.sb-collapsed .sb-item {
+            justify-content: center;
+            gap: 0;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        html.sb-collapsed .sb-user {
+            justify-content: center;
+            gap: 0;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        html.sb-collapsed .sb-role {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        html.sb-collapsed .sb-chevron {
+            transform: rotate(180deg);
+        }
+
+        html.sb-collapsed .sb-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            margin: 0;
+            height: 16px;
+            min-width: 16px;
+            padding: 0 4px;
+            font-size: 10px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .sb-label,
+        .sb-chevron {
+            transition: none;
+        }
+    }
+</style>
+
+{{-- Pasang status collapse sebelum sidebar digambar agar tidak berkedip saat pindah halaman --}}
+<script>
+    try { if (localStorage.getItem('sidebarCollapsed') === 'true') document.documentElement.classList.add('sb-collapsed'); } catch (e) { }
+</script>
+
+{{--
+Memakai state dari layout: sidebarCollapsed, sidebarMobile, toggleSidebar().
+Di dalam method x-data, state layout diakses lewat `this.`
+--}}
+<div x-data="{
+        isDesktop: window.matchMedia('(min-width: 1024px)').matches,
+        get compact() { return !!this.sidebarCollapsed && this.isDesktop },
+        init() {
+            const root = document.documentElement;
+            const apply = () => root.classList.toggle('sb-collapsed', !!this.sidebarCollapsed);
+            apply();
+            this.$watch('sidebarCollapsed', apply);
+            const mq = window.matchMedia('(min-width: 1024px)');
+            mq.addEventListener('change', e => this.isDesktop = e.matches);
+        },
+        toggle() {
+            if (typeof this.toggleSidebar === 'function') this.toggleSidebar();
+            else this.sidebarCollapsed = !this.sidebarCollapsed;
+            try { localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed) } catch (e) { }
+        },
+        closeOnMobile() { if (!this.isDesktop) this.sidebarMobile = false },
+    }" @keydown.escape.window="closeOnMobile()"
+    class="relative flex h-full flex-col justify-between overflow-visible select-none bg-white">
+
+    {{-- Toggle Collapse/Expand (kapsul di tepi kanan, desktop saja) --}}
+    <button type="button" @click="toggle()"
+        class="absolute -right-3 top-1/2 z-50 hidden h-12 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition duration-200 hover:bg-slate-50 hover:text-slate-600 hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 lg:flex"
+        :title="compact ? 'Perlebar sidebar' : 'Ciutkan sidebar'"
+        :aria-label="compact ? 'Perlebar sidebar' : 'Ciutkan sidebar'" :aria-expanded="(!compact).toString()">
+        <svg class="sb-chevron h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+            aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        <svg x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only h-3.5 w-3.5" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
         </svg>
     </button>
 
-    {{-- Top Section: hanya untuk tombol close di mobile --}}
-    <div class="flex h-14 shrink-0 items-center justify-end border-b border-slate-100 px-4 lg:hidden">
-        <button @click="sidebarMobile = false"
-            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    {{-- Top Section: hanya tombol close di mobile --}}
+    <div class="flex h-12 shrink-0 items-center justify-end border-b border-slate-100 px-3 lg:hidden">
+        <button type="button" @click="sidebarMobile = false" aria-label="Tutup menu"
+            class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <svg class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
     </div>
 
     {{-- Middle Section: Navigation Links --}}
-    <nav class="sidebar-nav flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-1 px-2.5"
-        :class="sidebarCollapsed ? 'px-2 flex flex-col items-center' : 'px-2.5'">
+    <nav class="sidebar-nav flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-2.5 py-3" aria-label="Menu utama">
         @foreach($links as $l)
-            <a href="{{ $l['url'] }}" @if($l['active']) aria-current="page" @endif
-                :class="sidebarCollapsed
-                                                ? 'h-11 w-11 justify-center {{ $l['active'] ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}'
-                                                : 'w-full px-3 py-2.5 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}'"
-                class="nav-item-link group relative flex items-center rounded-xl text-sm transition-colors w-full px-3 py-2.5 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}"
-                :title="sidebarCollapsed ? '{{ $l['name'] }}' : ''">
+            <a href="{{ $l['url'] }}" @if($l['active']) aria-current="page" @endif @click="closeOnMobile()"
+                :title="compact ? @js($l['name']) : null"
+                class="nav-item-link sb-item group relative flex h-10 w-full items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 {{ $l['active'] ? 'bg-indigo-50 font-semibold text-indigo-600' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
 
                 {{-- Indikator aktif --}}
                 @if($l['active'])
-                    <span class="absolute -left-2.5 top-2.5 bottom-2.5 w-[3px] rounded-r-full bg-indigo-600"
+                    <span class="absolute -left-2.5 bottom-2.5 top-2.5 w-[3px] rounded-r-full bg-indigo-600"
                         aria-hidden="true"></span>
                 @endif
 
-                <svg class="h-[22px] w-[22px] shrink-0 transition-colors {{ $l['active'] ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-700' }}"
+                <svg class="h-[18px] w-[18px] shrink-0 transition-colors {{ $l['active'] ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-700' }}"
                     fill="none" stroke="currentColor" stroke-width="{{ $l['active'] ? '2' : '1.75' }}"
                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
                     {!! $l['icon'] !!}
                 </svg>
 
-                <span x-show="!sidebarCollapsed" class="sidebar-expanded-only ml-3 truncate whitespace-nowrap">
-                    {{ $l['name'] }}
-                </span>
+                <span class="{{ $labelBase }} truncate" style="max-width:170px">{{ $l['name'] }}</span>
 
                 @if(($l['badge'] ?? 0) > 0)
-                    <span x-show="!sidebarCollapsed"
-                        class="sidebar-expanded-only ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
-                        {{ $l['badge'] }}
-                    </span>
-                    <span x-show="sidebarCollapsed" x-cloak
-                        class="sidebar-collapsed-only absolute -top-1 -right-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    <span
+                        class="sb-badge ml-auto inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
                         {{ $l['badge'] }}
                     </span>
                 @endif
@@ -161,80 +242,47 @@
         @endforeach
     </nav>
 
-    {{-- Bottom Section: User Info Card & Actions --}}
-    <div class="shrink-0 border-t border-slate-100">
-        {{-- Expanded Bottom View --}}
-        <div x-show="!sidebarCollapsed" class="sidebar-expanded-only p-2.5 pt-2.5">
-            {{-- User Info Box --}}
-            <div class="flex items-center gap-2.5 px-1.5 py-1.5">
-                <div
-                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
-                    {{ $initials }}
-                </div>
-                <div class="min-w-0 flex-1">
-                    <div class="truncate text-xs font-bold text-slate-900 leading-tight">{{ $user->name }}</div>
-                    <div class="truncate text-[11px] text-slate-400 leading-tight mt-0.5">{{ $user->email }}</div>
-                </div>
-                <span class="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $roleBadgeClass }}">
-                    {{ $primaryRole }}
-                </span>
-            </div>
+    {{-- Bottom Section: User Info & Actions --}}
+    <div class="shrink-0 border-t border-slate-100 p-2.5">
 
-            {{-- Actions --}}
-            <div class="mt-1 space-y-0.5">
-                <a href="{{ route('profile.edit') }}"
-                    class="group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-600' }}">
-                    <svg class="h-5 w-5 shrink-0 {{ request()->routeIs('profile.*') ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-700' }}"
-                        fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
-                        stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                        {!! $ic['profile'] !!}
-                    </svg>
-                    <span>Profil</span>
-                </a>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                        class="group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600">
-                        <svg class="h-5 w-5 shrink-0 text-slate-400 transition-colors group-hover:text-red-500"
-                            fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
-                            stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                            {!! $ic['logout'] !!}
-                        </svg>
-                        <span>Keluar</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        {{-- Collapsed Bottom View --}}
-        <div x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only flex flex-col items-center gap-2.5 py-3">
-            {{-- User Initial Avatar --}}
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600 cursor-default"
-                title="{{ $user->name }} ({{ $primaryRole }})">
+        {{-- User --}}
+        <div class="sb-user flex items-center gap-2.5 rounded-lg px-2 py-1.5"
+            :title="compact ? @js($user->name . ' (' . $primaryRole . ')') : null">
+            <div
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-bold text-indigo-600">
                 {{ $initials }}
             </div>
+            <div class="{{ $labelBase }} flex-1" style="max-width:150px">
+                <div class="truncate text-xs font-bold leading-tight text-slate-900">{{ $user->name }}</div>
+                <div class="mt-0.5 truncate text-[10.5px] leading-tight text-slate-400">{{ $user->email }}</div>
+            </div>
+            <span
+                class="{{ $labelBase }} sb-role shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $roleBadgeClass }}"
+                style="max-width:60px">{{ $primaryRole }}</span>
+        </div>
 
-            {{-- Profil Icon --}}
-            <a href="{{ route('profile.edit') }}"
-                class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-600' : '' }}"
-                title="Profil">
-                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75"
-                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+        {{-- Actions --}}
+        <div class="mt-1 space-y-0.5">
+            <a href="{{ route('profile.edit') }}" @click="closeOnMobile()" :title="compact ? 'Profil' : null"
+                class="sb-item group flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] font-medium transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 {{ $profileActive ? 'bg-indigo-50 font-semibold text-indigo-600' : 'text-slate-600' }}">
+                <svg class="h-[18px] w-[18px] shrink-0 {{ $profileActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-700' }}"
+                    fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                    viewBox="0 0 24 24" aria-hidden="true">
                     {!! $ic['profile'] !!}
                 </svg>
+                <span class="{{ $labelBase }}" style="max-width:150px">Profil</span>
             </a>
 
-            {{-- Keluar Icon --}}
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit"
-                    class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-red-50 hover:text-red-600"
-                    title="Keluar">
-                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75"
-                        stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <button type="submit" :title="compact ? 'Keluar' : null"
+                    class="sb-item group flex h-9 w-full items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                    <svg class="h-[18px] w-[18px] shrink-0 text-slate-400 transition-colors group-hover:text-red-500"
+                        fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                        stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
                         {!! $ic['logout'] !!}
                     </svg>
+                    <span class="{{ $labelBase }}" style="max-width:150px">Keluar</span>
                 </button>
             </form>
         </div>

@@ -64,20 +64,22 @@
 
         {{-- ===== BANNER JUDUL ===== --}}
         <div
-            class="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
-                </svg>
-            </span>
-            <div class="min-w-0 flex-1">
-                <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Agenda Saya</h1>
-                <p class="mt-0.5 text-xs text-slate-500">Jadwal rapat yang Anda ajukan. Salin ringkasannya untuk
-                    dibagikan.</p>
+            class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+                    </svg>
+                </span>
+                <div class="min-w-0 flex-1">
+                    <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Agenda Saya</h1>
+                    <p class="mt-0.5 text-xs text-slate-500">Jadwal rapat yang Anda ajukan. Salin ringkasannya untuk
+                        dibagikan.</p>
+                </div>
             </div>
 
-            <div class="relative z-10 flex shrink-0 items-center gap-2">
+            <div class="relative z-10 flex shrink-0 items-center gap-2 self-start sm:self-auto">
                 <a href="{{ route('calendar') }}"
                     class="hidden rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:inline-flex">
                     Kalender
@@ -178,21 +180,21 @@
                     @endif
                 </div>
 
-                <div class="flex items-stretch gap-2">
-                    <div class="min-w-[76px] rounded-xl bg-slate-50 px-3.5 py-2 ring-1 ring-inset ring-slate-200/70">
-                        <div class="text-lg font-extrabold leading-none tabular-nums text-slate-900">{{ $total }}</div>
-                        <div class="mt-1 text-[11px] font-medium text-slate-500">Total rapat</div>
+                <div class="grid grid-cols-3 w-full sm:w-auto sm:flex items-stretch gap-2">
+                    <div class="rounded-xl bg-slate-50 px-3 py-2 text-center sm:text-left sm:min-w-[76px] ring-1 ring-inset ring-slate-200/70">
+                        <div class="text-base sm:text-lg font-extrabold leading-none tabular-nums text-slate-900">{{ $total }}</div>
+                        <div class="mt-1 text-[10px] sm:text-[11px] font-medium text-slate-500">Total rapat</div>
                     </div>
                     <div
-                        class="min-w-[76px] rounded-xl bg-emerald-50/70 px-3.5 py-2 ring-1 ring-inset ring-emerald-200/70">
-                        <div class="text-lg font-extrabold leading-none tabular-nums text-emerald-700">{{ $approved }}
+                        class="rounded-xl bg-emerald-50/70 px-3 py-2 text-center sm:text-left sm:min-w-[76px] ring-1 ring-inset ring-emerald-200/70">
+                        <div class="text-base sm:text-lg font-extrabold leading-none tabular-nums text-emerald-700">{{ $approved }}
                         </div>
-                        <div class="mt-1 text-[11px] font-medium text-emerald-700/80">Disetujui</div>
+                        <div class="mt-1 text-[10px] sm:text-[11px] font-medium text-emerald-700/80">Disetujui</div>
                     </div>
-                    <div class="min-w-[76px] rounded-xl bg-amber-50/70 px-3.5 py-2 ring-1 ring-inset ring-amber-200/70">
-                        <div class="text-lg font-extrabold leading-none tabular-nums text-amber-700">{{ $pending }}
+                    <div class="rounded-xl bg-amber-50/70 px-3 py-2 text-center sm:text-left sm:min-w-[76px] ring-1 ring-inset ring-amber-200/70">
+                        <div class="text-base sm:text-lg font-extrabold leading-none tabular-nums text-amber-700">{{ $pending }}
                         </div>
-                        <div class="mt-1 text-[11px] font-medium text-amber-700/80">Menunggu</div>
+                        <div class="mt-1 text-[10px] sm:text-[11px] font-medium text-amber-700/80">Menunggu</div>
                     </div>
                 </div>
             </div>

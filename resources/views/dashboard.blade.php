@@ -224,24 +224,26 @@
         {{-- ===== BANNER JUDUL ===== --}}
         <div class="space-y-4">
             <div
-                class="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
-                <span
-                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                    </svg>
-                </span>
-                <div class="min-w-0 flex-1">
-                    <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Dashboard Ruang Rapat
-                    </h1>
-                    <p class="mt-0.5 text-xs text-slate-500">Pantau jadwal hari ini, status pengajuan, dan ketersediaan
-                        ruangan.</p>
+                class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                        </svg>
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Dashboard Ruang Rapat
+                        </h1>
+                        <p class="mt-0.5 text-xs text-slate-500">Pantau jadwal hari ini, status pengajuan, dan ketersediaan
+                            ruangan.</p>
+                    </div>
                 </div>
 
                 @if($isPic)
                     <a href="{{ route('calendar') }}"
-                        class="relative z-10 shrink-0 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700">
+                        class="relative z-10 shrink-0 self-start sm:self-auto rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700 text-center">
                         + Ajukan Rapat
                     </a>
                 @endif
@@ -294,7 +296,7 @@
                             @endif
                         </div>
 
-                        <div class="text-right">
+                        <div class="text-left sm:text-right">
                             <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                                 {{ $heroLive ? 'Selesai dalam' : 'Mulai dalam' }}
                             </div>
@@ -446,7 +448,7 @@
                             <template x-for="i in shown" :key="i.id">
                                 <div
                                     class="flex flex-col gap-2 border-t border-slate-100 py-3 sm:flex-row sm:items-center sm:gap-5">
-                                    <div class="w-32 shrink-0">
+                                    <div class="w-full sm:w-32 shrink-0">
                                         <div class="text-sm font-bold tabular-nums text-slate-900" x-text="i.time"></div>
                                         <div class="text-xs text-slate-500" x-text="i.date"></div>
                                     </div>
@@ -550,7 +552,7 @@
                                         x-on:click="d = @js($payload($b))">
 
                                         <div
-                                            class="w-28 shrink-0 text-sm font-bold tabular-nums {{ $key === 'live' ? 'text-emerald-600' : 'text-slate-900' }}">
+                                            class="w-full sm:w-28 shrink-0 text-sm font-bold tabular-nums {{ $key === 'live' ? 'text-emerald-600' : 'text-slate-900' }}">
                                             {{ Carbon::parse($b->start_at)->format('H.i') }} –
                                             {{ Carbon::parse($b->end_at)->format('H.i') }}
                                         </div>
@@ -699,7 +701,7 @@
                                             (c.key === today ? 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200' :
                                                 (i % 7 > 4 ? 'text-slate-400 hover:bg-slate-50' : 'text-slate-700 hover:bg-slate-50'))
                                     ]"
-                                        class="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-full text-xs font-semibold transition">
+                                        class="mx-auto flex h-8 w-8 sm:h-10 sm:w-10 flex-col items-center justify-center rounded-full text-xs font-semibold transition">
                                         <span x-text="c.d"></span>
                                         <span class="mt-0.5 flex h-1 items-center gap-0.5">
                                             <template x-for="col in c.colors" :key="col">
@@ -818,7 +820,7 @@
                             <div x-show="d" x-cloak x-transition.opacity
                                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                 <div class="absolute inset-0 bg-slate-900/50" @click="d = null"></div>
-                                <div class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
+                                <div class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl"
                                     x-show="d" x-transition>
                                     <template x-if="d">
                                         <div>

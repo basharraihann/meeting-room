@@ -131,7 +131,7 @@
                     @endif
 
                     <button type="submit"
-                        class="h-9 rounded-lg bg-indigo-600 px-4 text-[13px] font-semibold text-white shadow-sm shadow-indigo-600/25 transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                        class="h-9 w-full sm:w-auto rounded-lg bg-indigo-600 px-4 text-[13px] font-semibold text-white shadow-sm shadow-indigo-600/25 transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                         Cari
                     </button>
                 </form>
@@ -432,11 +432,11 @@
                         placeholder="Contoh: jadwal rapat dipindah ke minggu depan"
                         class="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"></textarea>
                 </div>
-                <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3.5">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3.5">
                     <button type="button" onclick="closeCancelModal()"
-                        class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50">Kembali</button>
+                        class="w-full sm:w-auto rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50 text-center">Kembali</button>
                     <button type="submit"
-                        class="rounded-lg bg-rose-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm shadow-rose-600/25 transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2">Batalkan
+                        class="w-full sm:w-auto rounded-lg bg-rose-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm shadow-rose-600/25 transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 text-center">Batalkan
                         booking</button>
                 </div>
             </form>

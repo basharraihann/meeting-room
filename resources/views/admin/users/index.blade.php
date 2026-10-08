@@ -21,11 +21,11 @@
         {{-- Judul --}}
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Manajemen User</h1>
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Manajemen User</h1>
                 <p class="mt-1.5 max-w-md text-sm text-slate-500">Kelola akun pengguna dan status ruang rapat di lingkungan Kementerian Koordinator Bidang Pangan.</p>
             </div>
             <button type="button" onclick="document.getElementById('modalTambah').style.display = 'flex'"
-                class="rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700">
+                class="w-full sm:w-auto rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 text-center">
                 + Tambah User
             </button>
         </div>
@@ -44,20 +44,20 @@
         @endif
 
         {{-- Ringkasan --}}
-        <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             @foreach([
                 ['Total User', \App\Models\User::count(), 'akun terdaftar', 'bg-indigo-100 text-indigo-600', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
                 ['Admin', $countRole('Admin'), 'pengelola sistem', 'bg-violet-100 text-violet-600', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
                 ['PIC', $countRole('PIC'), 'pengaju rapat', 'bg-sky-100 text-sky-600', 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
                 ['TU', $countRole('TU'), 'pemberi approval', 'bg-emerald-100 text-emerald-600', 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
             ] as [$sLabel, $sValue, $sSub, $sCls, $sIcon])
-                <div class="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                    <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full {{ $sCls }}">
-                        <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sIcon }}"/></svg>
+                <div class="flex items-center gap-3 sm:gap-4 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5 shadow-sm">
+                    <span class="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full {{ $sCls }}">
+                        <svg class="h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sIcon }}"/></svg>
                     </span>
                     <div class="min-w-0">
                         <div class="text-xs font-medium text-slate-500">{{ $sLabel }}</div>
-                        <div class="text-3xl font-extrabold leading-tight text-slate-900">{{ $sValue }}</div>
+                        <div class="text-2xl sm:text-3xl font-extrabold leading-tight text-slate-900">{{ $sValue }}</div>
                         <div class="truncate text-xs text-slate-400">{{ $sSub }}</div>
                     </div>
                 </div>
@@ -65,13 +65,13 @@
         </div>
 
         {{-- Tab --}}
-        <div class="flex w-fit rounded-full bg-white p-1 shadow-sm">
+        <div class="flex max-w-full overflow-x-auto rounded-full bg-white p-1 shadow-sm sm:w-fit">
             <button type="button" id="tab-users-btn" onclick="switchTab('users')"
-                class="rounded-full bg-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow transition">
+                class="whitespace-nowrap rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow transition sm:px-5 sm:text-sm">
                 Manajemen User
             </button>
             <button type="button" id="tab-rooms-btn" onclick="switchTab('rooms')"
-                class="rounded-full px-5 py-2 text-sm font-semibold text-slate-600 transition hover:text-slate-900">
+                class="whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold text-slate-600 transition hover:text-slate-900 sm:px-5 sm:text-sm">
                 Manajemen Ruangan
             </button>
         </div>
@@ -82,23 +82,25 @@
             {{-- Filter --}}
             <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                 <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-wrap items-center gap-3">
-                    <div class="relative">
+                    <div class="relative w-full sm:w-64">
                         <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / username..."
-                            class="w-64 rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm placeholder-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10">
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm placeholder-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-500/10">
                     </div>
                     <select name="role"
-                        class="rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-9 text-sm text-slate-600 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10">
+                        class="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-9 text-sm text-slate-600 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10">
                         <option value="">Semua Role</option>
                         @foreach($roles as $r)
                             <option value="{{ $r->name }}" {{ request('role') == $r->name ? 'selected' : '' }}>{{ $r->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700">Cari</button>
-                    @if(request('search') || request('role'))
-                        <a href="{{ route('admin.users.index') }}" class="text-sm font-semibold text-slate-400 hover:text-slate-600">Reset</a>
-                    @endif
-                    <span class="ml-auto text-xs font-semibold text-slate-400">{{ $users->total() }} user</span>
+                    <div class="flex w-full sm:w-auto items-center gap-2">
+                        <button type="submit" class="flex-1 sm:flex-initial rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700">Cari</button>
+                        @if(request('search') || request('role'))
+                            <a href="{{ route('admin.users.index') }}" class="px-3 py-2 text-sm font-semibold text-slate-400 hover:text-slate-600">Reset</a>
+                        @endif
+                    </div>
+                    <span class="w-full sm:w-auto sm:ml-auto text-xs font-semibold text-slate-400">{{ $users->total() }} user</span>
                 </form>
             </div>
 
@@ -356,11 +358,11 @@
                         <p class="mt-1.5 text-xs text-slate-400">Untuk menerima notifikasi booking masuk via WA.</p>
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
                     <button type="button" onclick="document.getElementById('modalTambah').style.display='none'"
-                        class="rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-300">Batal</button>
+                        class="w-full sm:w-auto rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-300 text-center">Batal</button>
                     <button type="submit"
-                        class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700">Tambah User</button>
+                        class="w-full sm:w-auto rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 text-center">Tambah User</button>
                 </div>
             </form>
         </div>
@@ -394,11 +396,11 @@
                         <p class="mt-1.5 text-xs text-slate-400">Untuk menerima notifikasi booking masuk via WA.</p>
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
                     <button type="button" onclick="document.getElementById('modalEdit').style.display='none'"
-                        class="rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-300">Batal</button>
+                        class="w-full sm:w-auto rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-300 text-center">Batal</button>
                     <button type="submit"
-                        class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700">Simpan</button>
+                        class="w-full sm:w-auto rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 text-center">Simpan</button>
                 </div>
             </form>
         </div>
@@ -424,11 +426,11 @@
                         <input type="password" name="password_confirmation" required class="{{ $inputCls }}" placeholder="Ulangi password">
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
                     <button type="button" onclick="document.getElementById('modalPwd').style.display='none'"
-                        class="rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-300">Batal</button>
+                        class="w-full sm:w-auto rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-300 text-center">Batal</button>
                     <button type="submit"
-                        class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700">Reset Password</button>
+                        class="w-full sm:w-auto rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 text-center">Reset Password</button>
                 </div>
             </form>
         </div>

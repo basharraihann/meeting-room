@@ -79,17 +79,19 @@
     {{-- ===== BANNER JUDUL ===== --}}
     <div class="px-4 pt-4 sm:px-8">
         <div
-            class="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
-                </svg>
-            </span>
-            <div class="min-w-0 flex-1">
-                <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Kalender Booking Ruang
-                    Rapat</h1>
-                <p class="mt-0.5 text-xs text-slate-500">Lihat dan kelola jadwal pemesanan ruang rapat dengan mudah.</p>
+            class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+                    </svg>
+                </span>
+                <div class="min-w-0 flex-1">
+                    <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Kalender Booking Ruang
+                        Rapat</h1>
+                    <p class="mt-0.5 text-xs text-slate-500">Lihat dan kelola jadwal pemesanan ruang rapat dengan mudah.</p>
+                </div>
             </div>
 
             {{-- Daun dekoratif --}}
@@ -102,7 +104,7 @@
 
             @if(auth()->user()?->hasRole('PIC'))
                 <button type="button" onclick="bukaModalAjukan()"
-                    class="relative z-10 shrink-0 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700">
+                    class="relative z-10 shrink-0 self-start sm:self-auto rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700 text-center">
                     + Ajukan Rapat
                 </button>
             @endif
@@ -511,12 +513,12 @@
                         </select>
                     </div>
 
-                    <div class="flex justify-end gap-2 pt-1">
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-1">
                         <button type="button"
-                            class="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition"
+                            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 transition text-center"
                             x-on:click="close()">Batal</button>
                         <button type="submit"
-                            class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white transition">Kirim</button>
+                            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white transition text-center">Kirim</button>
                     </div>
                 </form>
             </div>

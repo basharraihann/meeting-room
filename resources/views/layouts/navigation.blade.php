@@ -99,30 +99,30 @@
 
     {{-- Middle Section: Navigation Links --}}
     <nav class="sidebar-nav flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-1 px-2.5"
-        :class="sidebarCollapsed ? 'px-2 flex flex-col items-center' : 'px-2.5'">
+        :class="isDesktopCollapsed() ? 'px-2 flex flex-col items-center' : 'px-2.5'">
         @foreach($links as $l)
             <a href="{{ $l['url'] }}"
-                :class="sidebarCollapsed
-                                            ? 'h-11 w-11 justify-center {{ $l['active'] ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}'
-                                            : 'w-full px-3 py-2.5 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}'"
+                :class="isDesktopCollapsed()
+                    ? 'h-11 w-11 justify-center {{ $l['active'] ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}'
+                    : 'w-full px-3 py-2.5 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}'"
                 class="nav-item-link group relative flex items-center rounded-xl text-sm transition-colors w-full px-3 py-2.5 {{ $l['active'] ? 'bg-indigo-50/80 text-indigo-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' }}"
-                :title="sidebarCollapsed ? '{{ $l['name'] }}' : ''">
+                :title="isDesktopCollapsed() ? '{{ $l['name'] }}' : ''">
 
                 <svg class="h-5 w-5 shrink-0 {{ $l['active'] ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700' }}"
                     fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $l['icon'] }}" />
                 </svg>
 
-                <span x-show="!sidebarCollapsed" class="sidebar-expanded-only ml-3 truncate whitespace-nowrap">
+                <span x-show="!isDesktopCollapsed()" class="sidebar-expanded-only ml-3 truncate whitespace-nowrap">
                     {{ $l['name'] }}
                 </span>
 
                 @if(($l['badge'] ?? 0) > 0)
-                    <span x-show="!sidebarCollapsed"
+                    <span x-show="!isDesktopCollapsed()"
                         class="sidebar-expanded-only ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
                         {{ $l['badge'] }}
                     </span>
-                    <span x-show="sidebarCollapsed" x-cloak
+                    <span x-show="isDesktopCollapsed()" x-cloak
                         class="sidebar-collapsed-only absolute -top-1 -right-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                         {{ $l['badge'] }}
                     </span>
@@ -134,7 +134,7 @@
     {{-- Bottom Section: User Info Card & Actions --}}
     <div class="shrink-0 border-t border-slate-100">
         {{-- Expanded Bottom View --}}
-        <div x-show="!sidebarCollapsed" class="sidebar-expanded-only p-2.5 pt-2.5">
+        <div x-show="!isDesktopCollapsed()" class="sidebar-expanded-only p-2.5 pt-2.5">
             {{-- User Info Box --}}
             <div class="flex items-center gap-2.5 px-1.5 py-1.5">
                 <div
@@ -178,7 +178,7 @@
         </div>
 
         {{-- Collapsed Bottom View --}}
-        <div x-show="sidebarCollapsed" x-cloak class="sidebar-collapsed-only flex flex-col items-center gap-2.5 py-3">
+        <div x-show="isDesktopCollapsed()" x-cloak class="sidebar-collapsed-only flex flex-col items-center gap-2.5 py-3">
             {{-- User Initial Avatar --}}
             <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600 cursor-default"
                 title="{{ $user->name }} ({{ $primaryRole }})">

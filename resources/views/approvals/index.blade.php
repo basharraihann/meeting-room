@@ -91,10 +91,10 @@
             {{-- ===== Tab ===== --}}
             <div x-data="{ tab: '{{ request()->has('page') ? 'riwayat' : 'pending' }}' }" class="space-y-5">
 
-                <div class="flex w-fit rounded-full bg-white p-1 shadow-sm">
+                <div class="flex max-w-full overflow-x-auto rounded-full bg-white p-1 shadow-sm sm:w-fit">
                     <button type="button" @click="tab = 'pending'"
                         :class="tab === 'pending' ? 'bg-indigo-500 text-white shadow' : 'text-slate-600 hover:text-slate-900'"
-                        class="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition">
+                        class="flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition sm:px-5 sm:py-2.5 sm:text-sm">
                         Pending Requests
                         @if($totalPending > 0)
                             <span :class="tab === 'pending' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-700'" class="rounded-full px-2 py-0.5 text-[10px] font-extrabold">{{ $totalPending }}</span>
@@ -102,7 +102,7 @@
                     </button>
                     <button type="button" @click="tab = 'riwayat'"
                         :class="tab === 'riwayat' ? 'bg-indigo-500 text-white shadow' : 'text-slate-600 hover:text-slate-900'"
-                        class="rounded-full px-5 py-2.5 text-sm font-semibold transition">
+                        class="whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition sm:px-5 sm:py-2.5 sm:text-sm">
                         Riwayat Approval
                     </button>
                 </div>
@@ -199,7 +199,7 @@
                                                 <div x-show="open" x-cloak @keydown.escape.window="open = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                                     <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="open = false"></div>
 
-                                                    <div x-show="open" x-transition class="relative flex w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+                                                    <div x-show="open" x-transition class="relative flex w-full max-w-md max-h-[90vh] overflow-y-auto flex-col rounded-3xl bg-white shadow-2xl">
                                                         <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-5">
                                                             <div class="min-w-0">
                                                                 <h3 class="text-base font-bold text-slate-800">Tolak Permohonan</h3>
@@ -218,9 +218,9 @@
                                                                     class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 transition focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20"></textarea>
                                                                 <p class="mt-2 text-xs text-slate-400">Alasan ini akan terlihat oleh pengaju.</p>
                                                             </div>
-                                                            <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
-                                                                <button type="button" @click="open = false" class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50">Batal</button>
-                                                                <button type="submit" class="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-rose-600/30 transition hover:bg-rose-700">Kirim Penolakan</button>
+                                                            <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+                                                                <button type="button" @click="open = false" class="w-full sm:w-auto rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 text-center">Batal</button>
+                                                                <button type="submit" class="w-full sm:w-auto rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-rose-600/30 transition hover:bg-rose-700 text-center">Kirim Penolakan</button>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -276,7 +276,7 @@
                                 </div>
                             @endif
 
-                            <div class="flex flex-col justify-between gap-4 border-b border-slate-50 px-6 py-4 transition hover:bg-slate-50/60 sm:flex-row sm:items-center">
+                            <div class="flex flex-col justify-between gap-4 border-b border-slate-50 px-4 py-4 transition hover:bg-slate-50/60 sm:flex-row sm:items-center sm:px-6">
                                 <div class="min-w-0 flex-1">
                                     <h4 class="truncate text-sm font-bold text-slate-900">{{ $b->title }}</h4>
                                     <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
@@ -284,8 +284,8 @@
                                         <span>•</span>
                                         <span>{{ \Carbon\Carbon::parse($b->start_at)->format('H.i') }} – {{ \Carbon\Carbon::parse($b->end_at)->format('H.i') }}</span>
                                         @if($b->unit_kerja)
-                                            <span>•</span>
-                                            <span>{{ $b->unit_kerja }}</span>
+                                             <span>•</span>
+                                             <span>{{ $b->unit_kerja }}</span>
                                         @endif
                                     </div>
                                     @if($b->tu_note)
@@ -310,7 +310,7 @@
                                             <div x-show="openCancel" x-cloak @keydown.escape.window="openCancel = false" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                                 <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openCancel = false"></div>
 
-                                                <div x-show="openCancel" x-transition class="relative flex w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+                                                <div x-show="openCancel" x-transition class="relative flex w-full max-w-md max-h-[90vh] overflow-y-auto flex-col rounded-3xl bg-white shadow-2xl">
                                                     <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-5">
                                                         <div class="min-w-0">
                                                             <h3 class="text-base font-bold text-slate-800">Batalkan Approval</h3>
@@ -332,9 +332,9 @@
                                                             <textarea name="tu_note" rows="3" placeholder="Tulis alasan pembatalan approval..."
                                                                 class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 transition focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20"></textarea>
                                                         </div>
-                                                        <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
-                                                            <button type="button" @click="openCancel = false" class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50">Tutup</button>
-                                                            <button type="submit" class="rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-orange-600/30 transition hover:bg-orange-700">Ya, Batalkan Approval</button>
+                                                        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+                                                            <button type="button" @click="openCancel = false" class="w-full sm:w-auto rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 text-center">Tutup</button>
+                                                            <button type="submit" class="w-full sm:w-auto rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-orange-600/30 transition hover:bg-orange-700 text-center">Ya, Batalkan Approval</button>
                                                         </div>
                                                     </form>
                                                 </div>

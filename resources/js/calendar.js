@@ -4,6 +4,8 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import idLocale from '@fullcalendar/core/locales/id'
+import './mobile-calendar'
+import '../css/calendar-page.css'
 
 import flatpickr from 'flatpickr'
 import { Indonesian } from 'flatpickr/dist/l10n/id.js'

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Jadwal Ruang Rapat – Kemenkopangan</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +34,13 @@
             --card: #ffffff;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
         body {
+            overflow-x: hidden;
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             background: var(--bg);
             color: var(--text);
@@ -169,10 +175,10 @@
         }
 
         .page-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
             color: var(--navy);
-            letter-spacing: -.02em;
+            letter-spacing: -.01em;
         }
 
         .page-subtitle {
@@ -213,85 +219,51 @@
             box-shadow: 0 1px 3px rgba(15, 23, 42, .1);
         }
 
-        /* ===== RINGKASAN ===== */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+        /* ===== FILTER (sebaris) ===== */
+        .filter-wrap {
             margin-bottom: 20px;
-        }
-
-        .stat {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 18px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--navy);
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--muted);
-        }
-
-        .stat.live .stat-value {
-            color: var(--indigo);
-        }
-
-        /* ===== FILTER ===== */
-        .filter-wrap {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
+            gap: 10px;
         }
 
         .filter-label {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: .06em;
-            padding-top: 7px;
-            flex-shrink: 0;
         }
 
         .filter-buttons {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            flex-wrap: nowrap;
+            gap: 5px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 3px 2px;
+        }
+
+        .filter-buttons::-webkit-scrollbar {
+            display: none;
         }
 
         .filter-btn {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 5px 12px;
+            gap: 5px;
+            padding: 5px 9px;
             border-radius: 99px;
             border: 1px solid var(--border);
             background: #fff;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             color: var(--body);
             cursor: pointer;
             transition: all .15s;
             font-family: inherit;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .filter-btn:hover {
@@ -299,8 +271,8 @@
         }
 
         .filter-btn.active {
-            background: var(--navy);
-            border-color: var(--navy);
+            background: var(--indigo);
+            border-color: var(--indigo);
             color: #fff;
         }
 
@@ -309,8 +281,8 @@
         }
 
         .room-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             flex-shrink: 0;
         }
@@ -746,32 +718,7 @@
             }
 
             .page-title {
-                font-size: 19px;
-            }
-
-            .stats {
-                gap: 8px;
-            }
-
-            .stat {
-                padding: 10px 12px;
-            }
-
-            .stat-value {
-                font-size: 19px;
-            }
-
-            .stat-label {
-                font-size: 11px;
-            }
-
-            .filter-wrap {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .filter-label {
-                padding-top: 0;
+                font-size: 16px;
             }
 
             .day-head {
@@ -794,6 +741,337 @@
             .btn-login-cta {
                 width: 100%;
                 text-align: center;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        .main {
+            min-width: 0;
+        }
+
+        .day-name {
+            min-width: 0;
+        }
+
+        /* Layar sangat lebar / TV */
+        @media (min-width: 1600px) {
+            .main {
+                max-width: 1560px;
+            }
+        }
+
+        @media (min-width: 2200px) {
+            html {
+                font-size: 118%;
+            }
+
+            .main {
+                max-width: 1900px;
+            }
+        }
+
+        /* Desktop / laptop: filter tetap SEBARIS (lebih rapat supaya semua ruangan muat) */
+        @media (min-width: 1101px) and (max-width: 1400px) {
+            .filter-buttons {
+                flex-wrap: nowrap;
+                gap: 4px;
+            }
+
+            .filter-btn {
+                font-size: 11.5x;
+                padding: 5px 8px;
+                gap: 4px;
+            }
+        }
+
+        /* Tablet landscape: terlalu sempit untuk sebaris, tombol turun ke baris berikutnya */
+        @media (min-width: 901px) and (max-width: 1100px) {
+            .filter-buttons {
+                flex-wrap: wrap;
+                overflow: visible;
+                gap: 6px;
+            }
+
+            .filter-btn {
+                font-size: 12px;
+                padding: 6px 12px;
+                flex-shrink: 1;
+            }
+        }
+
+        /* Tablet landscape / laptop sempit: rapatkan tabel */
+        @media (max-width: 1200px) {
+            .main {
+                padding: 24px 1.5rem 48px;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                padding: 12px 14px;
+            }
+
+            .schedule-table .th-room {
+                width: 180px;
+            }
+
+            .schedule-table .th-pic {
+                width: 150px;
+            }
+
+            .schedule-table .th-status {
+                width: 140px;
+            }
+
+            .schedule-table .th-time {
+                width: 130px;
+            }
+        }
+
+        /* Tablet portrait & HP: tabel berubah jadi kartu */
+        @media (max-width: 900px) {
+            .desktop-table {
+                display: none !important;
+            }
+
+            .mobile-cards {
+                display: block;
+            }
+
+            .main {
+                padding: 20px 1.25rem 40px;
+            }
+
+            .clock {
+                display: none;
+            }
+
+            .page-header {
+                align-items: stretch;
+            }
+
+            .range-tabs {
+                width: 100%;
+            }
+
+            .range-tab {
+                flex: 1;
+                text-align: center;
+                padding: 8px 10px;
+            }
+
+            .booking-card-mobile {
+                padding: 14px 18px;
+            }
+        }
+
+        /* Layar kecil: semua ruangan tampil, tombol turun ke baris berikutnya */
+        @media (max-width: 900px) {
+            .filter-buttons {
+                flex-wrap: wrap;
+                overflow: visible;
+                gap: 6px;
+                margin-right: 0;
+                padding: 2px 0;
+            }
+
+            .filter-btn {
+                flex-shrink: 1;
+            }
+        }
+
+        /* HP */
+        @media (max-width: 640px) {
+            nav {
+                height: 56px;
+                padding: 0 max(1rem, env(safe-area-inset-left));
+            }
+
+            .nav-logo img {
+                height: 30px;
+            }
+
+            .btn-ghost,
+            .btn-solid {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+
+            .main {
+                padding: 16px 1rem 32px;
+            }
+
+            .page-subtitle {
+                font-size: 12px;
+            }
+
+            .range-tab {
+                font-size: 12px;
+            }
+
+            .day {
+                border-radius: 12px;
+                margin-bottom: 14px;
+            }
+
+            .day-head {
+                flex-wrap: wrap;
+                gap: 6px 8px;
+            }
+
+            .day-name {
+                font-size: 13px;
+            }
+
+            .filter-buttons {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 6px;
+            }
+
+            .filter-btn {
+                font-size: 12px;
+                padding: 8px 12px;
+                border-radius: 10px;
+                justify-content: flex-start;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .filter-btn[data-room="all"] {
+                grid-column: 1 / -1;
+                justify-content: center;
+            }
+
+            .card-title {
+                font-size: 14px;
+            }
+
+            footer {
+                padding: 16px 1rem calc(16px + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* HP kecil (<= 380px) */
+        @media (max-width: 380px) {
+            .nav-logo img {
+                height: 26px;
+            }
+
+            .page-title {
+                font-size: 15px;
+            }
+
+            .booking-card-mobile {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .card-meta {
+                gap: 5px 8px;
+            }
+        }
+
+        /* Layar sentuh: target tap lebih besar */
+        @media (hover: none) and (pointer: coarse) {
+            .filter-btn {
+                min-height: 36px;
+            }
+
+            .range-tab,
+            .btn-ghost,
+            .btn-solid {
+                min-height: 36px;
+            }
+
+            .schedule-table tbody tr:hover {
+                background: transparent;
+            }
+        }
+
+        /* HP landscape (tinggi pendek): navbar tidak menempel */
+        @media (max-height: 480px) and (orientation: landscape) {
+            nav {
+                position: static;
+            }
+        }
+
+        /* ===== KARTU MOBILE: gaya chip ===== */
+        .booking-card-mobile {
+            padding: 16px 18px;
+            gap: 12px;
+        }
+
+        .booking-card-mobile.is-done {
+            opacity: .75;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 9px;
+            border-radius: 7px;
+            background: #f1f5f9;
+            color: var(--body);
+            font-size: 11.5px;
+            font-weight: 600;
+            line-height: 1.2;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .chip svg {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+            color: var(--muted);
+        }
+
+        .chip-time {
+            background: var(--indigo-soft);
+            color: var(--indigo-dark);
+            font-weight: 800;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .card-status {
+            margin-top: 10px;
+        }
+
+        .status-badge.has-icon::before {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .day-name {
+                text-transform: uppercase;
+                letter-spacing: .03em;
+                font-size: 12px;
+            }
+
+            .day:not(.today) .day-head {
+                background: #eef2f7;
+            }
+
+            .day-tag {
+                text-transform: none;
+                letter-spacing: 0;
             }
         }
     </style>
@@ -831,19 +1109,10 @@
             </div>
         </div>
 
-        <div class="stats">
-            <div class="stat"><span class="stat-value" id="statTotal">–</span><span class="stat-label">Kegiatan pada
-                    periode ini</span></div>
-            <div class="stat"><span class="stat-value" id="statToday">–</span><span class="stat-label">Kegiatan hari
-                    ini</span></div>
-            <div class="stat live"><span class="stat-value" id="statLive">–</span><span class="stat-label">Sedang
-                    berlangsung</span></div>
-        </div>
-
         <div class="filter-wrap">
-            <span class="filter-label">Ruangan</span>
+            <span class="filter-label">Ruangan:</span>
             <div class="filter-buttons" id="roomFilters">
-                <button class="filter-btn active" data-room="all" onclick="setRoom('all',this)">Semua ruang</button>
+                <button class="filter-btn active" data-room="all" onclick="setRoom('all',this)">Semua Ruang</button>
             </div>
         </div>
 
@@ -876,7 +1145,7 @@
         const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
         const MON = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
         let all = [], room = 'all', range = 3
-        const mobile = () => window.innerWidth <= 640
+        const mobile = () => window.innerWidth <= 900
         const pad = n => String(n).padStart(2, '0')
         const dateStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
         const fmtT = s => { const p = s.replace('T', ' ').split(/[- :]/); return `${p[3]}.${p[4]}` }
@@ -940,13 +1209,18 @@
                 + `<td><span class="status-badge ${st.c}">${st.l}</span></td></tr>`
         }
 
+        const ICON_BLD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M19 21V11a1 1 0 0 0-1-1h-3M9 7h2M9 11h2M9 15h2"/></svg>'
+
         function cardMobile(b) {
             const inf = RC[b.room_id] || { dot: '#94a3b8', label: `Ruang ${b.room_id}` }
             const rn = b.room_name ?? inf.label, st = status(b)
+            const icon = st.k === 'done' ? '✓ ' : ''
             return `<div class="booking-card-mobile ${st.k === 'done' ? 'is-done' : ''}"><div class="card-bar" style="background:${inf.dot}"></div><div class="card-body">`
                 + `<div class="card-title">${esc(b.title)}</div>${b.description ? `<div class="card-desc">${clip(b.description, 80)}</div>` : ''}`
-                + `<div class="card-meta"><span class="card-time">${fmtT(b.start)} – ${fmtT(b.end)}</span><span class="room-name"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span><span>${esc(b.unit_kerja ?? '-')}</span></div>`
-                + `<div style="margin-top:9px"><span class="status-badge ${st.c}">${st.l}</span></div></div></div>`
+                + `<div class="card-meta"><span class="chip chip-time">${fmtT(b.start)} – ${fmtT(b.end)}</span>`
+                + `<span class="chip"><span class="room-dot" style="background:${inf.dot}"></span>${esc(rn)}</span>`
+                + `<span class="chip">${ICON_BLD}${esc(b.unit_kerja ?? '-')}</span></div>`
+                + `<div class="card-status"><span class="status-badge ${st.c}${icon ? ' has-icon' : ''}">${icon}${st.l}</span></div></div></div>`
         }
 
         function render() {
@@ -957,10 +1231,6 @@
             let f = all.filter(b => { const d = b.start.split('T')[0]; return d >= dateStr(s) && d < dateStr(e) && ['APPROVED', 'PENDING'].includes(b.status) })
             if (room !== 'all') f = f.filter(b => String(b.room_id) === String(room))
             f.sort((a, b) => new Date(a.start) - new Date(b.start))
-
-            document.getElementById('statTotal').textContent = f.length
-            document.getElementById('statToday').textContent = f.filter(b => isToday(b.start.split('T')[0])).length
-            document.getElementById('statLive').textContent = f.filter(b => status(b).k === 'live').length
 
             const g = {}; f.forEach(b => { const k = b.start.split('T')[0]; (g[k] = g[k] || []).push(b) })
             const wrap = document.getElementById('tableWrap'); wrap.innerHTML = ''

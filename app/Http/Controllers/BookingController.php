@@ -35,7 +35,6 @@ class BookingController extends Controller
         }
 
         $data = $request->validate([
-            // Ruangan aktif & tidak dalam pemeliharaan
             'room_id' => [
                 'required',
                 Rule::exists('rooms', 'id')->where(function ($query) {
@@ -49,6 +48,7 @@ class BookingController extends Controller
             'unit_kerja' => ['required', 'string', 'max:100'],
             'start_at' => ['required', 'date_format:Y-m-d H:i:s'],
             'end_at' => ['required', 'date_format:Y-m-d H:i:s', 'after:start_at'],
+            'confirm_pending' => ['nullable', 'boolean'],
         ], [
             'room_id.exists' => 'Ruangan yang dipilih tidak tersedia untuk booking (sedang maintenance atau tidak aktif). Silakan pilih ruangan lain.',
         ]);
@@ -94,10 +94,29 @@ class BookingController extends Controller
                 ->withInput();
         }
 
-        // Ambil data room untuk disimpan ke room_name
+        // Cek pengajuan PENDING dari unit lain di ruangan & waktu yang sama
+        $pendingLain = Booking::where('room_id', $data['room_id'])
+            ->where('status', 'PENDING')
+            ->where('unit_kerja', '!=', $data['unit_kerja'])
+            ->where('start_at', '<', $data['end_at'])
+            ->where('end_at', '>', $data['start_at'])
+            ->orderBy('created_at')
+            ->get(['unit_kerja', 'title', 'start_at', 'end_at']);
+
+        // Beri tahu dulu; simpan hanya setelah user konfirmasi
+        if ($pendingLain->isNotEmpty() && !$request->boolean('confirm_pending')) {
+            return back()
+                ->withInput($request->except('confirm_pending'))
+                ->with('pending_warning', $pendingLain->map(fn($b) => [
+                    'unit_kerja' => $b->unit_kerja,
+                    'title' => $b->title,
+                    'start_at' => Carbon::parse($b->start_at)->format('d M Y H:i'),
+                    'end_at' => Carbon::parse($b->end_at)->format('H:i'),
+                ])->all());
+        }
+
         $room = Room::findOrFail($data['room_id']);
 
-        // Buat data booking
         $booking = Booking::create([
             'room_id' => $room->id,
             'room_name' => $room->name,
@@ -111,7 +130,6 @@ class BookingController extends Controller
             'status' => 'PENDING',
         ]);
 
-        // Kirim email notifikasi ke user TU yang memegang ruangan ini
         $tuUsers = User::role('TU')
             ->where('room_id', $booking->room_id)
             ->whereNotNull('email')
@@ -125,10 +143,14 @@ class BookingController extends Controller
             }
         }
 
-        return redirect()->route('calendar')
-            ->with('status', 'Pengajuan ruang rapat berhasil terkirim. Silakan cek kembali di riwayat pengajuan.');
-    }
+        $message = 'Pengajuan ruang rapat berhasil terkirim. Silakan cek kembali di riwayat pengajuan.';
 
+        if ($pendingLain->isNotEmpty()) {
+            $message .= ' Perhatian: pengajuan Anda bersaing dengan pengajuan lain di waktu yang sama dan bisa ditolak jika pengajuan tersebut disetujui lebih dulu.';
+        }
+
+        return redirect()->route('calendar')->with('status', $message);
+    }
     public function cancel(Request $request, Booking $booking)
     {
         // Pengecekan autorisasi pengaju

@@ -41,6 +41,12 @@
         ->all();
     $isPic = auth()->user()->hasRole('PIC');
 
+    // Jadwal Hari Ini: PIC hanya melihat agenda yang dia ajukan sendiri.
+    // (Hero "Sedang Berlangsung / Rapat Berikutnya" tetap memakai semua agenda.)
+    $mySchedule = $isPic
+        ? $todayBookings->filter(fn($b) => (int) $b->pic_user_id === (int) auth()->id())->values()
+        : $todayBookings;
+
     // ===== WhatsApp TU (nomor diambil dari Room::tuUser -> users.phone) =====
     $normalizePhone = function (?string $p) {
         $p = preg_replace('/\D+/', '', (string) $p);
@@ -158,9 +164,9 @@
     ];
 
     $tabs = ['all' => 'Semua', 'live' => 'Berlangsung', 'upcoming' => 'Akan Datang'];
-    $tabCounts = ['all' => $todayBookings->count()];
+    $tabCounts = ['all' => $mySchedule->count()];
     foreach (['live', 'upcoming'] as $k) {
-        $tabCounts[$k] = $todayBookings->filter(fn($b) => $statusOf($b)[0] === $k)->count();
+        $tabCounts[$k] = $mySchedule->filter(fn($b) => $statusOf($b)[0] === $k)->count();
     }
 
     // Payload detail untuk modal
@@ -220,706 +226,708 @@
 @endphp
 
 <x-app-layout>
-    <div class="space-y-4 px-4 pb-8 pt-4 sm:px-8" x-data="{ d: null }" @keydown.escape.window="d = null">
-        {{-- ===== BANNER JUDUL ===== --}}
-        <div class="space-y-4">
-            <div
-                class="relative flex flex-wrap items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
-                <span
-                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
-                        stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                        <rect width="7" height="9" x="3" y="3" rx="1.5" />
-                        <rect width="7" height="5" x="14" y="3" rx="1.5" />
-                        <rect width="7" height="9" x="14" y="12" rx="1.5" />
-                        <rect width="7" height="5" x="3" y="16" rx="1.5" />
-                    </svg>
-                </span>
-                <div class="min-w-0 flex-1 basis-48">
-                    <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Dashboard Ruang Rapat
-                    </h1>
-                    <p class="mt-0.5 text-xs text-slate-500">Pantau jadwal hari ini, status pengajuan, dan ketersediaan
-                        ruangan.</p>
-                </div>
+    <div class="space-y-4 px-4 pb-8 pt-4 sm:px-8"
+        x-data="{ d: null }" @keydown.escape.window="d = null">
 
-                @if($isPic)
-                    <a href="{{ route('calendar') }}"
-                        class="relative z-10 w-full rounded-lg bg-indigo-600 px-3.5 py-2.5 text-center text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700 sm:w-auto sm:shrink-0 sm:py-2">
-                        + Ajukan Rapat
-                    </a>
-                @endif
+        {{-- ===== BANNER JUDUL ===== --}}
+        <div
+            class="relative flex flex-wrap items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:flex-nowrap sm:gap-4">
+            <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75"
+                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect width="7" height="9" x="3" y="3" rx="1.5" />
+                    <rect width="7" height="5" x="14" y="3" rx="1.5" />
+                    <rect width="7" height="9" x="14" y="12" rx="1.5" />
+                    <rect width="7" height="5" x="3" y="16" rx="1.5" />
+                </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+                <h1 class="text-[15px] font-extrabold leading-tight text-[#0f1e5a] sm:text-base">Dashboard Ruang
+                    Rapat</h1>
+                <p class="mt-0.5 text-[11px] text-slate-500 sm:text-xs">Pantau jadwal hari ini, status
+                    pengajuan, dan ketersediaan ruangan.</p>
             </div>
 
-            {{-- ===== Hero: sedang berlangsung / berikutnya ===== --}}
-            @php
-                $hero = $liveBooking ?? $nextBooking;
-                $heroLive = (bool) $liveBooking;
-            @endphp
+            @if($isPic)
+                <a href="{{ route('calendar') }}"
+                    class="relative z-10 shrink-0 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700">
+                    + Ajukan Rapat
+                </a>
+            @endif
+        </div>
 
-            @if($hero)
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
-                    <div class="flex flex-wrap items-center justify-between gap-4 sm:gap-5">
-                        <div class="min-w-0 flex-1 basis-60">
-                            <div
-                                class="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-widest {{ $heroLive ? 'text-emerald-600' : 'text-indigo-500' }}">
-                                @if($heroLive)
-                                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Sedang Berlangsung
-                                    @if($liveBookings->count() > 1)
-                                        <span
-                                            class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-600">+{{ $liveBookings->count() - 1 }}
-                                            lainnya</span>
-                                    @endif
-                                @else
-                                    Rapat Berikutnya
-                                @endif
-                            </div>
+        {{-- ===== Hero: sedang berlangsung / berikutnya ===== --}}
+        @php
+            $hero = $liveBooking ?? $nextBooking;
+            $heroLive = (bool) $liveBooking;
+        @endphp
 
-                            <div class="mt-2 break-words text-lg font-bold leading-snug text-slate-900 sm:text-xl">
-                                {{ $hero->title }}
-                            </div>
-                            <div class="mt-2 text-sm text-slate-700">
-                                <span class="text-slate-400">Pengusul</span>
-                                <span class="font-semibold">{{ $hero->unit_kerja ?: '-' }}</span>
-                            </div>
-                            <div class="mt-0.5 text-sm text-slate-500">
-                                {{ $hero->room?->name }} ·
-                                @unless($heroLive)
-                                    {{ Carbon::parse($hero->start_at)->isoFormat('dddd, D MMM') }} ·
-                                @endunless
-                                {{ Carbon::parse($hero->start_at)->format('H.i') }} –
-                                {{ Carbon::parse($hero->end_at)->format('H.i') }}
-                            </div>
-
+        @if($hero)
+            <div
+                class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                <div class="flex flex-wrap items-center justify-between gap-4 sm:gap-5">
+                    <div class="min-w-0 flex-1 basis-64">
+                        <div
+                            class="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest {{ $heroLive ? 'text-emerald-600' : 'text-indigo-500' }}">
                             @if($heroLive)
-                                <div class="mt-4 h-1.5 max-w-md overflow-hidden rounded-full bg-slate-100">
-                                    <div id="hero-progress" class="h-full rounded-full bg-emerald-500 transition-all"
-                                        style="width:0%"></div>
-                                </div>
+                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Sedang Berlangsung
+                                @if($liveBookings->count() > 1)
+                                    <span
+                                        class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-600">+{{ $liveBookings->count() - 1 }}
+                                        lainnya</span>
+                                @endif
+                            @else
+                                Rapat Berikutnya
                             @endif
                         </div>
 
                         <div
-                            class="w-full border-t border-slate-100 pt-3 text-left sm:w-auto sm:border-0 sm:pt-0 sm:text-right">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                                {{ $heroLive ? 'Selesai dalam' : 'Mulai dalam' }}
-                            </div>
-                            <div id="hero-countdown"
-                                class="mt-1 text-2xl font-bold tabular-nums text-slate-900 sm:text-3xl">--
-                            </div>
+                            class="mt-2 break-words text-base font-bold leading-snug text-slate-900 sm:text-lg">
+                            {{ $hero->title }}
                         </div>
-                    </div>
-                </div>
-
-                <script>
-                    (function () {
-                        const live = @json($heroLive);
-                        const start = new Date("{{ Carbon::parse($hero->start_at)->toIso8601String() }}");
-                        const end = new Date("{{ Carbon::parse($hero->end_at)->toIso8601String() }}");
-                        const cd = document.getElementById('hero-countdown');
-                        const bar = document.getElementById('hero-progress');
-
-                        function tick() {
-                            const now = new Date();
-                            const diff = Math.max(0, (live ? end : start) - now);
-                            const dd = Math.floor(diff / 86400000);
-                            const h = Math.floor((diff % 86400000) / 3600000);
-                            const m = Math.floor((diff % 3600000) / 60000);
-                            const s = Math.floor((diff % 60000) / 1000);
-
-                            cd.textContent = (dd ? dd + 'h ' : '') + (h ? h + 'j ' : '') + m + 'm' + (dd ? '' : ' ' + s + 'd');
-                            if (bar) bar.style.width = Math.min(100, Math.max(0, (now - start) / (end - start) * 100)) + '%';
-
-                            if (diff > 0) setTimeout(tick, 1000);
-                            else cd.textContent = live ? 'Selesai' : 'Dimulai';
-                        }
-                        tick();
-                    })();
-                </script>
-            @endif
-
-            <div class="grid gap-4 sm:gap-5 xl:grid-cols-3">
-
-                {{-- ===== Kolom kiri ===== --}}
-                <div class="min-w-0 space-y-4 sm:space-y-5 xl:col-span-2">
-
-                    {{-- 1. Rekomendasi ruangan --}}
-                    <div id="rekomendasi-ruangan" class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4 sm:p-5">
-                        <div class="mb-3">
-                            <h2 class="text-base font-bold text-slate-900">Rekomendasi Ruangan</h2>
-                            <p class="text-xs text-slate-500">Kosong sekarang, untuk rapat mendadak ·
-                                {{ $now->format('H.i') }}
-                            </p>
+                        <div class="mt-1.5 text-[13px] text-slate-700">
+                            <span class="text-slate-400">Pengusul</span>
+                            <span class="font-semibold">{{ $hero->unit_kerja ?: '-' }}</span>
+                        </div>
+                        <div class="mt-0.5 text-xs text-slate-500">
+                            {{ $hero->room?->name }} ·
+                            @unless($heroLive)
+                                {{ Carbon::parse($hero->start_at)->isoFormat('dddd, D MMM') }} ·
+                            @endunless
+                            {{ Carbon::parse($hero->start_at)->format('H.i') }} –
+                            {{ Carbon::parse($hero->end_at)->format('H.i') }}
                         </div>
 
-                        @if($afterHours)
-                            <p class="rounded-xl bg-white p-4 text-center text-sm text-slate-500">Sudah di luar jam kerja.
-                                Silakan ajukan untuk hari berikutnya.</p>
-                        @elseif($recommendations->isEmpty())
-                            <p class="rounded-xl bg-white p-4 text-center text-sm text-slate-500">Tidak ada ruangan yang
-                                kosong
-                                minimal {{ $minDurasi }} menit saat ini.</p>
-                        @else
-                            <div x-data="{
-                                            sel: @js($recommendations->first()['room']->id),
-                                            names: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['room']->name])),
-                                            untils: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['until']->format('H:i')])),
-                                            base: @js(route('calendar')),
-                                            get url() {
-                                                return this.base + '?room=' + encodeURIComponent(this.sel)
-                                                    + '&date={{ $now->toDateString() }}&start={{ $now->format('H:i') }}'
-                                                    + '&until=' + encodeURIComponent(this.untils[this.sel]);
-                                            }
-                                        }">
-                                <div class="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Pilih ruangan">
-                                    @foreach($recommendations as $rec)
-                                        @php
-                                            $c = $roomColors[$rec['room']->id] ?? '#6366f1';
-                                            $rid = $rec['room']->id;
-                                        @endphp
-                                        <button type="button" role="radio" :aria-checked="sel === @js($rid)"
-                                            @click="sel = @js($rid)"
-                                            :class="sel === @js($rid) ? 'bg-white ring-2 ring-indigo-500' : 'bg-white ring-1 ring-slate-200 hover:ring-indigo-300'"
-                                            class="relative flex flex-col gap-2 rounded-xl p-3.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-                                            <div class="flex items-start gap-2.5">
-                                                <span class="mt-1 h-3 w-3 shrink-0 rounded-full"
-                                                    style="background: {{ $c }}"></span>
-                                                <div class="min-w-0 flex-1 text-sm font-semibold leading-snug text-slate-900">
-                                                    {{ $rec['room']->name }}
-                                                </div>
-                                                <span x-show="sel === @js($rid)" x-cloak
-                                                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
-                                                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                                                        aria-hidden="true">
-                                                        <path d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            <div class="text-xs text-slate-500">
-                                                @if($rec['whole'])
-                                                    Kosong sampai jam kerja berakhir ({{ $rec['until']->format('H.i') }})
-                                                @else
-                                                    Kosong sampai {{ $rec['until']->format('H.i') }}
-                                                @endif
-                                                · {{ $fmtDur($rec['minutes']) }}
-                                            </div>
-                                            @if($loop->first)
-                                                <span
-                                                    class="w-fit rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700">Terlama</span>
-                                            @endif
-                                        </button>
-                                    @endforeach
-                                </div>
-
-                                @if($isPic)
-                                    <a :href="url"
-                                        class="mt-3 block rounded-xl bg-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-indigo-700 sm:py-2"
-                                        x-text="'Ajukan ' + names[sel]"></a>
-                                @endif
+                        @if($heroLive)
+                            <div class="mt-4 h-1.5 max-w-md overflow-hidden rounded-full bg-slate-100">
+                                <div id="hero-progress" class="h-full rounded-full bg-emerald-500 transition-all"
+                                    style="width:0%"></div>
                             </div>
                         @endif
                     </div>
 
-                    {{-- 2. Pengajuan saya (khusus PIC) --}}
-                    @if($isPic)
-                        <div id="pengajuan-saya" class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5" x-data="{
-                                    items: @js($myItems),
-                                    f: 'all',
-                                    get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
-                                    get shown() { return this.filtered.slice(0, 5) },
-                                    toggle(k) { this.f = (this.f === k ? 'all' : k) },
-                                    get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
-                                }">
-                            <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                    <h2 class="text-base font-bold text-slate-900">Pengajuan Saya</h2>
-                                    <p class="text-xs text-slate-500">5 pengajuan terbaru Anda yang belum lewat</p>
-                                </div>
-                                <div class="flex flex-wrap items-center gap-1.5">
-                                    @foreach($myFilters as [$key, $lbl, $on])
-                                        <button type="button" @click="toggle('{{ $key }}')"
-                                            :class="f === '{{ $key }}' ? '{{ $on }}' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
-                                            class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset transition sm:py-1.5">
-                                            {{ $lbl }}
-                                            <span
-                                                class="rounded-md bg-black/5 px-1.5 text-[11px] font-bold tabular-nums">{{ $myCounts[$key] }}</span>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <template x-for="i in shown" :key="i.id">
-                                <div
-                                    class="flex flex-col gap-2 border-t border-slate-100 py-3 sm:flex-row sm:items-center sm:gap-5">
-                                    <div class="flex items-baseline gap-2 sm:block sm:w-32 sm:shrink-0">
-                                        <div class="text-sm font-bold tabular-nums text-slate-900" x-text="i.time"></div>
-                                        <div class="text-xs text-slate-500" x-text="i.date"></div>
-                                    </div>
-                                    <div class="flex min-w-0 flex-1 items-center gap-3">
-                                        <span class="h-9 w-1 shrink-0 rounded-full" :style="'background:' + i.color"></span>
-                                        <div class="min-w-0">
-                                            <div class="truncate text-sm font-semibold text-slate-900" x-text="i.title">
-                                            </div>
-                                            <div class="truncate text-xs text-slate-500" x-text="i.room + ' · ' + i.unit">
-                                            </div>
-                                            <template x-if="i.note">
-                                                <div class="truncate text-xs text-rose-600"
-                                                    x-text="'Catatan TU: ' + i.note">
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
-                                        <span
-                                            class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ring-inset"
-                                            :class="i.badge">
-                                            <span class="h-1.5 w-1.5 rounded-full" :class="i.dot"></span>
-                                            <span x-text="i.label"></span>
-                                        </span>
-                                        <template x-if="i.wa">
-                                            <a :href="i.wa" target="_blank" rel="noopener"
-                                                :title="i.tu ? 'Hubungi ' + i.tu + ' via WhatsApp' : 'Hubungi TU via WhatsApp'"
-                                                class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:py-1">
-                                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"
-                                                    aria-hidden="true">
-                                                    <path
-                                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                                                </svg>
-                                                Chat TU
-                                            </a>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <div x-show="filtered.length === 0" x-cloak class="border-t border-slate-100 py-8 text-center">
-                                <div class="text-sm font-semibold text-slate-700"
-                                    x-text="f === 'all' ? 'Belum ada pengajuan' : 'Tidak ada pengajuan dengan status ini'">
-                                </div>
-                                <p class="mt-1 text-xs text-slate-500">Pengajuan rapat yang Anda buat akan muncul di sini.
-                                </p>
-                            </div>
-
-                            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
-                                <span class="text-xs text-slate-400"
-                                    x-text="'Menampilkan ' + shown.length + ' dari ' + filtered.length + ' pengajuan'"></span>
-                                <a :href="moreUrl" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Lihat
-                                    selengkapnya
-                                    →</a>
-                            </div>
+                    <div
+                        class="w-full rounded-xl bg-white/70 px-4 py-3 text-left ring-1 ring-slate-200/70 sm:w-auto sm:bg-transparent sm:p-0 sm:text-right sm:ring-0">
+                        <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                            {{ $heroLive ? 'Selesai dalam' : 'Mulai dalam' }}
                         </div>
-                    @endif
-
-                    {{-- 3. Jadwal hari ini --}}
-                    <div id="jadwal-hari-ini" class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-                        <div class="mb-4">
-                            <h2 class="text-base font-bold text-slate-900">Jadwal Hari Ini</h2>
-                            <p class="text-xs text-slate-500">{{ $now->isoFormat('dddd, D MMMM Y') }}</p>
+                        <div id="hero-countdown"
+                            class="mt-0.5 text-xl font-bold tabular-nums text-slate-900 sm:text-2xl">--
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        @if($todayBookings->isNotEmpty())
-                            <div class="mb-3 space-y-3">
-                                {{-- Pencarian (hanya di HP, karena search topbar disembunyikan) --}}
-                                <input id="local-search" type="search" placeholder="Cari kegiatan atau ruangan..."
-                                    class="w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 text-base placeholder-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 sm:hidden">
-                                @php
-                                    $tabOn = [
-                                        'all' => 'bg-slate-900 text-white ring-slate-900',
-                                        'live' => 'bg-emerald-50 text-emerald-800 ring-emerald-300',
-                                        'upcoming' => 'bg-sky-50 text-sky-800 ring-sky-300',
-                                    ];
-                                    $tabOff = 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50';
-                                @endphp
-                                <div class="flex flex-wrap gap-1.5" id="status-tabs">
-                                    @foreach($tabs as $key => $lbl)
-                                        <button type="button" data-filter="{{ $key }}" data-on="{{ $tabOn[$key] }}"
-                                            data-off="{{ $tabOff }}"
-                                            class="status-tab inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset transition sm:py-1.5 {{ $key === 'all' ? $tabOn[$key] : $tabOff }}">
-                                            {{ $lbl }}
-                                            <span
-                                                class="rounded-md bg-black/5 px-1.5 text-[11px] font-bold tabular-nums">{{ $tabCounts[$key] }}</span>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
+            <script>
+                (function () {
+                    const live = @json($heroLive);
+                    const start = new Date("{{ Carbon::parse($hero->start_at)->toIso8601String() }}");
+                    const end = new Date("{{ Carbon::parse($hero->end_at)->toIso8601String() }}");
+                    const cd = document.getElementById('hero-countdown');
+                    const bar = document.getElementById('hero-progress');
 
-                            <div class="divide-y divide-slate-100">
-                                @foreach($todayBookings as $b)
+                    function tick() {
+                        const now = new Date();
+                        const diff = Math.max(0, (live ? end : start) - now);
+                        const dd = Math.floor(diff / 86400000);
+                        const h = Math.floor((diff % 86400000) / 3600000);
+                        const m = Math.floor((diff % 3600000) / 60000);
+                        const s = Math.floor((diff % 60000) / 1000);
+
+                        cd.textContent = (dd ? dd + 'h ' : '') + (h ? h + 'j ' : '') + m + 'm' + (dd ? '' : ' ' + s + 'd');
+                        if (bar) bar.style.width = Math.min(100, Math.max(0, (now - start) / (end - start) * 100)) + '%';
+
+                        if (diff > 0) setTimeout(tick, 1000);
+                        else cd.textContent = live ? 'Selesai' : 'Dimulai';
+                    }
+                    tick();
+                })();
+            </script>
+        @endif
+
+        {{-- Desktop: kolom kanan (kalender) lebar tetap; di bawah xl semuanya satu kolom --}}
+        <div class="grid gap-4 sm:gap-5 xl:grid-cols-3">
+
+            {{-- ===== Kolom kiri ===== --}}
+            <div class="min-w-0 space-y-4 sm:space-y-5 xl:col-span-2">
+
+                {{-- 1. Rekomendasi ruangan --}}
+                <div id="rekomendasi-ruangan"
+                    class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4 sm:p-5">
+                    <div class="mb-3">
+                        <h2 class="text-base font-bold text-slate-900 ">Rekomendasi Ruangan</h2>
+                        <p class="text-xs text-slate-500">Kosong sekarang, untuk rapat mendadak ·
+                            {{ $now->format('H.i') }}
+                        </p>
+                    </div>
+
+                    @if($afterHours)
+                        <p class="rounded-xl bg-white p-4 text-center text-sm text-slate-500">Sudah di luar jam kerja.
+                            Silakan ajukan untuk hari berikutnya.</p>
+                    @elseif($recommendations->isEmpty())
+                        <p class="rounded-xl bg-white p-4 text-center text-sm text-slate-500">Tidak ada ruangan yang
+                            kosong
+                            minimal {{ $minDurasi }} menit saat ini.</p>
+                    @else
+                        <div x-data="{
+                                        sel: @js($recommendations->first()['room']->id),
+                                        names: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['room']->name])),
+                                        untils: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['until']->format('H:i')])),
+                                        base: @js(route('calendar')),
+                                        get url() {
+                                            return this.base + '?room=' + encodeURIComponent(this.sel)
+                                                + '&date={{ $now->toDateString() }}&start={{ $now->format('H:i') }}'
+                                                + '&until=' + encodeURIComponent(this.untils[this.sel]);
+                                        }
+                                    }">
+                            <div class="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Pilih ruangan">
+                                @foreach($recommendations as $rec)
                                     @php
-                                        [$key, $label, $cls, $dot] = $statusOf($b);
-                                        $c = $roomColors[$b->room_id] ?? '#6366f1';
+                                        $c = $roomColors[$rec['room']->id] ?? '#6366f1';
+                                        $rid = $rec['room']->id;
                                     @endphp
-                                    <div class="schedule-row flex cursor-pointer flex-col gap-2 py-3 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:gap-5 {{ $key === 'done' ? 'opacity-50' : '' }}"
-                                        data-status="{{ $key }}"
-                                        data-search="{{ strtolower($b->title . ' ' . ($b->room?->name ?? '') . ' ' . ($b->unit_kerja ?? '')) }}"
-                                        x-on:click="d = @js($payload($b))">
-
-                                        <div
-                                            class="text-sm font-bold tabular-nums sm:w-28 sm:shrink-0 {{ $key === 'live' ? 'text-emerald-600' : 'text-slate-900' }}">
-                                            {{ Carbon::parse($b->start_at)->format('H.i') }} –
-                                            {{ Carbon::parse($b->end_at)->format('H.i') }}
-                                        </div>
-
-                                        <div class="flex min-w-0 flex-1 items-center gap-3">
-                                            <span class="h-9 w-1 shrink-0 rounded-full" style="background: {{ $c }}"></span>
-                                            <div class="min-w-0">
-                                                <div class="truncate text-sm font-semibold text-slate-900">{{ $b->title }}</div>
-                                                <div class="truncate text-xs text-slate-500">{{ $b->room?->name ?? '-' }} ·
-                                                    {{ $b->unit_kerja ?: '-' }}
-                                                </div>
+                                    <button type="button" role="radio" :aria-checked="sel === @js($rid)"
+                                        @click="sel = @js($rid)"
+                                        :class="sel === @js($rid) ? 'bg-white ring-2 ring-indigo-500' : 'bg-white ring-1 ring-slate-200 hover:ring-indigo-300'"
+                                        class="relative flex flex-col gap-2 rounded-xl p-3.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                                        <div class="flex items-start gap-2.5">
+                                            <span class="mt-1 h-3 w-3 shrink-0 rounded-full"
+                                                style="background: {{ $c }}"></span>
+                                            <div class="min-w-0 flex-1 text-[13px] font-semibold leading-snug text-slate-900">
+                                                {{ $rec['room']->name }}
                                             </div>
+                                            <span x-show="sel === @js($rid)" x-cloak
+                                                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
+                                                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+                                                    aria-hidden="true">
+                                                    <path d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </span>
                                         </div>
-
-                                        <span
-                                            class="inline-flex w-fit shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold {{ $cls }}">
+                                        <div class="text-xs text-slate-500">
+                                            @if($rec['whole'])
+                                                Kosong sampai jam kerja berakhir ({{ $rec['until']->format('H.i') }})
+                                            @else
+                                                Kosong sampai {{ $rec['until']->format('H.i') }}
+                                            @endif
+                                            · {{ $fmtDur($rec['minutes']) }}
+                                        </div>
+                                        @if($loop->first)
                                             <span
-                                                class="h-1.5 w-1.5 rounded-full {{ $dot }} {{ $key === 'live' ? 'animate-pulse' : '' }}"></span>{{ $label }}
-                                        </span>
-                                    </div>
+                                                class="w-fit rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700">Terlama</span>
+                                        @endif
+                                    </button>
                                 @endforeach
                             </div>
 
-                            <div id="no-result" class="hidden py-10 text-center text-sm text-slate-400">Tidak ada kegiatan
-                                yang
-                                cocok.</div>
-                        @else
-                            <div class="py-12 text-center">
-                                <div class="text-base font-semibold text-slate-800">Tidak ada kegiatan hari ini</div>
-                                <p class="mt-1 text-sm text-slate-500">Semua ruangan kosong. Ajukan rapat atau cek jadwal
-                                    hari
-                                    lain.</p>
-                                @if($isPic)
-                                    <a href="{{ route('calendar') }}"
-                                        class="mt-4 inline-block rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700">+
-                                        Ajukan Rapat</a>
-                                @endif
-                            </div>
-                        @endif
-
-                        <div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-                            <span class="text-xs text-slate-400">{{ $todayBookings->count() }} kegiatan hari ini</span>
-                            <a href="{{ route('calendar') }}"
-                                class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Lihat Kalender →</a>
+                            @if($isPic)
+                                <a :href="url"
+                                    class="mt-3 block rounded-xl bg-indigo-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
+                                    x-text="'Ajukan ' + names[sel]"></a>
+                            @endif
                         </div>
-                    </div>
+                    @endif
                 </div>
 
-                {{-- ===== Kolom kanan: kalender saja ===== --}}
-                <div class="h-fit min-w-0 space-y-5 xl:sticky xl:top-4">
-
-                    {{-- Kalender mini --}}
-                    <div id="kalender-ruangan" class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-                        <script>
-                            window.miniCal = function (cfg) {
-                                const pad = n => String(n).padStart(2, '0');
-                                const [ty, tm] = cfg.today.split('-').map(Number);
-                                const idx = (y, m) => y * 12 + m;
-                                return {
-                                    items: cfg.items, rooms: cfg.rooms, today: cfg.today,
-                                    y: ty, m: tm - 1, selected: cfg.today, room: null,
-                                    get shownItems() { return this.room === null ? this.items : this.items.filter(i => i.room_id === this.room); },
-                                    get byDate() {
-                                        const map = {};
-                                        this.shownItems.forEach(i => { (map[i.date] = map[i.date] || []).push(i); });
-                                        return map;
-                                    },
-                                    get label() { return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(this.y, this.m, 1)); },
-                                    get cells() {
-                                        const first = (new Date(this.y, this.m, 1).getDay() + 6) % 7; // Senin = 0
-                                        const days = new Date(this.y, this.m + 1, 0).getDate();
-                                        const out = [];
-                                        for (let i = 0; i < first; i++) out.push({ d: null, key: 'e' + i, colors: [] });
-                                        for (let d = 1; d <= days; d++) {
-                                            const key = this.y + '-' + pad(this.m + 1) + '-' + pad(d);
-                                            const list = this.byDate[key] || [];
-                                            out.push({ d, key, colors: [...new Set(list.map(i => i.color))].slice(0, 4) });
-                                        }
-                                        return out;
-                                    },
-                                    get dayItems() { return this.byDate[this.selected] || []; },
-                                    get dayLabel() {
-                                        const [a, b, c] = this.selected.split('-').map(Number);
-                                        return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(a, b - 1, c));
-                                    },
-                                    get canPrev() { return idx(this.y, this.m) > idx(cfg.min[0], cfg.min[1]); },
-                                    get canNext() { return idx(this.y, this.m) < idx(cfg.max[0], cfg.max[1]); },
-                                    get offToday() { return this.selected !== this.today || idx(this.y, this.m) !== idx(ty, tm - 1); },
-                                    prev() { if (!this.canPrev) return; if (--this.m < 0) { this.m = 11; this.y--; } },
-                                    next() { if (!this.canNext) return; if (++this.m > 11) { this.m = 0; this.y++; } },
-                                    goToday() { this.y = ty; this.m = tm - 1; this.selected = this.today; },
-                                    toggleRoom(id) { this.room = (this.room === id ? null : id); },
-                                };
-                            };
-                        </script>
-
-                        <div x-data="miniCal(@js($calCfg))">
-                            {{-- Header bulan --}}
-                            <div class="mb-3 flex items-center justify-between gap-2">
-                                <button type="button" @click="prev()" :disabled="!canPrev"
-                                    class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
-                                    aria-label="Bulan sebelumnya">‹</button>
-                                <div class="text-center">
-                                    <h2 class="text-base font-bold capitalize text-slate-900" x-text="label"></h2>
-                                    <button type="button" x-show="offToday" x-cloak @click="goToday()"
-                                        class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800">Kembali
-                                        ke
-                                        hari ini</button>
-                                </div>
-                                <button type="button" @click="next()" :disabled="!canNext"
-                                    class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
-                                    aria-label="Bulan berikutnya">›</button>
+                {{-- 2. Pengajuan saya (khusus PIC) --}}
+                @if($isPic)
+                    <div id="pengajuan-saya"
+                        class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5" x-data="{
+                                items: @js($myItems),
+                                f: 'all',
+                                get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
+                                get shown() { return this.filtered.slice(0, 5) },
+                                toggle(k) { this.f = (this.f === k ? 'all' : k) },
+                                get moreUrl() { return '{{ route('my_bookings.index') }}' + (this.f === 'all' ? '' : '?status=' + this.f) }
+                            }">
+                        <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900 ">Pengajuan Saya</h2>
+                                <p class="text-xs text-slate-500">5 pengajuan terbaru Anda yang belum lewat</p>
                             </div>
-
-                            {{-- Filter ruangan --}}
-                            <div class="mb-3 flex flex-wrap gap-1.5">
-                                <button type="button" @click="room = null"
-                                    :class="room === null ? 'bg-indigo-600 text-white ring-indigo-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
-                                    class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold ring-1 ring-inset transition sm:py-1">Semua</button>
-                                <template x-for="r in rooms" :key="r.id">
-                                    <button type="button" @click="toggleRoom(r.id)"
-                                        :class="room === r.id ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
-                                        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-semibold ring-1 ring-inset transition sm:py-1">
-                                        <span class="h-2 w-2 rounded-full" :style="'background:' + r.color"></span>
-                                        <span x-text="r.name.replace('Ruang Rapat ', '').replace('Ruang ', '')"></span>
-                                        <span x-show="r.maint" class="text-[10px] font-medium opacity-60">BPK</span>
-                                    </button>
-                                </template>
-                            </div>
-
-                            {{-- Grid kalender --}}
-                            <div class="grid grid-cols-7 text-center text-[11px] font-semibold text-slate-400">
-                                <div class="py-1">Sen</div>
-                                <div class="py-1">Sel</div>
-                                <div class="py-1">Rab</div>
-                                <div class="py-1">Kam</div>
-                                <div class="py-1">Jum</div>
-                                <div class="py-1">Sab</div>
-                                <div class="py-1">Min</div>
-                            </div>
-                            <div class="grid grid-cols-7 gap-y-0.5">
-                                <template x-for="(c, i) in cells" :key="c.key">
-                                    <button type="button" :disabled="!c.d" @click="c.d && (selected = c.key)" :class="[
-                                        c.d ? '' : 'invisible',
-                                        selected === c.key ? 'bg-indigo-600 text-white' :
-                                            (c.key === today ? 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200' :
-                                                (i % 7 > 4 ? 'text-slate-400 hover:bg-slate-50' : 'text-slate-700 hover:bg-slate-50'))
-                                    ]"
-                                        class="mx-auto flex aspect-square w-full max-w-[2.5rem] flex-col items-center justify-center rounded-full text-xs font-semibold transition">
-                                        <span x-text="c.d"></span>
-                                        <span class="mt-0.5 flex h-1 items-center gap-0.5">
-                                            <template x-for="col in c.colors" :key="col">
-                                                <span class="h-1 w-1 rounded-full" :style="'background:' + col"></span>
-                                            </template>
-                                        </span>
-                                    </button>
-                                </template>
-                            </div>
-
-                            {{-- Kegiatan pada tanggal terpilih --}}
-                            <div class="mt-3 border-t border-slate-200 pt-3">
-                                <div class="mb-2.5 flex items-center justify-between gap-2">
-                                    <span
-                                        class="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                                        <svg class="h-3.5 w-3.5 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" aria-hidden="true">
-                                            <path
-                                                d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
-                                        </svg>
-                                        <span class="truncate" x-text="dayLabel"></span>
-                                    </span>
-                                    <span
-                                        class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
-                                        x-text="dayItems.length + ' kegiatan'"></span>
-                                </div>
-
-                                <div class="max-h-72 space-y-2 overflow-y-auto pr-0.5">
-                                    <template x-for="i in dayItems" :key="i.id">
-                                        <button type="button" @click="d = i.detail"
-                                            class="group flex w-full items-stretch gap-3 rounded-xl border border-slate-200 bg-white p-2.5 text-left shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50/40 hover:shadow">
-                                            <span class="w-1 shrink-0 rounded-full"
-                                                :style="'background:' + i.color"></span>
-
-                                            <span class="min-w-0 flex-1">
-                                                <span class="block truncate text-sm font-bold text-slate-900"
-                                                    x-text="i.title"></span>
-
-                                                <span class="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
-                                                    <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24"
-                                                        fill="none" stroke="currentColor" stroke-width="2"
-                                                        stroke-linecap="round" stroke-linejoin="round"
-                                                        aria-hidden="true">
-                                                        <circle cx="12" cy="12" r="9" />
-                                                        <path d="M12 7v5l3 2" />
-                                                    </svg>
-                                                    <span class="font-semibold tabular-nums" x-text="i.time"></span>
-                                                </span>
-
-                                                <span class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
-                                                    <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24"
-                                                        fill="none" stroke="currentColor" stroke-width="2"
-                                                        stroke-linecap="round" stroke-linejoin="round"
-                                                        aria-hidden="true">
-                                                        <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" />
-                                                        <circle cx="12" cy="10" r="2.5" />
-                                                    </svg>
-                                                    <span class="truncate" x-text="i.room"></span>
-                                                </span>
-
-                                                <span x-show="i.unit && i.unit !== '-'"
-                                                    class="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
-                                                    <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none"
-                                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round" aria-hidden="true">
-                                                        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                                                        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                                                        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                                                        <path d="M10 6h4M10 10h4M10 14h4M10 18h4" />
-                                                    </svg>
-                                                    <span class="truncate" x-text="i.unit"></span>
-                                                </span>
-                                            </span>
-
-                                            <svg class="h-4 w-4 shrink-0 self-center text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                                <path d="M9 6l6 6-6 6" />
-                                            </svg>
-                                        </button>
-                                    </template>
-
-                                    {{-- Kosong --}}
-                                    <div x-show="dayItems.length === 0" x-cloak
-                                        class="flex flex-col items-center py-6 text-center">
+                            <div class="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:items-center">
+                                @foreach($myFilters as [$key, $lbl, $on])
+                                    <button type="button" @click="toggle('{{ $key }}')"
+                                        :class="f === '{{ $key }}' ? '{{ $on }}' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
+                                        class="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 ring-inset transition sm:justify-start">
+                                        {{ $lbl }}
                                         <span
-                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-                                                aria-hidden="true">
-                                                <path
-                                                    d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
-                                                <path d="M9 16l2 2 4-4" />
-                                            </svg>
-                                        </span>
-                                        <p class="mt-2 text-xs font-semibold text-slate-600">Tidak ada kegiatan</p>
-                                        <p class="text-[11px] text-slate-400">Belum ada rapat disetujui pada tanggal
-                                            ini.
-                                        </p>
+                                            class="rounded-md bg-black/5 px-1.5 text-[11px] font-bold tabular-nums">{{ $myCounts[$key] }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <template x-for="i in shown" :key="i.id">
+                            <div
+                                class="flex flex-col gap-2 border-t border-slate-100 py-3 sm:flex-row sm:items-center sm:gap-5">
+                                <div class="flex items-baseline justify-between gap-2 sm:block sm:w-32 sm:shrink-0">
+                                    <div class="text-[13px] font-bold tabular-nums text-slate-900" x-text="i.time"></div>
+                                    <div class="text-xs text-slate-500" x-text="i.date"></div>
+                                </div>
+                                <div class="flex min-w-0 flex-1 items-stretch gap-3">
+                                    <span class="min-h-[2.25rem] w-1 shrink-0 self-stretch rounded-full"
+                                        :style="'background:' + i.color"></span>
+                                    <div class="min-w-0">
+                                        <div class="break-words text-[13px] font-semibold text-slate-900 sm:truncate"
+                                            x-text="i.title"></div>
+                                        <div class="break-words text-xs text-slate-500 sm:truncate"
+                                            x-text="i.room + ' · ' + i.unit"></div>
+                                        <template x-if="i.note">
+                                            <div class="break-words text-xs text-rose-600 sm:truncate"
+                                                x-text="'Catatan TU: ' + i.note"></div>
+                                        </template>
                                     </div>
                                 </div>
+                                <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ring-inset"
+                                        :class="i.badge">
+                                        <span class="h-1.5 w-1.5 rounded-full" :class="i.dot"></span>
+                                        <span x-text="i.label"></span>
+                                    </span>
+                                    <template x-if="i.wa">
+                                        <a :href="i.wa" target="_blank" rel="noopener"
+                                            :title="i.tu ? 'Hubungi ' + i.tu + ' via WhatsApp' : 'Hubungi TU via WhatsApp'"
+                                            class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700">
+                                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"
+                                                aria-hidden="true">
+                                                <path
+                                                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                            </svg>
+                                            Chat TU
+                                        </a>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
 
+                        <div x-show="filtered.length === 0" x-cloak class="border-t border-slate-100 py-8 text-center">
+                            <div class="text-sm font-semibold text-slate-700"
+                                x-text="f === 'all' ? 'Belum ada pengajuan' : 'Tidak ada pengajuan dengan status ini'">
+                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Pengajuan rapat yang Anda buat akan muncul di sini.
+                            </p>
+                        </div>
+
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                            <span class="text-xs text-slate-400"
+                                x-text="'Menampilkan ' + shown.length + ' dari ' + filtered.length + ' pengajuan'"></span>
+                            <a :href="moreUrl" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Lihat
+                                selengkapnya →</a>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- 3. Jadwal hari ini --}}
+                <div id="jadwal-hari-ini"
+                    class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                    <div class="mb-4">
+                        <h2 class="text-base font-bold text-slate-900 ">Jadwal Hari Ini</h2>
+                        <p class="text-xs text-slate-500">{{ $isPic ? 'Agenda Anda · ' : '' }}{{ $now->isoFormat('dddd, D MMMM Y') }}</p>
+                    </div>
+
+                    @if($mySchedule->isNotEmpty())
+                        <div class="mb-3 space-y-3">
+                            {{-- Pencarian (hanya di HP, karena search topbar disembunyikan) --}}
+                            <input id="local-search" type="search" placeholder="Cari kegiatan atau ruangan..."
+                                class="w-full rounded-xl border-slate-200 bg-slate-50 py-2 text-sm placeholder-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 sm:hidden">
+                            @php
+                                $tabOn = [
+                                    'all' => 'bg-slate-900 text-white ring-slate-900',
+                                    'live' => 'bg-emerald-50 text-emerald-800 ring-emerald-300',
+                                    'upcoming' => 'bg-sky-50 text-sky-800 ring-sky-300',
+                                ];
+                                $tabOff = 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50';
+                            @endphp
+                            <div class="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap" id="status-tabs">
+                                @foreach($tabs as $key => $lbl)
+                                    <button type="button" data-filter="{{ $key }}" data-on="{{ $tabOn[$key] }}"
+                                        data-off="{{ $tabOff }}"
+                                        class="status-tab inline-flex items-center justify-center gap-2 rounded-lg px-2 py-1.5 text-xs font-semibold ring-1 ring-inset transition sm:justify-start sm:px-3 {{ $key === 'all' ? $tabOn[$key] : $tabOff }}">
+                                        {{ $lbl }}
+                                        <span
+                                            class="rounded-md bg-black/5 px-1.5 text-[11px] font-bold tabular-nums">{{ $tabCounts[$key] }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="divide-y divide-slate-100">
+                            @foreach($mySchedule as $b)
+                                @php
+                                    [$key, $label, $cls, $dot] = $statusOf($b);
+                                    $c = $roomColors[$b->room_id] ?? '#6366f1';
+                                @endphp
+                                <div class="schedule-row grid cursor-pointer grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 py-3 transition hover:bg-slate-50 sm:flex sm:gap-5 {{ $key === 'done' ? 'opacity-50' : '' }}"
+                                    data-status="{{ $key }}"
+                                    data-search="{{ strtolower($b->title . ' ' . ($b->room?->name ?? '') . ' ' . ($b->unit_kerja ?? '')) }}"
+                                    x-on:click="d = @js($payload($b))">
+
+                                    <div
+                                        class="text-[13px] font-bold tabular-nums sm:w-28 sm:shrink-0 {{ $key === 'live' ? 'text-emerald-600' : 'text-slate-900' }}">
+                                        {{ Carbon::parse($b->start_at)->format('H.i') }} –
+                                        {{ Carbon::parse($b->end_at)->format('H.i') }}
+                                    </div>
+
+                                    <div
+                                        class="order-last col-span-2 flex min-w-0 items-stretch gap-3 sm:order-none sm:flex-1">
+                                        <span class="min-h-[2.25rem] w-1 shrink-0 self-stretch rounded-full"
+                                            style="background: {{ $c }}"></span>
+                                        <div class="min-w-0">
+                                            <div class="break-words text-[13px] font-semibold text-slate-900 sm:truncate">
+                                                {{ $b->title }}</div>
+                                            <div class="break-words text-xs text-slate-500 sm:truncate">
+                                                {{ $b->room?->name ?? '-' }} · {{ $b->unit_kerja ?: '-' }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <span
+                                        class="inline-flex w-fit shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold {{ $cls }}">
+                                        <span
+                                            class="h-1.5 w-1.5 rounded-full {{ $dot }} {{ $key === 'live' ? 'animate-pulse' : '' }}"></span>{{ $label }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div id="no-result" class="hidden py-10 text-center text-sm text-slate-400">Tidak ada kegiatan
+                            yang cocok.</div>
+                    @else
+                        <div class="py-12 text-center">
+                            <div class="text-base font-semibold text-slate-800">
+                                {{ $isPic ? 'Anda tidak punya agenda hari ini' : 'Tidak ada kegiatan hari ini' }}</div>
+                            <p class="mt-1 text-sm text-slate-500">
+                                {{ $isPic ? 'Ajukan rapat baru atau cek jadwal hari lain.' : 'Semua ruangan kosong. Ajukan rapat atau cek jadwal hari lain.' }}
+                            </p>
+                            @if($isPic)
                                 <a href="{{ route('calendar') }}"
-                                    class="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 py-2.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-800 sm:py-2">
-                                    Buka kalender lengkap
-                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        aria-hidden="true">
-                                        <path d="M5 12h14M13 6l6 6-6 6" />
+                                    class="mt-4 inline-block rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700">+
+                                    Ajukan Rapat</a>
+                            @endif
+                        </div>
+                    @endif
+
+                    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                        <span class="text-xs text-slate-400">{{ $mySchedule->count() }} kegiatan hari ini</span>
+                        <a href="{{ route('calendar') }}"
+                            class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Lihat Kalender →</a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ===== Kolom kanan: kalender saja ===== --}}
+            <div class="h-fit min-w-0 space-y-5 xl:sticky xl:top-4">
+
+                {{-- Kalender mini --}}
+                <div id="kalender-ruangan"
+                    class="mx-auto w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 xl:max-w-none">
+                    <script>
+                        window.miniCal = function (cfg) {
+                            const pad = n => String(n).padStart(2, '0');
+                            const [ty, tm] = cfg.today.split('-').map(Number);
+                            const idx = (y, m) => y * 12 + m;
+                            return {
+                                items: cfg.items, rooms: cfg.rooms, today: cfg.today,
+                                y: ty, m: tm - 1, selected: cfg.today, room: null,
+                                get shownItems() { return this.room === null ? this.items : this.items.filter(i => i.room_id === this.room); },
+                                get byDate() {
+                                    const map = {};
+                                    this.shownItems.forEach(i => { (map[i.date] = map[i.date] || []).push(i); });
+                                    return map;
+                                },
+                                get label() { return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(this.y, this.m, 1)); },
+                                get cells() {
+                                    const first = (new Date(this.y, this.m, 1).getDay() + 6) % 7; // Senin = 0
+                                    const days = new Date(this.y, this.m + 1, 0).getDate();
+                                    const out = [];
+                                    for (let i = 0; i < first; i++) out.push({ d: null, key: 'e' + i, colors: [] });
+                                    for (let d = 1; d <= days; d++) {
+                                        const key = this.y + '-' + pad(this.m + 1) + '-' + pad(d);
+                                        const list = this.byDate[key] || [];
+                                        out.push({ d, key, colors: [...new Set(list.map(i => i.color))].slice(0, 4) });
+                                    }
+                                    return out;
+                                },
+                                get dayItems() { return this.byDate[this.selected] || []; },
+                                get dayLabel() {
+                                    const [a, b, c] = this.selected.split('-').map(Number);
+                                    return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(a, b - 1, c));
+                                },
+                                get canPrev() { return idx(this.y, this.m) > idx(cfg.min[0], cfg.min[1]); },
+                                get canNext() { return idx(this.y, this.m) < idx(cfg.max[0], cfg.max[1]); },
+                                get offToday() { return this.selected !== this.today || idx(this.y, this.m) !== idx(ty, tm - 1); },
+                                prev() { if (!this.canPrev) return; if (--this.m < 0) { this.m = 11; this.y--; } },
+                                next() { if (!this.canNext) return; if (++this.m > 11) { this.m = 0; this.y++; } },
+                                goToday() { this.y = ty; this.m = tm - 1; this.selected = this.today; },
+                                toggleRoom(id) { this.room = (this.room === id ? null : id); },
+                            };
+                        };
+                    </script>
+
+                    <div x-data="miniCal(@js($calCfg))">
+                        {{-- Header bulan --}}
+                        <div class="mb-3 flex items-center justify-between gap-2">
+                            <button type="button" @click="prev()" :disabled="!canPrev"
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+                                aria-label="Bulan sebelumnya">‹</button>
+                            <div class="text-center">
+                                <h2 class="text-[15px] font-bold capitalize text-slate-900" x-text="label"></h2>
+                                <button type="button" x-show="offToday" x-cloak @click="goToday()"
+                                    class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800">Kembali ke
+                                    hari ini</button>
+                            </div>
+                            <button type="button" @click="next()" :disabled="!canNext"
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+                                aria-label="Bulan berikutnya">›</button>
+                        </div>
+
+                        {{-- Filter ruangan --}}
+                        <div class="mb-3 flex flex-wrap gap-1.5">
+                            <button type="button" @click="room = null"
+                                :class="room === null ? 'bg-indigo-600 text-white ring-indigo-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
+                                class="rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset transition">Semua</button>
+                            <template x-for="r in rooms" :key="r.id">
+                                <button type="button" @click="toggleRoom(r.id)"
+                                    :class="room === r.id ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
+                                    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset transition">
+                                    <span class="h-2 w-2 rounded-full" :style="'background:' + r.color"></span>
+                                    <span x-text="r.name.replace('Ruang Rapat ', '').replace('Ruang ', '')"></span>
+                                    <span x-show="r.maint" class="text-[10px] font-medium opacity-60">BPK</span>
+                                </button>
+                            </template>
+                        </div>
+
+                        {{-- Grid kalender --}}
+                        <div class="grid grid-cols-7 text-center text-[11px] font-semibold text-slate-400">
+                            <div class="py-1">Sen</div>
+                            <div class="py-1">Sel</div>
+                            <div class="py-1">Rab</div>
+                            <div class="py-1">Kam</div>
+                            <div class="py-1">Jum</div>
+                            <div class="py-1">Sab</div>
+                            <div class="py-1">Min</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-y-0.5">
+                            <template x-for="(c, i) in cells" :key="c.key">
+                                <button type="button" :disabled="!c.d" @click="c.d && (selected = c.key)" :class="[
+                                    c.d ? '' : 'invisible',
+                                    selected === c.key ? 'bg-indigo-600 text-white' :
+                                        (c.key === today ? 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200' :
+                                            (i % 7 > 4 ? 'text-slate-400 hover:bg-slate-50' : 'text-slate-700 hover:bg-slate-50'))
+                                ]"
+                                    class="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-full text-xs font-semibold transition">
+                                    <span x-text="c.d"></span>
+                                    <span class="mt-0.5 flex h-1 items-center gap-0.5">
+                                        <template x-for="col in c.colors" :key="col">
+                                            <span class="h-1 w-1 rounded-full" :style="'background:' + col"></span>
+                                        </template>
+                                    </span>
+                                </button>
+                            </template>
+                        </div>
+
+                        {{-- Kegiatan pada tanggal terpilih --}}
+                        <div class="mt-3 border-t border-slate-200 pt-3">
+                            <div class="mb-2.5 flex items-center justify-between gap-2">
+                                <span
+                                    class="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                                    <svg class="h-3.5 w-3.5 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" aria-hidden="true">
+                                        <path
+                                            d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
                                     </svg>
-                                </a>
+                                    <span class="truncate" x-text="dayLabel"></span>
+                                </span>
+                                <span
+                                    class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
+                                    x-text="dayItems.length + ' kegiatan'"></span>
                             </div>
 
-                            {{-- ===== Modal detail kegiatan ===== --}}
-                            <div x-show="d" x-cloak x-transition.opacity
-                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                <div class="absolute inset-0 bg-slate-900/50" @click="d = null"></div>
-                                <div class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl"
-                                    x-show="d" x-transition>
-                                    <template x-if="d">
-                                        <div>
-                                            <div
-                                                class="flex items-start justify-between gap-4 border-b border-slate-100 p-4 sm:p-5">
-                                                <div class="min-w-0">
-                                                    <h3 class="break-words text-base font-bold leading-snug text-slate-900"
-                                                        x-text="d.title"></h3>
-                                                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                                                        <span
-                                                            class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                                            <span class="h-2 w-2 rounded-full"
-                                                                :style="'background:' + d.color"></span><span
-                                                                x-text="d.room"></span>
-                                                        </span>
-                                                        <span class="rounded-full px-3 py-1 text-xs font-semibold"
-                                                            :class="d.statusCls" x-text="d.status"></span>
-                                                    </div>
+                            <div class="max-h-72 space-y-2 overflow-y-auto pr-0.5">
+                                <template x-for="i in dayItems" :key="i.id">
+                                    <button type="button" @click="d = i.detail"
+                                        class="group flex w-full items-stretch gap-3 rounded-xl border border-slate-200 bg-white p-2.5 text-left shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50/40 hover:shadow">
+                                        <span class="w-1 shrink-0 rounded-full" :style="'background:' + i.color"></span>
+
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block truncate text-[13px] font-bold text-slate-900"
+                                                x-text="i.title"></span>
+
+                                            <span class="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
+                                                <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <circle cx="12" cy="12" r="9" />
+                                                    <path d="M12 7v5l3 2" />
+                                                </svg>
+                                                <span class="font-semibold tabular-nums" x-text="i.time"></span>
+                                            </span>
+
+                                            <span class="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
+                                                <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" />
+                                                    <circle cx="12" cy="10" r="2.5" />
+                                                </svg>
+                                                <span class="truncate" x-text="i.room"></span>
+                                            </span>
+
+                                            <span x-show="i.unit && i.unit !== '-'"
+                                                class="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
+                                                <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+                                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                                                    <path d="M10 6h4M10 10h4M10 14h4M10 18h4" />
+                                                </svg>
+                                                <span class="truncate" x-text="i.unit"></span>
+                                            </span>
+                                        </span>
+
+                                        <svg class="h-4 w-4 shrink-0 self-center text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M9 6l6 6-6 6" />
+                                        </svg>
+                                    </button>
+                                </template>
+
+                                {{-- Kosong --}}
+                                <div x-show="dayItems.length === 0" x-cloak
+                                    class="flex flex-col items-center py-6 text-center">
+                                    <span
+                                        class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                            aria-hidden="true">
+                                            <path
+                                                d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+                                            <path d="M9 16l2 2 4-4" />
+                                        </svg>
+                                    </span>
+                                    <p class="mt-2 text-xs font-semibold text-slate-600">Tidak ada kegiatan</p>
+                                    <p class="text-[11px] text-slate-400">Belum ada rapat disetujui pada tanggal ini.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <a href="{{ route('calendar') }}"
+                                class="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 py-2 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-800">
+                                Buka kalender lengkap
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M5 12h14M13 6l6 6-6 6" />
+                                </svg>
+                            </a>
+                        </div>
+
+                        {{-- ===== Modal detail kegiatan (bottom sheet di HP, dialog di layar besar) ===== --}}
+                        <div x-show="d" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+                            <div class="absolute inset-0 bg-slate-900/50" @click="d = null"></div>
+                            <div class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+                                x-show="d" x-transition>
+                                <template x-if="d">
+                                    <div>
+                                        <div class="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
+                                            <div class="min-w-0">
+                                                <h3 class="break-words text-base font-bold leading-snug text-slate-900"
+                                                    x-text="d.title"></h3>
+                                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                                    <span
+                                                        class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                                        <span class="h-2 w-2 rounded-full"
+                                                            :style="'background:' + d.color"></span><span
+                                                            x-text="d.room"></span>
+                                                    </span>
+                                                    <span class="rounded-full px-3 py-1 text-xs font-semibold"
+                                                        :class="d.statusCls" x-text="d.status"></span>
                                                 </div>
-                                                <button @click="d = null"
-                                                    class="shrink-0 p-1 text-slate-400 hover:text-slate-600">✕</button>
                                             </div>
-                                            <div class="space-y-3 p-4 sm:p-5">
-                                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                    <div class="rounded-xl bg-slate-50 p-3">
-                                                        <div class="text-xs text-slate-500">Tanggal</div>
-                                                        <div class="text-sm font-semibold text-slate-900"
-                                                            x-text="d.date">
-                                                        </div>
-                                                    </div>
-                                                    <div class="rounded-xl bg-slate-50 p-3">
-                                                        <div class="text-xs text-slate-500">Waktu</div>
-                                                        <div class="text-sm font-semibold text-slate-900"
-                                                            x-text="d.time">
-                                                        </div>
+                                            <button @click="d = null"
+                                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                                aria-label="Tutup">✕</button>
+                                        </div>
+                                        <div class="space-y-3 p-5">
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                <div class="rounded-xl bg-slate-50 p-3">
+                                                    <div class="text-xs text-slate-500">Tanggal</div>
+                                                    <div class="text-sm font-semibold text-slate-900" x-text="d.date">
                                                     </div>
                                                 </div>
                                                 <div class="rounded-xl bg-slate-50 p-3">
-                                                    <div class="text-xs text-slate-500">Pengusul</div>
-                                                    <div class="text-sm font-semibold text-slate-900" x-text="d.unit">
+                                                    <div class="text-xs text-slate-500">Waktu</div>
+                                                    <div class="text-sm font-semibold text-slate-900" x-text="d.time">
                                                     </div>
                                                 </div>
-                                                <div class="rounded-xl bg-slate-50 p-3" x-show="d.desc">
-                                                    <div class="text-xs text-slate-500">Deskripsi</div>
-                                                    <div class="mt-1 whitespace-pre-wrap break-words text-sm text-slate-800"
-                                                        x-text="d.desc"></div>
-                                                </div>
                                             </div>
-                                            <div class="flex justify-end border-t border-slate-100 p-4">
-                                                <button @click="d = null"
-                                                    class="w-full rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:w-auto sm:py-2">Tutup</button>
+                                            <div class="rounded-xl bg-slate-50 p-3">
+                                                <div class="text-xs text-slate-500">Pengusul</div>
+                                                <div class="text-sm font-semibold text-slate-900" x-text="d.unit"></div>
+                                            </div>
+                                            <div class="rounded-xl bg-slate-50 p-3" x-show="d.desc">
+                                                <div class="text-xs text-slate-500">Deskripsi</div>
+                                                <div class="mt-1 whitespace-pre-wrap break-words text-sm text-slate-800"
+                                                    x-text="d.desc"></div>
                                             </div>
                                         </div>
-                                    </template>
-                                </div>
+                                        <div
+                                            class="flex justify-end border-t border-slate-100 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                                            <button @click="d = null"
+                                                class="w-full rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:w-auto">Tutup</button>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
+                    </div>
 
-                        <script>
-                            (function () {
-                                const rows = document.querySelectorAll('.schedule-row');
-                                if (!rows.length) return;
-                                const inputs = [document.getElementById('global-search'), document.getElementById('local-search')].filter(Boolean);
-                                const empty = document.getElementById('no-result');
-                                const tabs = document.querySelectorAll('.status-tab');
-                                let status = 'all', q = '';
+                    <script>
+                        (function () {
+                            const rows = document.querySelectorAll('.schedule-row');
+                            if (!rows.length) return;
+                            const inputs = [document.getElementById('global-search'), document.getElementById('local-search')].filter(Boolean);
+                            const empty = document.getElementById('no-result');
+                            const tabs = document.querySelectorAll('.status-tab');
+                            let status = 'all', q = '';
 
-                                function apply() {
-                                    rows.forEach(r => {
-                                        const ok = (status === 'all' || r.dataset.status === status) && (!q || r.dataset.search.includes(q));
-                                        r.classList.toggle('hidden', !ok);
-                                    });
-                                    const shown = [...rows].filter(r => !r.classList.contains('hidden')).length;
-                                    empty.classList.toggle('hidden', shown > 0);
-                                }
+                            function apply() {
+                                rows.forEach(r => {
+                                    const ok = (status === 'all' || r.dataset.status === status) && (!q || r.dataset.search.includes(q));
+                                    r.classList.toggle('hidden', !ok);
+                                });
+                                const shown = [...rows].filter(r => !r.classList.contains('hidden')).length;
+                                empty.classList.toggle('hidden', shown > 0);
+                            }
 
-                                inputs.forEach(inp => inp.addEventListener('input', () => {
-                                    q = inp.value.trim().toLowerCase();
-                                    inputs.forEach(o => { if (o !== inp) o.value = inp.value; });
-                                    apply();
-                                }));
+                            inputs.forEach(inp => inp.addEventListener('input', () => {
+                                q = inp.value.trim().toLowerCase();
+                                inputs.forEach(o => { if (o !== inp) o.value = inp.value; });
+                                apply();
+                            }));
 
-                                tabs.forEach(t => t.addEventListener('click', () => {
-                                    status = t.dataset.filter;
-                                    tabs.forEach(o => {
-                                        const on = o === t;
-                                        o.classList.remove(...o.dataset.on.split(' '), ...o.dataset.off.split(' '));
-                                        o.classList.add(...(on ? o.dataset.on : o.dataset.off).split(' '));
-                                    });
-                                    apply();
-                                }));
-                            })();
-                        </script>
-                    </div>{{-- /#kalender-ruangan --}}
-                </div>{{-- /kolom kanan --}}
-            </div>{{-- /grid --}}
-        </div>{{-- /space-y-4 --}}
+                            tabs.forEach(t => t.addEventListener('click', () => {
+                                status = t.dataset.filter;
+                                tabs.forEach(o => {
+                                    const on = o === t;
+                                    o.classList.remove(...o.dataset.on.split(' '), ...o.dataset.off.split(' '));
+                                    o.classList.add(...(on ? o.dataset.on : o.dataset.off).split(' '));
+                                });
+                                apply();
+                            }));
+                        })();
+                    </script>
+                </div>{{-- /#kalender-ruangan --}}
+            </div>{{-- /kolom kanan --}}
+        </div>{{-- /grid --}}
     </div>{{-- /x-data d --}}
 </x-app-layout>

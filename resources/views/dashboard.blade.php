@@ -224,7 +224,7 @@
         {{-- ===== BANNER JUDUL ===== --}}
         <div class="space-y-4">
             <div
-                class="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
+                class="relative flex flex-wrap items-center gap-3 overflow-hidden rounded-xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:gap-4">
                 <span
                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
@@ -235,7 +235,7 @@
                         <rect width="7" height="5" x="3" y="16" rx="1.5" />
                     </svg>
                 </span>
-                <div class="min-w-0 flex-1">
+                <div class="min-w-0 flex-1 basis-48">
                     <h1 class="text-base font-extrabold leading-tight text-[#0f1e5a] sm:text-lg">Dashboard Ruang Rapat
                     </h1>
                     <p class="mt-0.5 text-xs text-slate-500">Pantau jadwal hari ini, status pengajuan, dan ketersediaan
@@ -244,7 +244,7 @@
 
                 @if($isPic)
                     <a href="{{ route('calendar') }}"
-                        class="relative z-10 shrink-0 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700">
+                        class="relative z-10 w-full rounded-lg bg-indigo-600 px-3.5 py-2.5 text-center text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-700 sm:w-auto sm:shrink-0 sm:py-2">
                         + Ajukan Rapat
                     </a>
                 @endif
@@ -257,11 +257,11 @@
             @endphp
 
             @if($hero)
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-                    <div class="flex flex-wrap items-center justify-between gap-5">
-                        <div class="min-w-0 flex-1">
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4 sm:gap-5">
+                        <div class="min-w-0 flex-1 basis-60">
                             <div
-                                class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest {{ $heroLive ? 'text-emerald-600' : 'text-indigo-500' }}">
+                                class="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-widest {{ $heroLive ? 'text-emerald-600' : 'text-indigo-500' }}">
                                 @if($heroLive)
                                     <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Sedang Berlangsung
                                     @if($liveBookings->count() > 1)
@@ -274,7 +274,8 @@
                                 @endif
                             </div>
 
-                            <div class="mt-2 text-lg font-bold leading-snug text-slate-900 sm:text-xl">{{ $hero->title }}
+                            <div class="mt-2 break-words text-lg font-bold leading-snug text-slate-900 sm:text-xl">
+                                {{ $hero->title }}
                             </div>
                             <div class="mt-2 text-sm text-slate-700">
                                 <span class="text-slate-400">Pengusul</span>
@@ -297,7 +298,8 @@
                             @endif
                         </div>
 
-                        <div class="text-right">
+                        <div
+                            class="w-full border-t border-slate-100 pt-3 text-left sm:w-auto sm:border-0 sm:pt-0 sm:text-right">
                             <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                                 {{ $heroLive ? 'Selesai dalam' : 'Mulai dalam' }}
                             </div>
@@ -335,13 +337,13 @@
                 </script>
             @endif
 
-            <div class="grid gap-5 xl:grid-cols-3">
+            <div class="grid gap-4 sm:gap-5 xl:grid-cols-3">
 
                 {{-- ===== Kolom kiri ===== --}}
-                <div class="space-y-5 xl:col-span-2">
+                <div class="min-w-0 space-y-4 sm:space-y-5 xl:col-span-2">
 
                     {{-- 1. Rekomendasi ruangan --}}
-                    <div id="rekomendasi-ruangan" class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-5">
+                    <div id="rekomendasi-ruangan" class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4 sm:p-5">
                         <div class="mb-3">
                             <h2 class="text-base font-bold text-slate-900">Rekomendasi Ruangan</h2>
                             <p class="text-xs text-slate-500">Kosong sekarang, untuk rapat mendadak ·
@@ -411,7 +413,7 @@
 
                                 @if($isPic)
                                     <a :href="url"
-                                        class="mt-3 block rounded-xl bg-indigo-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
+                                        class="mt-3 block rounded-xl bg-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-indigo-700 sm:py-2"
                                         x-text="'Ajukan ' + names[sel]"></a>
                                 @endif
                             </div>
@@ -420,7 +422,7 @@
 
                     {{-- 2. Pengajuan saya (khusus PIC) --}}
                     @if($isPic)
-                        <div id="pengajuan-saya" class="rounded-2xl border border-slate-200 bg-white p-5" x-data="{
+                        <div id="pengajuan-saya" class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5" x-data="{
                                     items: @js($myItems),
                                     f: 'all',
                                     get filtered() { return this.items.filter(i => this.f === 'all' || i.status === this.f) },
@@ -437,7 +439,7 @@
                                     @foreach($myFilters as [$key, $lbl, $on])
                                         <button type="button" @click="toggle('{{ $key }}')"
                                             :class="f === '{{ $key }}' ? '{{ $on }}' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
-                                            class="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 ring-inset transition">
+                                            class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset transition sm:py-1.5">
                                             {{ $lbl }}
                                             <span
                                                 class="rounded-md bg-black/5 px-1.5 text-[11px] font-bold tabular-nums">{{ $myCounts[$key] }}</span>
@@ -449,7 +451,7 @@
                             <template x-for="i in shown" :key="i.id">
                                 <div
                                     class="flex flex-col gap-2 border-t border-slate-100 py-3 sm:flex-row sm:items-center sm:gap-5">
-                                    <div class="w-32 shrink-0">
+                                    <div class="flex items-baseline gap-2 sm:block sm:w-32 sm:shrink-0">
                                         <div class="text-sm font-bold tabular-nums text-slate-900" x-text="i.time"></div>
                                         <div class="text-xs text-slate-500" x-text="i.date"></div>
                                     </div>
@@ -467,7 +469,7 @@
                                             </template>
                                         </div>
                                     </div>
-                                    <div class="flex shrink-0 items-center gap-2">
+                                    <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
                                         <span
                                             class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ring-inset"
                                             :class="i.badge">
@@ -477,7 +479,7 @@
                                         <template x-if="i.wa">
                                             <a :href="i.wa" target="_blank" rel="noopener"
                                                 :title="i.tu ? 'Hubungi ' + i.tu + ' via WhatsApp' : 'Hubungi TU via WhatsApp'"
-                                                class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700">
+                                                class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:py-1">
                                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"
                                                     aria-hidden="true">
                                                     <path
@@ -498,7 +500,7 @@
                                 </p>
                             </div>
 
-                            <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
                                 <span class="text-xs text-slate-400"
                                     x-text="'Menampilkan ' + shown.length + ' dari ' + filtered.length + ' pengajuan'"></span>
                                 <a :href="moreUrl" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Lihat
@@ -509,7 +511,7 @@
                     @endif
 
                     {{-- 3. Jadwal hari ini --}}
-                    <div id="jadwal-hari-ini" class="rounded-2xl border border-slate-200 bg-white p-5">
+                    <div id="jadwal-hari-ini" class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
                         <div class="mb-4">
                             <h2 class="text-base font-bold text-slate-900">Jadwal Hari Ini</h2>
                             <p class="text-xs text-slate-500">{{ $now->isoFormat('dddd, D MMMM Y') }}</p>
@@ -519,7 +521,7 @@
                             <div class="mb-3 space-y-3">
                                 {{-- Pencarian (hanya di HP, karena search topbar disembunyikan) --}}
                                 <input id="local-search" type="search" placeholder="Cari kegiatan atau ruangan..."
-                                    class="w-full rounded-xl border-slate-200 bg-slate-50 py-2 text-sm placeholder-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 sm:hidden">
+                                    class="w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 text-base placeholder-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 sm:hidden">
                                 @php
                                     $tabOn = [
                                         'all' => 'bg-slate-900 text-white ring-slate-900',
@@ -532,7 +534,7 @@
                                     @foreach($tabs as $key => $lbl)
                                         <button type="button" data-filter="{{ $key }}" data-on="{{ $tabOn[$key] }}"
                                             data-off="{{ $tabOff }}"
-                                            class="status-tab inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 ring-inset transition {{ $key === 'all' ? $tabOn[$key] : $tabOff }}">
+                                            class="status-tab inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold ring-1 ring-inset transition sm:py-1.5 {{ $key === 'all' ? $tabOn[$key] : $tabOff }}">
                                             {{ $lbl }}
                                             <span
                                                 class="rounded-md bg-black/5 px-1.5 text-[11px] font-bold tabular-nums">{{ $tabCounts[$key] }}</span>
@@ -553,7 +555,7 @@
                                         x-on:click="d = @js($payload($b))">
 
                                         <div
-                                            class="w-28 shrink-0 text-sm font-bold tabular-nums {{ $key === 'live' ? 'text-emerald-600' : 'text-slate-900' }}">
+                                            class="text-sm font-bold tabular-nums sm:w-28 sm:shrink-0 {{ $key === 'live' ? 'text-emerald-600' : 'text-slate-900' }}">
                                             {{ Carbon::parse($b->start_at)->format('H.i') }} –
                                             {{ Carbon::parse($b->end_at)->format('H.i') }}
                                         </div>
@@ -603,10 +605,10 @@
                 </div>
 
                 {{-- ===== Kolom kanan: kalender saja ===== --}}
-                <div class="h-fit space-y-5 xl:sticky xl:top-4">
+                <div class="h-fit min-w-0 space-y-5 xl:sticky xl:top-4">
 
                     {{-- Kalender mini --}}
-                    <div id="kalender-ruangan" class="rounded-2xl border border-slate-200 bg-white p-5">
+                    <div id="kalender-ruangan" class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
                         <script>
                             window.miniCal = function (cfg) {
                                 const pad = n => String(n).padStart(2, '0');
@@ -654,7 +656,7 @@
                             {{-- Header bulan --}}
                             <div class="mb-3 flex items-center justify-between gap-2">
                                 <button type="button" @click="prev()" :disabled="!canPrev"
-                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+                                    class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
                                     aria-label="Bulan sebelumnya">‹</button>
                                 <div class="text-center">
                                     <h2 class="text-base font-bold capitalize text-slate-900" x-text="label"></h2>
@@ -664,7 +666,7 @@
                                         hari ini</button>
                                 </div>
                                 <button type="button" @click="next()" :disabled="!canNext"
-                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+                                    class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
                                     aria-label="Bulan berikutnya">›</button>
                             </div>
 
@@ -672,11 +674,11 @@
                             <div class="mb-3 flex flex-wrap gap-1.5">
                                 <button type="button" @click="room = null"
                                     :class="room === null ? 'bg-indigo-600 text-white ring-indigo-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
-                                    class="rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset transition">Semua</button>
+                                    class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold ring-1 ring-inset transition sm:py-1">Semua</button>
                                 <template x-for="r in rooms" :key="r.id">
                                     <button type="button" @click="toggleRoom(r.id)"
                                         :class="room === r.id ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'"
-                                        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset transition">
+                                        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-semibold ring-1 ring-inset transition sm:py-1">
                                         <span class="h-2 w-2 rounded-full" :style="'background:' + r.color"></span>
                                         <span x-text="r.name.replace('Ruang Rapat ', '').replace('Ruang ', '')"></span>
                                         <span x-show="r.maint" class="text-[10px] font-medium opacity-60">BPK</span>
@@ -702,7 +704,7 @@
                                             (c.key === today ? 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200' :
                                                 (i % 7 > 4 ? 'text-slate-400 hover:bg-slate-50' : 'text-slate-700 hover:bg-slate-50'))
                                     ]"
-                                        class="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-full text-xs font-semibold transition">
+                                        class="mx-auto flex aspect-square w-full max-w-[2.5rem] flex-col items-center justify-center rounded-full text-xs font-semibold transition">
                                         <span x-text="c.d"></span>
                                         <span class="mt-0.5 flex h-1 items-center gap-0.5">
                                             <template x-for="col in c.colors" :key="col">
@@ -717,17 +719,17 @@
                             <div class="mt-3 border-t border-slate-200 pt-3">
                                 <div class="mb-2.5 flex items-center justify-between gap-2">
                                     <span
-                                        class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                                        <svg class="h-3.5 w-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none"
+                                        class="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                                        <svg class="h-3.5 w-3.5 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round" aria-hidden="true">
                                             <path
                                                 d="M8 7V3m8 4V3M5 11h14M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
                                         </svg>
-                                        <span x-text="dayLabel"></span>
+                                        <span class="truncate" x-text="dayLabel"></span>
                                     </span>
                                     <span
-                                        class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
+                                        class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
                                         x-text="dayItems.length + ' kegiatan'"></span>
                                 </div>
 
@@ -807,7 +809,7 @@
                                 </div>
 
                                 <a href="{{ route('calendar') }}"
-                                    class="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 py-2 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-800">
+                                    class="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-slate-50 py-2.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-800 sm:py-2">
                                     Buka kalender lengkap
                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -821,14 +823,14 @@
                             <div x-show="d" x-cloak x-transition.opacity
                                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                 <div class="absolute inset-0 bg-slate-900/50" @click="d = null"></div>
-                                <div class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
+                                <div class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl"
                                     x-show="d" x-transition>
                                     <template x-if="d">
                                         <div>
                                             <div
-                                                class="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
+                                                class="flex items-start justify-between gap-4 border-b border-slate-100 p-4 sm:p-5">
                                                 <div class="min-w-0">
-                                                    <h3 class="text-base font-bold leading-snug text-slate-900"
+                                                    <h3 class="break-words text-base font-bold leading-snug text-slate-900"
                                                         x-text="d.title"></h3>
                                                     <div class="mt-2 flex flex-wrap items-center gap-2">
                                                         <span
@@ -842,10 +844,10 @@
                                                     </div>
                                                 </div>
                                                 <button @click="d = null"
-                                                    class="text-slate-400 hover:text-slate-600">✕</button>
+                                                    class="shrink-0 p-1 text-slate-400 hover:text-slate-600">✕</button>
                                             </div>
-                                            <div class="space-y-3 p-5">
-                                                <div class="grid grid-cols-2 gap-3">
+                                            <div class="space-y-3 p-4 sm:p-5">
+                                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                                     <div class="rounded-xl bg-slate-50 p-3">
                                                         <div class="text-xs text-slate-500">Tanggal</div>
                                                         <div class="text-sm font-semibold text-slate-900"
@@ -866,13 +868,13 @@
                                                 </div>
                                                 <div class="rounded-xl bg-slate-50 p-3" x-show="d.desc">
                                                     <div class="text-xs text-slate-500">Deskripsi</div>
-                                                    <div class="mt-1 whitespace-pre-wrap text-sm text-slate-800"
+                                                    <div class="mt-1 whitespace-pre-wrap break-words text-sm text-slate-800"
                                                         x-text="d.desc"></div>
                                                 </div>
                                             </div>
                                             <div class="flex justify-end border-t border-slate-100 p-4">
                                                 <button @click="d = null"
-                                                    class="rounded-xl bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">Tutup</button>
+                                                    class="w-full rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:w-auto sm:py-2">Tutup</button>
                                             </div>
                                         </div>
                                     </template>

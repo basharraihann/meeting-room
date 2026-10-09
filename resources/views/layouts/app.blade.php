@@ -88,8 +88,6 @@
 @php
     $u = auth()->user();
     $initials = collect(preg_split('/\s+/', trim($u->name)))->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
-    $hasPending = $u->hasRole('TU') && $u->room_id
-        && \App\Models\Booking::where('status', 'PENDING')->where('room_id', $u->room_id)->exists();
     $homeUrl = $u->hasRole('PIC')
         ? route('dashboard')
         : ($u->hasRole('Admin') ? route('admin.users.index') : route('calendar'));
@@ -130,7 +128,8 @@
         {{-- Topbar --}}
         <header
             class="sticky top-0 z-30 flex h-20 items-center gap-4 border-b border-slate-100 bg-white/80 px-4 backdrop-blur sm:px-8">
-            {{-- Hamburger disembunyikan (diganti menu bawah). Ganti "hidden" jadi "lg:hidden" untuk memunculkan lagi --}}
+            {{-- Hamburger disembunyikan (diganti menu bawah). Ganti "hidden" jadi "lg:hidden" untuk memunculkan lagi
+            --}}
             <button @click="sidebarMobile = true" class="hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -145,21 +144,8 @@
             </a>
 
             <div class="ml-auto flex items-center gap-3">
-                {{-- Notifikasi --}}
-                <a href="{{ $u->hasRole('TU') ? route('approvals.index') : '#' }}"
-                    class="relative text-slate-500 hover:text-slate-700">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9a6 6 0 10-12 0v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                    </svg>
-                    @if($hasPending)
-                        <span class="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                    @endif
-                </a>
-
                 {{-- Profil --}}
-                <div class="relative border-l border-slate-200 pl-3" x-data="{ menu: false }"
-                    @click.outside="menu = false">
+                <div class="relative" x-data="{ menu: false }" @click.outside="menu = false">
                     <button @click="menu = !menu" class="flex items-center gap-2">
                         <span
                             class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">{{ $initials }}</span>
@@ -173,7 +159,26 @@
                         </svg>
                     </button>
 
-                    {{-- dropdown tetap sama --}}
+                    {{-- Dropdown profil --}}
+                    <div x-show="menu" x-cloak x-transition
+                        class="absolute right-0 top-full mt-2 w-48 rounded-xl border border-slate-100 bg-white py-1 shadow-lg">
+                        <div class="border-b border-slate-100 px-4 py-2 sm:hidden">
+                            <p class="text-xs font-bold text-slate-900">{{ $u->name }}</p>
+                        </div>
+
+                        <a href="{{ route('profile.edit') }}"
+                            class="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                            Profil
+                        </a>
+
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                class="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50">
+                                Keluar
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </header>

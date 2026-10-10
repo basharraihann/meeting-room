@@ -6,6 +6,8 @@
     $rangeStart = $now->copy()->startOfDay();
     $rangeEnd = $now->copy()->addDays($range - 1)->endOfDay();
 
+    $isPic = auth()->user()->hasRole('PIC');
+
     $rangeBookings = \App\Models\Booking::with('room')
         ->where('status', 'APPROVED')
         ->whereBetween('start_at', [$rangeStart, $rangeEnd])
@@ -31,21 +33,22 @@
         return ['upcoming', 'Terjadwal', 'bg-sky-50 text-sky-700', 'bg-sky-500'];
     };
 
-    $liveBookings = $todayBookings->filter(fn($b) => $statusOf($b)[0] === 'live')->values();
+    // Agenda hari ini sesuai akun: PIC hanya melihat agenda yang dia ajukan sendiri.
+    // Dipakai untuk Hero (Sedang Berlangsung / Rapat Berikutnya) dan Jadwal Hari Ini.
+    $mySchedule = $isPic
+        ? $todayBookings->filter(fn($b) => (int) $b->pic_user_id === (int) auth()->id())->values()
+        : $todayBookings;
+
+    $liveBookings = $mySchedule->filter(fn($b) => $statusOf($b)[0] === 'live')->values();
     $liveBooking = $liveBookings->first();
     $nextBooking = \App\Models\Booking::with('room')->where('status', 'APPROVED')
-        ->where('start_at', '>', $now)->orderBy('start_at')->first();
+        ->where('start_at', '>', $now)
+        ->when($isPic, fn($q) => $q->where('pic_user_id', auth()->id()))
+        ->orderBy('start_at')->first();
 
     $roomColors = \App\Models\Room::pluck('color', 'id')
         ->filter()   // buang null/kosong supaya fallback '#6366f1' dipakai
         ->all();
-    $isPic = auth()->user()->hasRole('PIC');
-
-    // Jadwal Hari Ini: PIC hanya melihat agenda yang dia ajukan sendiri.
-    // (Hero "Sedang Berlangsung / Rapat Berikutnya" tetap memakai semua agenda.)
-    $mySchedule = $isPic
-        ? $todayBookings->filter(fn($b) => (int) $b->pic_user_id === (int) auth()->id())->values()
-        : $todayBookings;
 
     // ===== WhatsApp TU (nomor diambil dari Room::tuUser -> users.phone) =====
     $normalizePhone = function (?string $p) {
@@ -257,7 +260,7 @@
             @endif
         </div>
 
-        {{-- ===== Hero: sedang berlangsung / berikutnya ===== --}}
+        {{-- ===== Hero: sedang berlangsung / berikutnya (PIC: hanya agenda miliknya) ===== --}}
         @php
             $hero = $liveBooking ?? $nextBooking;
             $heroLive = (bool) $liveBooking;
@@ -278,7 +281,7 @@
                                         lainnya</span>
                                 @endif
                             @else
-                                Rapat Berikutnya
+                                Rapat Berikutnya{{ $isPic ? ' Anda' : '' }}
                             @endif
                         </div>
 
@@ -702,15 +705,15 @@
                             </template>
                         </div>
 
-                        {{-- Grid kalender --}}
+                        {{-- Grid kalender (Sabtu & Minggu merah) --}}
                         <div class="grid grid-cols-7 text-center text-[11px] font-semibold text-slate-400">
                             <div class="py-1">Sen</div>
                             <div class="py-1">Sel</div>
                             <div class="py-1">Rab</div>
                             <div class="py-1">Kam</div>
                             <div class="py-1">Jum</div>
-                            <div class="py-1">Sab</div>
-                            <div class="py-1">Min</div>
+                            <div class="py-1 text-rose-500">Sab</div>
+                            <div class="py-1 text-rose-500">Min</div>
                         </div>
                         <div class="grid grid-cols-7 gap-y-0.5">
                             <template x-for="(c, i) in cells" :key="c.key">
@@ -718,7 +721,7 @@
                                     c.d ? '' : 'invisible',
                                     selected === c.key ? 'bg-indigo-600 text-white' :
                                         (c.key === today ? 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200' :
-                                            (i % 7 > 4 ? 'text-slate-400 hover:bg-slate-50' : 'text-slate-700 hover:bg-slate-50'))
+                                            (i % 7 > 4 ? 'text-rose-500 hover:bg-rose-50' : 'text-slate-700 hover:bg-slate-50'))
                                 ]"
                                     class="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-full text-xs font-semibold transition">
                                     <span x-text="c.d"></span>

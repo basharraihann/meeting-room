@@ -17,6 +17,15 @@
         $todayStr = now()->toDateString();
         $now = now();
 
+        // ===== DATA DARI CONTROLLER (dengan fallback supaya blade tidak error) =====
+        // $unitTotals : ['Nama Unit' => jumlah rapat sebenarnya, '__none' => ...]
+        // $totalAll   : total semua rapat sesuai filter
+        // $lastPage   : jumlah halaman (ditentukan unit dengan rapat terbanyak)
+        $unitTotals = $unitTotals ?? collect();
+        $totalAll = $totalAll ?? $bookings->total();
+        $lastPage = $lastPage ?? $bookings->lastPage();
+        $curPage = $bookings->currentPage();
+
         // ===== KELOMPOK PER UNIT KERJA (urutan dari controller tetap dipertahankan di dalam unit) =====
         $noUnitKey = '__none';
         $byUnit = $bookings->getCollection()
@@ -29,6 +38,8 @@
             $byUnit->put($noUnitKey, $none);
         }
         $unitCount = $byUnit->count();
+        $unitTotalCount = max($unitTotals->count(), $unitCount);
+        $rowsOnPage = $bookings->getCollection()->count();
         $unitName = fn($key) => $key === $noUnitKey ? 'Tanpa unit kerja' : $key;
         $unitAnchor = fn($key, $i) => 'unit-' . $i . '-' . Str::slug($unitName($key));
 
@@ -162,16 +173,17 @@
                                 <span class="text-indigo-500">{!! $building('h-3.5 w-3.5 shrink-0') !!}</span>
                                 <span class="truncate font-semibold text-slate-700">{{ $unitKerja }}</span>
                             </span>
-                        @elseif($unitCount > 0)
-                            <span>{{ $unitCount }} unit kerja di halaman ini</span>
+                        @elseif($unitTotalCount > 0)
+                            <span>{{ $unitTotalCount }} unit kerja</span>
                         @endif
+                        <span>Yang aktif ditampilkan lebih dulu</span>
                         <span id="resultInfo" class="hidden font-semibold text-indigo-600"></span>
                     </div>
                 </div>
 
                 <div class="min-w-[76px] rounded-xl bg-slate-50 px-3.5 py-2 ring-1 ring-inset ring-slate-200/70">
                     <div class="text-lg font-extrabold leading-none tabular-nums text-slate-900">
-                        {{ $bookings->total() }}
+                        {{ $totalAll }}
                     </div>
                     <div class="mt-1 text-[11px] font-medium text-slate-500">Total rapat</div>
                 </div>
@@ -217,7 +229,7 @@
                                 class="inline-flex max-w-[220px] items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                                 <span class="truncate">{{ $unitName($key) }}</span>
                                 <span
-                                    class="rounded-full bg-slate-100 px-1.5 text-[11px] font-bold tabular-nums text-slate-500">{{ $items->count() }}</span>
+                                    class="rounded-full bg-slate-100 px-1.5 text-[11px] font-bold tabular-nums text-slate-500">{{ $unitTotals[$key] ?? $items->count() }}</span>
                             </a>
                         @endforeach
                     </div>
@@ -227,6 +239,7 @@
                 <div class="space-y-4 border-t border-slate-100 bg-slate-50/50 p-3 sm:p-5">
                     @foreach($byUnit as $key => $unitItems)
                         @php
+                            $uTotal = $unitTotals[$key] ?? $unitItems->count();
                             $uApproved = $unitItems->where('status', 'APPROVED')->count();
                             $uPending = $unitItems->where('status', 'PENDING')->count();
                             $uLive = $unitItems->filter(fn($x) => in_array($x->status, ['APPROVED', 'PENDING'], true)
@@ -249,7 +262,13 @@
                                 <div class="min-w-0 flex-1">
                                     <h3 class="truncate text-sm font-extrabold leading-tight text-slate-900">
                                         {{ $unitName($key) }}</h3>
-                                    <p class="mt-0.5 text-xs text-slate-500">{{ $unitItems->count() }} rapat</p>
+                                    <p class="mt-0.5 text-xs text-slate-500">
+                                        @if($uTotal > $unitItems->count())
+                                            {{ $unitItems->count() }} dari {{ $uTotal }} rapat
+                                        @else
+                                            {{ $uTotal }} rapat
+                                        @endif
+                                    </p>
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-1.5">
@@ -464,8 +483,8 @@
                 <div
                     class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/40 px-4 py-3 sm:px-5">
                     <span class="text-xs text-slate-400">
-                        Menampilkan {{ $bookings->firstItem() }}–{{ $bookings->lastItem() }} dari {{ $bookings->total() }}
-                        rapat
+                        Halaman {{ $curPage }} dari {{ $lastPage }}
+                        · menampilkan {{ $rowsOnPage }} dari {{ $totalAll }} rapat
                     </span>
                     <a href="{{ route('agenda') }}"
                         class="text-[13px] font-semibold text-indigo-600 hover:text-indigo-800">Buka agenda →</a>
@@ -473,10 +492,46 @@
             @endif
         </div>
 
-        @if($bookings->hasPages())
-            <div>
-                {{ $bookings->links() }}
-            </div>
+        {{-- ===== PAGINATION (halaman = kelanjutan tiap unit) ===== --}}
+        @if($lastPage > 1)
+            @php
+                $pages = collect(range(1, $lastPage))
+                    ->filter(fn($p) => $p === 1 || $p === $lastPage || abs($p - $curPage) <= 2)
+                    ->values();
+                $prevShown = null;
+                $pgBase = 'inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border px-3 text-[13px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500';
+            @endphp
+            <nav class="flex flex-wrap items-center justify-center gap-1.5" aria-label="Halaman">
+                @if($curPage > 1)
+                    <a href="{{ $bookings->url($curPage - 1) }}" rel="prev"
+                        class="{{ $pgBase }} border-slate-200 bg-white text-slate-600 hover:bg-slate-50">‹ Sebelumnya</a>
+                @else
+                    <span class="{{ $pgBase }} cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300">‹
+                        Sebelumnya</span>
+                @endif
+
+                @foreach($pages as $p)
+                    @if($prevShown !== null && $p - $prevShown > 1)
+                        <span class="px-1 text-slate-400">…</span>
+                    @endif
+                    @if($p === $curPage)
+                        <span aria-current="page"
+                            class="{{ $pgBase }} border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-600/25">{{ $p }}</span>
+                    @else
+                        <a href="{{ $bookings->url($p) }}"
+                            class="{{ $pgBase }} border-slate-200 bg-white text-slate-600 hover:bg-slate-50">{{ $p }}</a>
+                    @endif
+                    @php $prevShown = $p; @endphp
+                @endforeach
+
+                @if($curPage < $lastPage)
+                    <a href="{{ $bookings->url($curPage + 1) }}" rel="next"
+                        class="{{ $pgBase }} border-slate-200 bg-white text-slate-600 hover:bg-slate-50">Berikutnya ›</a>
+                @else
+                    <span class="{{ $pgBase }} cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300">Berikutnya
+                        ›</span>
+                @endif
+            </nav>
         @endif
     </div>
 

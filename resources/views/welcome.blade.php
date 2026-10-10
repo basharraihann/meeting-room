@@ -1260,11 +1260,20 @@
             })
         }
 
-        let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150) })
+        let rt, lastW = window.innerWidth
+        window.addEventListener('resize', () => {
+            if (window.innerWidth === lastW) return   // abaikan perubahan tinggi (address bar HP)
+            lastW = window.innerWidth
+            clearTimeout(rt); rt = setTimeout(render, 150)
+        })
+
         window.MAINTENANCE_ROOMS = []
         fetch('/api/maintenance-rooms').then(r => r.json()).then(ids => { window.MAINTENANCE_ROOMS = ids; render() }).catch(() => { })
 
         tickClock(); setInterval(tickClock, 30000)
+        buildFilters(); load()
+
+        // Desktop: fetch + render tiap 5 menit. HP/tablet: tidak ada auto-refresh.
         setInterval(() => {
             if (mobile()) return
             load(true)

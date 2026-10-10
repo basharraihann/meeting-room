@@ -47,7 +47,7 @@ class MyBookingController extends Controller
         // ===== 1) Jumlah sebenarnya per unit -> menentukan jumlah halaman =====
         $unitTotals = (clone $base)
             ->selectRaw("$unitExpr as u, COUNT(*) as c")
-            ->groupByRaw($unitExpr)
+            ->groupBy('u')                           // group by alias (aman untuk ONLY_FULL_GROUP_BY)
             ->pluck('c', 'u');                       // ['Biro A' => 230, '__none' => 3, ...]
 
         $totalAll = (int) $unitTotals->sum();

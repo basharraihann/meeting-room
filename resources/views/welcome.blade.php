@@ -1265,8 +1265,10 @@
         fetch('/api/maintenance-rooms').then(r => r.json()).then(ids => { window.MAINTENANCE_ROOMS = ids; render() }).catch(() => { })
 
         tickClock(); setInterval(tickClock, 30000)
-        setInterval(() => load(true), 60000) // segarkan jadwal & status tiap 1 menit
-        buildFilters(); load()
+        setInterval(() => {
+            if (mobile()) return
+            load(true)
+        }, 5 * 60 * 1000)
     </script>
 </body>
 

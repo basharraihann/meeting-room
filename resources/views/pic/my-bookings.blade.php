@@ -94,14 +94,14 @@
             <div class="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-3.5 sm:px-5">
 
                 {{-- Tab status --}}
-                <div class="-mx-1 max-w-full overflow-x-auto px-1">
+                <div class="-mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div class="inline-flex gap-0.5 rounded-lg bg-slate-200/60 p-0.5" role="tablist"
                         aria-label="Status">
                         @foreach($tabs as $key => $label)
                             @php $active = ($status === $key || (empty($status) && $key === '')); @endphp
                             <a href="{{ route('my_bookings.index', array_filter(['status' => $key, 'q' => $q, 'unit_kerja' => $unitKerja])) }}"
                                 role="tab" aria-selected="{{ $active ? 'true' : 'false' }}"
-                                class="whitespace-nowrap rounded-md px-3.5 py-1.5 text-[13px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 {{ $active ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">
+                                class="whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-semibold transition sm:px-3.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 {{ $active ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800' }}">
                                 {{ $label }}
                             </a>
                         @endforeach
@@ -113,7 +113,7 @@
                     class="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
                     @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
 
-                    <div class="relative w-full sm:w-72">
+                    <div class="relative order-1 min-w-0 flex-1 sm:order-none sm:w-72 sm:flex-none">
                         <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -138,7 +138,7 @@
                     </div>
 
                     @if($unitKerjaOptions->isNotEmpty())
-                        <div class="relative w-full sm:w-56">
+                        <div class="relative order-3 w-full sm:order-none sm:w-56">
                             <span
                                 class="pointer-events-none absolute inset-y-0 left-3 flex items-center {{ $unitKerja ? 'text-indigo-600' : 'text-slate-400' }}">
                                 {!! $building('h-4 w-4') !!}
@@ -154,14 +154,14 @@
                     @endif
 
                     <button type="submit"
-                        class="h-9 rounded-lg bg-indigo-600 px-4 text-[13px] font-semibold text-white shadow-sm shadow-indigo-600/25 transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                        class="order-2 h-9 shrink-0 rounded-lg bg-indigo-600 px-4 sm:order-none text-[13px] font-semibold text-white shadow-sm shadow-indigo-600/25 transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                         Cari
                     </button>
                 </form>
             </div>
 
             {{-- ===== RINGKASAN ===== --}}
-            <div class="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-5">
+            <div class="flex items-center justify-between gap-3 px-4 py-4 sm:gap-4 sm:px-5">
                 <div class="min-w-0">
                     <h2 class="text-lg font-extrabold leading-tight text-slate-900">Daftar rapat</h2>
                     <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
@@ -181,7 +181,7 @@
                     </div>
                 </div>
 
-                <div class="min-w-[76px] rounded-xl bg-slate-50 px-3.5 py-2 ring-1 ring-inset ring-slate-200/70">
+                <div class="min-w-[76px] shrink-0 rounded-xl bg-slate-50 px-3.5 py-2 ring-1 ring-inset ring-slate-200/70">
                     <div class="text-lg font-extrabold leading-none tabular-nums text-slate-900">
                         {{ $totalAll }}
                     </div>
@@ -222,11 +222,11 @@
             @else
                 {{-- ===== NAVIGASI CEPAT ANTAR UNIT ===== --}}
                 @if($unitCount > 1)
-                    <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 px-4 py-3 sm:px-5">
-                        <span class="mr-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Lompat ke</span>
+                    <div class="flex items-center gap-2 overflow-x-auto border-t border-slate-100 px-4 py-3 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:px-5 [&::-webkit-scrollbar]:hidden">
+                        <span class="mr-1 shrink-0 whitespace-nowrap text-[11px] font-semibold uppercase tracking-wide text-slate-400">Lompat ke</span>
                         @foreach($byUnit as $key => $items)
-                            <a href="#{{ $unitAnchor($key, $loop->index) }}"
-                                class="inline-flex max-w-[220px] items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                            <a href="#{{ $unitAnchor($key, $loop->index) }}" data-jump
+                                class="inline-flex max-w-[220px] shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                                 <span class="truncate">{{ $unitName($key) }}</span>
                                 <span
                                     class="rounded-full bg-slate-100 px-1.5 text-[11px] font-bold tabular-nums text-slate-500">{{ $unitTotals[$key] ?? $items->count() }}</span>
@@ -707,6 +707,19 @@
             });
 
             apply();
+        })();
+
+        /* ===== HP: unit dilipat (kecuali yang pertama); chip "Lompat ke" membuka unit tujuan ===== */
+        (function () {
+            const units = [...document.querySelectorAll('[data-unit]')];
+            const hasQuery = (document.getElementById('searchInput')?.value || '').trim() !== '';
+            if (window.matchMedia('(max-width: 639px)').matches && !hasQuery) {
+                units.forEach((u, i) => { u.open = i === 0; });
+            }
+            document.querySelectorAll('[data-jump]').forEach(a => a.addEventListener('click', () => {
+                const t = document.getElementById(a.getAttribute('href').slice(1));
+                if (t && t.tagName === 'DETAILS') t.open = true;
+            }));
         })();
     </script>
 </x-app-layout>

@@ -12,6 +12,7 @@ use App\Http\Controllers\MyBookingController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminRoomController;
+use App\Http\Controllers\RoomAvailabilityController;
 
 
 /*
@@ -73,6 +74,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/api/bookings', [BookingApiController::class, 'index'])
         ->name('api.bookings');
+
+    Route::get('/ruangan-kosong', RoomAvailabilityController::class)->name('rooms.available');
 
     /*
     |--------------------------------------------------------------------------

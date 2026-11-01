@@ -68,37 +68,6 @@
         return $wa ? 'https://wa.me/' . $wa . '?text=' . rawurlencode($text) : null;
     };
 
-    // ===== Rekomendasi ruangan kosong (untuk booking mendadak) =====
-    $jamTutup = 17; // jam kerja berakhir pukul 17.00
-    $closeTime = $now->copy()->setTime($jamTutup, 0);
-    $afterHours = $now->greaterThanOrEqualTo($closeTime);
-    $minDurasi = 30; // ruangan baru direkomendasikan jika kosong minimal 30 menit
-
-    // Kegiatan hari ini yang belum selesai (APPROVED dan PENDING dianggap memakai ruangan)
-    $dayBlocks = \App\Models\Booking::whereIn('status', ['APPROVED', 'PENDING'])
-        ->whereBetween('start_at', [$now->copy()->startOfDay(), $now->copy()->endOfDay()])
-        ->where('end_at', '>', $now)
-        ->orderBy('start_at')
-        ->get();
-
-    $recommendations = $afterHours ? collect() : $rooms
-        ->filter(fn($r) => !$r->maintenance)
-        ->map(function ($r) use ($dayBlocks, $now, $closeTime) {
-            $mine = $dayBlocks->where('room_id', $r->id);
-            $busy = $mine->first(fn($b) => Carbon::parse($b->start_at)->lessThanOrEqualTo($now));
-            if ($busy)
-                return null;
-            $next = $mine->first(fn($b) => Carbon::parse($b->start_at)->greaterThan($now));
-            $until = $next ? Carbon::parse($next->start_at) : $closeTime;
-            return ['room' => $r, 'until' => $until, 'minutes' => (int) $now->diffInMinutes($until), 'whole' => !$next];
-        })
-        ->filter(fn($x) => $x && $x['minutes'] >= $minDurasi)
-        ->sortByDesc('minutes')
-        ->values()
-        ->take(3);
-
-    $fmtDur = fn($m) => trim(($m >= 60 ? intdiv($m, 60) . ' j ' : '') . ($m % 60 ? ($m % 60) . ' m' : ''));
-
     // ===== Pengajuan saya (khusus PIC) =====
     // [label, kelas badge, kelas titik]
     $myStyles = [
@@ -355,84 +324,8 @@
             {{-- ===== Kolom kiri ===== --}}
             <div class="min-w-0 space-y-4 sm:space-y-5 xl:col-span-2">
 
-                {{-- 1. Rekomendasi ruangan --}}
-                <div id="rekomendasi-ruangan"
-                    class="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4 sm:p-5">
-                    <div class="mb-3">
-                        <h2 class="text-base font-bold text-slate-900 ">Rekomendasi Ruangan</h2>
-                        <p class="text-xs text-slate-500">Kosong sekarang, untuk rapat mendadak ·
-                            {{ $now->format('H.i') }}
-                        </p>
-                    </div>
-
-                    @if($afterHours)
-                        <p class="rounded-xl bg-white p-4 text-center text-sm text-slate-500">Sudah di luar jam kerja.
-                            Silakan ajukan untuk hari berikutnya.</p>
-                    @elseif($recommendations->isEmpty())
-                        <p class="rounded-xl bg-white p-4 text-center text-sm text-slate-500">Tidak ada ruangan yang
-                            kosong
-                            minimal {{ $minDurasi }} menit saat ini.</p>
-                    @else
-                        <div x-data="{
-                                        sel: @js($recommendations->first()['room']->id),
-                                        names: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['room']->name])),
-                                        untils: @js($recommendations->mapWithKeys(fn($r) => [$r['room']->id => $r['until']->format('H:i')])),
-                                        base: @js(route('calendar')),
-                                        get url() {
-                                            return this.base + '?room=' + encodeURIComponent(this.sel)
-                                                + '&date={{ $now->toDateString() }}&start={{ $now->format('H:i') }}'
-                                                + '&until=' + encodeURIComponent(this.untils[this.sel]);
-                                        }
-                                    }">
-                            <div class="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Pilih ruangan">
-                                @foreach($recommendations as $rec)
-                                    @php
-                                        $c = $roomColors[$rec['room']->id] ?? '#6366f1';
-                                        $rid = $rec['room']->id;
-                                    @endphp
-                                    <button type="button" role="radio" :aria-checked="sel === @js($rid)"
-                                        @click="sel = @js($rid)"
-                                        :class="sel === @js($rid) ? 'bg-white ring-2 ring-indigo-500' : 'bg-white ring-1 ring-slate-200 hover:ring-indigo-300'"
-                                        class="relative flex flex-col gap-2 rounded-xl p-3.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-                                        <div class="flex items-start gap-2.5">
-                                            <span class="mt-1 h-3 w-3 shrink-0 rounded-full"
-                                                style="background: {{ $c }}"></span>
-                                            <div class="min-w-0 flex-1 text-[13px] font-semibold leading-snug text-slate-900">
-                                                {{ $rec['room']->name }}
-                                            </div>
-                                            <span x-show="sel === @js($rid)" x-cloak
-                                                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
-                                                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                                                    aria-hidden="true">
-                                                    <path d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            </span>
-                                        </div>
-                                        <div class="text-xs text-slate-500">
-                                            @if($rec['whole'])
-                                                Kosong sampai jam kerja berakhir ({{ $rec['until']->format('H.i') }})
-                                            @else
-                                                Kosong sampai {{ $rec['until']->format('H.i') }}
-                                            @endif
-                                            · {{ $fmtDur($rec['minutes']) }}
-                                        </div>
-                                        @if($loop->first)
-                                            <span
-                                                class="w-fit rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700">Terlama</span>
-                                        @endif
-                                    </button>
-                                @endforeach
-                            </div>
-
-                            @if($isPic)
-                                <a :href="url"
-                                    class="mt-3 block rounded-xl bg-indigo-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
-                                    x-text="'Ajukan ' + names[sel]"></a>
-                            @endif
-                        </div>
-                    @endif
-                </div>
+                {{-- 1. Cari ruangan kosong (menggantikan Rekomendasi Ruangan) --}}
+                @include('dashboard.partials.cari-ruangan-kosong')
 
                 {{-- 2. Pengajuan saya (khusus PIC) --}}
                 @if($isPic)

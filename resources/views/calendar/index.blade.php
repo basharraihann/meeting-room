@@ -470,201 +470,201 @@
                             </div>
 
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                <div>
-                                    <label class="{{ $labelCls }}">Tanggal <span class="text-rose-500">*</span></label>
-                                    <input type="date" name="booking_date" x-model="bookingDate"
-                                        class="{{ $fieldCls }} bg-white" required />
+                                        <div>
+                                            <label class="{{ $labelCls }}">Tanggal <span class="text-rose-500">*</span></label>
+                                            <input type="date" name="booking_date" x-model="bookingDate"
+                                                class="{{ $fieldCls }} bg-white" required />
+                                        </div>
+
+                                        <div>
+                                            <label class="{{ $labelCls }}">Jam mulai <span class="text-rose-500">*</span></label>
+                                            <div class="relative">
+                                                <select name="start_time" x-model="startTime" @change="autoSetEndTime()"
+                                                    class="{{ $fieldCls }} bg-white pr-8 tabular-nums" style="{{ $noArrow }}"
+                                                    required>
+                                                    <option value="" disabled>Pilih</option>
+                                                    @foreach($times as $t)
+                                                        <option value="{{ $t }}">{{ $t }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <span
+                                                    class="{{ $selectArrow }} right-2.5">{!! $svg('chevron', 'h-4 w-4', '2') !!}</span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="{{ $labelCls }}">Jam selesai <span class="text-rose-500">*</span></label>
+                                            <div class="relative">
+                                                <select name="end_time" x-model="endTime"
+                                                    :class="timeInvalid ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-500/10' : ''"
+                                                    class="{{ $fieldCls }} bg-white pr-8 tabular-nums" style="{{ $noArrow }}"
+                                                    required>
+                                                    <option value="" disabled>Pilih</option>
+                                                    @foreach($times as $t)
+                                                        <option value="{{ $t }}">{{ $t }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <span
+                                                    class="{{ $selectArrow }} right-2.5">{!! $svg('chevron', 'h-4 w-4', '2') !!}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p x-show="timeInvalid" x-cloak class="mt-2.5 text-xs font-semibold text-rose-600">Jam selesai
+                                        harus setelah jam mulai.</p>
                                 </div>
 
+                                {{-- UNIT KERJA --}}
                                 <div>
-                                    <label class="{{ $labelCls }}">Jam mulai <span class="text-rose-500">*</span></label>
+                                    <label class="{{ $labelCls }}">Unit kerja <span class="text-rose-500">*</span></label>
                                     <div class="relative">
-                                        <select name="start_time" x-model="startTime" @change="autoSetEndTime()"
-                                            class="{{ $fieldCls }} bg-white pr-8 tabular-nums" style="{{ $noArrow }}"
-                                            required>
-                                            <option value="" disabled>Pilih</option>
-                                            @foreach($times as $t)
-                                                <option value="{{ $t }}">{{ $t }}</option>
+                                        <select name="unit_kerja" class="{{ $fieldCls }} pr-9" style="{{ $noArrow }}" required>
+                                            <option value="" disabled {{ old('unit_kerja') ? '' : 'selected' }}>Pilih unit kerja
+                                            </option>
+                                            @foreach($unitGroups as $groupLabel => $units)
+                                                <optgroup label="{{ $groupLabel }}">
+                                                    @foreach($units as $u)
+                                                        <option value="{{ $u }}" {{ old('unit_kerja') == $u ? 'selected' : '' }}>{{ $u }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
                                             @endforeach
                                         </select>
-                                        <span
-                                            class="{{ $selectArrow }} right-2.5">{!! $svg('chevron', 'h-4 w-4', '2') !!}</span>
+                                        <span class="{{ $selectArrow }} right-3">{!! $svg('chevron', 'h-4 w-4', '2') !!}</span>
                                     </div>
                                 </div>
 
+                                {{-- EMAIL --}}
                                 <div>
-                                    <label class="{{ $labelCls }}">Jam selesai <span class="text-rose-500">*</span></label>
-                                    <div class="relative">
-                                        <select name="end_time" x-model="endTime"
-                                            :class="timeInvalid ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-500/10' : ''"
-                                            class="{{ $fieldCls }} bg-white pr-8 tabular-nums" style="{{ $noArrow }}"
-                                            required>
-                                            <option value="" disabled>Pilih</option>
-                                            @foreach($times as $t)
-                                                <option value="{{ $t }}">{{ $t }}</option>
-                                            @endforeach
-                                        </select>
-                                        <span
-                                            class="{{ $selectArrow }} right-2.5">{!! $svg('chevron', 'h-4 w-4', '2') !!}</span>
-                                    </div>
+                                    <label class="{{ $labelCls }}">Email penerima notifikasi <span
+                                            class="text-rose-500">*</span></label>
+                                    <input type="email" name="applicant_email" value="{{ old('applicant_email') }}"
+                                        placeholder="email@domain.com" class="{{ $fieldCls }}" required />
+                                    <p class="mt-1.5 text-xs text-slate-400">Status persetujuan akan dikirim ke email ini.</p>
                                 </div>
                             </div>
 
-                            <p x-show="timeInvalid" x-cloak class="mt-2.5 text-xs font-semibold text-rose-600">Jam selesai
-                                harus setelah jam mulai.</p>
-                        </div>
-
-                        {{-- UNIT KERJA --}}
-                        <div>
-                            <label class="{{ $labelCls }}">Unit kerja <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <select name="unit_kerja" class="{{ $fieldCls }} pr-9" style="{{ $noArrow }}" required>
-                                    <option value="" disabled {{ old('unit_kerja') ? '' : 'selected' }}>Pilih unit kerja
-                                    </option>
-                                    @foreach($unitGroups as $groupLabel => $units)
-                                        <optgroup label="{{ $groupLabel }}">
-                                            @foreach($units as $u)
-                                                <option value="{{ $u }}" {{ old('unit_kerja') == $u ? 'selected' : '' }}>{{ $u }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                    @endforeach
-                                </select>
-                                <span class="{{ $selectArrow }} right-3">{!! $svg('chevron', 'h-4 w-4', '2') !!}</span>
+                            {{-- Footer --}}
+                            <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3.5">
+                                <button type="button" x-on:click="close()"
+                                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50">Batal</button>
+                                <button type="submit" :disabled="timeInvalid"
+                                    :class="hasWarning ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/25'"
+                                    class="rounded-lg px-5 py-2 text-[13px] font-semibold text-white shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    x-text="hasWarning ? 'Tetap kirim' : 'Kirim pengajuan'"></button>
                             </div>
-                        </div>
-
-                        {{-- EMAIL --}}
-                        <div>
-                            <label class="{{ $labelCls }}">Email penerima notifikasi <span
-                                    class="text-rose-500">*</span></label>
-                            <input type="email" name="applicant_email" value="{{ old('applicant_email') }}"
-                                placeholder="email@domain.com" class="{{ $fieldCls }}" required />
-                            <p class="mt-1.5 text-xs text-slate-400">Status persetujuan akan dikirim ke email ini.</p>
-                        </div>
+                        </form>
                     </div>
+                </div>
 
-                    {{-- Footer --}}
-                    <div class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3.5">
-                        <button type="button" x-on:click="close()"
-                            class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50">Batal</button>
-                        <button type="submit" :disabled="timeInvalid"
-                            :class="hasWarning ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/25'"
-                            class="rounded-lg px-5 py-2 text-[13px] font-semibold text-white shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            x-text="hasWarning ? 'Tetap kirim' : 'Kirim pengajuan'"></button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <script>
+                    function bookingModal() {
+                        const pad = (n) => String(n).padStart(2, '0')
+                        const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+                        const toTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`
 
-        <script>
-            function bookingModal() {
-                const pad = (n) => String(n).padStart(2, '0')
-                const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
-                const toTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`
+                        return {
+                            open: {{ ($errors->any() || session('pending_warning')) ? 'true' : 'false' }},
+                            hasWarning: @json((bool) session('pending_warning')),
+                            prefill: @json($prefill),
+                            bookingDate: @json(old('booking_date', '')),
+                            startTime: @json(old('start_time', '')),
+                            endTime: @json(old('end_time', '')),
+                            roomId: @json((string) old('room_id', '')),
+                            roomName: '',
+                            lockRoom: false,
 
-                return {
-                    open: {{ ($errors->any() || session('pending_warning')) ? 'true' : 'false' }},
-                    hasWarning: @json((bool) session('pending_warning')),
-                    prefill: @json($prefill),
-                    bookingDate: @json(old('booking_date', '')),
-                    startTime: @json(old('start_time', '')),
-                    endTime: @json(old('end_time', '')),
-                    roomId: @json((string) old('room_id', '')),
-                    roomName: '',
-                    lockRoom: false,
+                            // Durasi rapat (badge di bagian Jadwal)
+                            get minutes() {
+                                if (!this.startTime || !this.endTime) return null
+                                return toMin(this.endTime) - toMin(this.startTime)
+                            },
+                            get timeInvalid() { return this.minutes !== null && this.minutes <= 0 },
+                            get duration() {
+                                const m = this.minutes
+                                if (m === null || m <= 0) return ''
+                                return (m >= 60 ? Math.floor(m / 60) + ' jam ' : '') + (m % 60 ? (m % 60) + ' menit' : '')
+                            },
 
-                    // Durasi rapat (badge di bagian Jadwal)
-                    get minutes() {
-                        if (!this.startTime || !this.endTime) return null
-                        return toMin(this.endTime) - toMin(this.startTime)
-                    },
-                    get timeInvalid() { return this.minutes !== null && this.minutes <= 0 },
-                    get duration() {
-                        const m = this.minutes
-                        if (m === null || m <= 0) return ''
-                        return (m >= 60 ? Math.floor(m / 60) + ' jam ' : '') + (m % 60 ? (m % 60) + ' menit' : '')
-                    },
+                            init() {
+                                this.syncWithSidebar()
 
-                    init() {
-                        this.syncWithSidebar()
+                                    // Ubah ruangan/jadwal -> peringatan & konfirmasi tidak berlaku lagi
+                                    ;['roomId', 'bookingDate', 'startTime', 'endTime'].forEach((k) =>
+                                        this.$watch(k, () => { this.hasWarning = false })
+                                    )
 
-                            // Ubah ruangan/jadwal -> peringatan & konfirmasi tidak berlaku lagi
-                            ;['roomId', 'bookingDate', 'startTime', 'endTime'].forEach((k) =>
-                                this.$watch(k, () => { this.hasWarning = false })
-                            )
+                                if (!this.prefill) return
 
-                        if (!this.prefill) return
+                                const p = this.prefill
+                                const go = () => window.dispatchEvent(new CustomEvent('open-booking-modal', { detail: { prefill: p } }))
 
-                        const p = this.prefill
-                        const go = () => window.dispatchEvent(new CustomEvent('open-booking-modal', { detail: { prefill: p } }))
+                                setTimeout(() => {
+                                    if (p.is_abt) {
+                                        // Ruang ABT: tetap lewat modal konfirmasi, form baru terbuka setelah "Ya, Lanjutkan"
+                                        const btn = document.querySelector('.room-filter[data-room-name="Ruang Rapat ABT"]')
+                                        const gate = document.querySelector('[x-data="abtGateModal()"]')
+                                        if (btn && gate && window.Alpine) window.Alpine.$data(gate).show(btn, go)
+                                        return
+                                    }
+                                    go()
+                                }, 0)
 
-                        setTimeout(() => {
-                            if (p.is_abt) {
-                                // Ruang ABT: tetap lewat modal konfirmasi, form baru terbuka setelah "Ya, Lanjutkan"
-                                const btn = document.querySelector('.room-filter[data-room-name="Ruang Rapat ABT"]')
-                                const gate = document.querySelector('[x-data="abtGateModal()"]')
-                                if (btn && gate && window.Alpine) window.Alpine.$data(gate).show(btn, go)
-                                return
-                            }
-                            go()
-                        }, 0)
+                                // Bersihkan parameter supaya refresh tidak membuka form lagi
+                                history.replaceState(null, '', window.location.pathname)
+                            },
 
-                        // Bersihkan parameter supaya refresh tidak membuka form lagi
-                        history.replaceState(null, '', window.location.pathname)
-                    },
+                            // Preselect ruangan sesuai pilihan di sidebar (kalau bukan "Semua" & tidak maintenance)
+                            syncWithSidebar() {
+                                if (this.lockRoom) return
+                                if (window.activeRoomId && !window.activeRoomMaintenance) {
+                                    this.roomId = String(window.activeRoomId)
+                                }
+                            },
 
-                    // Preselect ruangan sesuai pilihan di sidebar (kalau bukan "Semua" & tidak maintenance)
-                    syncWithSidebar() {
-                        if (this.lockRoom) return
-                        if (window.activeRoomId && !window.activeRoomMaintenance) {
-                            this.roomId = String(window.activeRoomId)
+                            openModal(payload = {}) {
+                                this.lockRoom = false
+                                this.open = true
+                                this.syncWithSidebar()
+
+                                if (payload.start) {
+                                    const [date, time] = payload.start.split('T')
+                                    this.bookingDate = date
+                                    // jam dari klik kalender (abaikan 00:00 dari tombol "Ajukan Rapat")
+                                    if (time && time.slice(0, 5) !== '00:00') {
+                                        this.startTime = time.slice(0, 5)
+                                        this.endTime = ''
+                                        this.autoSetEndTime()
+                                    }
+                                } else if (!this.bookingDate) {
+                                    const t = new Date()
+                                    this.bookingDate = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`
+                                }
+
+                                // Isi dari rekomendasi dashboard
+                                const p = payload.prefill
+                                if (p) {
+                                    this.lockRoom = true
+                                    this.roomId = String(p.room_id)
+                                    this.roomName = p.room_name
+                                    this.bookingDate = p.date
+                                    if (p.start) { this.startTime = p.start; this.endTime = p.end }
+                                }
+                            },
+
+                            // Jam selesai otomatis = jam mulai + 1 jam (maks 21:00), kalau kosong / tidak valid
+                            autoSetEndTime() {
+                                if (!this.startTime) return
+                                const s = toMin(this.startTime)
+                                if (!this.endTime || toMin(this.endTime) <= s) {
+                                    this.endTime = toTime(Math.min(s + 60, 21 * 60))
+                                }
+                            },
+
+                            close() { this.open = false }
                         }
-                    },
-
-                    openModal(payload = {}) {
-                        this.lockRoom = false
-                        this.open = true
-                        this.syncWithSidebar()
-
-                        if (payload.start) {
-                            const [date, time] = payload.start.split('T')
-                            this.bookingDate = date
-                            // jam dari klik kalender (abaikan 00:00 dari tombol "Ajukan Rapat")
-                            if (time && time.slice(0, 5) !== '00:00') {
-                                this.startTime = time.slice(0, 5)
-                                this.endTime = ''
-                                this.autoSetEndTime()
-                            }
-                        } else if (!this.bookingDate) {
-                            const t = new Date()
-                            this.bookingDate = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`
-                        }
-
-                        // Isi dari rekomendasi dashboard
-                        const p = payload.prefill
-                        if (p) {
-                            this.lockRoom = true
-                            this.roomId = String(p.room_id)
-                            this.roomName = p.room_name
-                            this.bookingDate = p.date
-                            if (p.start) { this.startTime = p.start; this.endTime = p.end }
-                        }
-                    },
-
-                    // Jam selesai otomatis = jam mulai + 1 jam (maks 21:00), kalau kosong / tidak valid
-                    autoSetEndTime() {
-                        if (!this.startTime) return
-                        const s = toMin(this.startTime)
-                        if (!this.endTime || toMin(this.endTime) <= s) {
-                            this.endTime = toTime(Math.min(s + 60, 21 * 60))
-                        }
-                    },
-
-                    close() { this.open = false }
-                }
-            }
-        </script>
+                    }
+                </script>
     @endif
 
     {{-- Modal Konfirmasi Ruang Rapat ABT --}}

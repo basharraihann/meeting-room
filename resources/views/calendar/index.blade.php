@@ -192,8 +192,8 @@
                         <button type="button" data-room-id="{{ $room->id }}" data-room-name="{{ $room->name }}"
                             data-maintenance="{{ $room->maintenance ? '1' : '0' }}" {!! $room->maintenance ? 'disabled title="Ruangan sedang dalam perbaikan"' : '' !!}
                             class="room-filter {{ (string) $activeRoomId === (string) $room->id ? 'is-active' : '' }}">
-                            <span class="h-3 w-3 shrink-0 rounded-full"
-                                style="background: {{ $dotColor }}; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px {{ $dotColor }};"></span>
+                            <span class="room-dot h-3 w-3 shrink-0 rounded-full"
+                                style="background: {{ $dotColor }}; --dot: {{ $dotColor }};"></span>
                             <span class="flex-1 truncate">{{ $room->name }}</span>
                             @if($room->maintenance)
                                 <span
@@ -1145,6 +1145,15 @@
             background: #eef2ff;
             color: #3730a3;
             border-color: #c7d2fe;
+        }
+
+        /* Lingkaran luar pada dot hanya muncul di ruangan yang sedang dipilih */
+        .room-filter .room-dot {
+            transition: box-shadow .15s;
+        }
+
+        .room-filter.is-active .room-dot {
+            box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--dot);
         }
 
         .room-filter .room-check {

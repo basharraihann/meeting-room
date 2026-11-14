@@ -355,10 +355,12 @@
 
                                                         {{-- Rapat --}}
                                                         <div class="min-w-0">
-                                                            <div class="truncate text-sm font-semibold text-slate-900"
-                                                                title="{{ $b->title }}">{{ $b->title }}</div>
+                                                            {{-- Judul tampil penuh (wrap ke bawah) --}}
+                                                            <div class="break-words text-sm font-semibold leading-snug text-slate-900">
+                                                                {{ $b->title }}</div>
                                                             @if($b->unit_kerja || $b->description || $multiRoom)
-                                                                <div class="mt-1 flex min-w-0 items-center gap-2 text-xs text-slate-500">
+                                                                <div
+                                                                    class="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
                                                                     @if($multiRoom && !$conflict)
                                                                         <span
                                                                             class="inline-flex shrink-0 items-center gap-1.5 font-medium text-slate-600">
@@ -368,15 +370,13 @@
                                                                     @endif
                                                                     @if($b->unit_kerja)
                                                                         <span
-                                                                            class="inline-flex min-w-0 max-w-[65%] shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100"
-                                                                            title="{{ $b->unit_kerja }}">
+                                                                            class="inline-flex min-w-0 max-w-full shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
                                                                             {!! $svg('building', 'h-3 w-3 shrink-0', '2') !!}
-                                                                            <span class="truncate">{{ $b->unit_kerja }}</span>
+                                                                            <span class="break-words">{{ $b->unit_kerja }}</span>
                                                                         </span>
                                                                     @endif
                                                                     @if($b->description)
-                                                                        <span class="truncate"
-                                                                            title="{{ $b->description }}">{{ Str::limit($b->description, 80) }}</span>
+                                                                        <span class="min-w-0 break-words">{{ $b->description }}</span>
                                                                     @endif
                                                                 </div>
                                                             @endif
@@ -443,7 +443,7 @@
                                                                                 <div class="min-w-0">
                                                                                     <h3 class="text-base font-extrabold text-slate-900">
                                                                                         Tolak permohonan</h3>
-                                                                                    <p class="mt-0.5 truncate text-xs text-slate-500">
+                                                                                    <p class="mt-0.5 break-words text-xs text-slate-500">
                                                                                         {{ $b->title }} · {{ $picName }}
                                                                                     </p>
                                                                                 </div>
@@ -687,9 +687,10 @@
 
                                             {{-- Rapat --}}
                                             <div class="min-w-0 {{ $dim ? 'opacity-70' : '' }}">
-                                                <div class="truncate text-sm font-semibold text-slate-900" title="{{ $b->title }}">
+                                                {{-- Judul tampil penuh (wrap ke bawah) --}}
+                                                <div class="break-words text-sm font-semibold leading-snug text-slate-900">
                                                     {{ $b->title }}</div>
-                                                <div class="mt-1 flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500">
+                                                <div class="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
                                                     @if(!$roomId)
                                                         <span class="inline-flex shrink-0 items-center gap-1.5 font-medium text-slate-600">
                                                             <span class="h-2 w-2 rounded-full"
@@ -698,10 +699,9 @@
                                                     @endif
                                                     @if($b->unit_kerja)
                                                         <span
-                                                            class="inline-flex min-w-0 max-w-[65%] shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100"
-                                                            title="{{ $b->unit_kerja }}">
+                                                            class="inline-flex min-w-0 max-w-full shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
                                                             {!! $svg('building', 'h-3 w-3 shrink-0', '2') !!}
-                                                            <span class="truncate">{{ $b->unit_kerja }}</span>
+                                                            <span class="break-words">{{ $b->unit_kerja }}</span>
                                                         </span>
                                                     @endif
                                                 </div>
@@ -709,7 +709,7 @@
                                                     <div
                                                         class="mt-1.5 inline-flex max-w-full items-start gap-1.5 rounded-md bg-slate-50 px-2 py-1 text-[11px] text-slate-500 ring-1 ring-inset ring-slate-200">
                                                         <span class="shrink-0 font-semibold">Catatan:</span>
-                                                        <span class="min-w-0">{{ $b->tu_note }}</span>
+                                                        <span class="min-w-0 break-words">{{ $b->tu_note }}</span>
                                                     </div>
                                                 @endif
                                             </div>
@@ -761,8 +761,8 @@
                                                                     <div class="min-w-0">
                                                                         <h3 class="text-base font-extrabold text-slate-900">Batalkan
                                                                             approval</h3>
-                                                                        <p class="mt-0.5 truncate text-xs text-slate-500">{{ $b->title }}
-                                                                        </p>
+                                                                        <p class="mt-0.5 break-words text-xs text-slate-500">
+                                                                            {{ $b->title }}</p>
                                                                     </div>
                                                                 </div>
                                                                 <button type="button" @click="openCancel = false" aria-label="Tutup"
